@@ -1,19 +1,19 @@
-Java Launcher: C:\Program Files\Java\jdk1.8.0_291\bin\java.exe
-Arguments: '--in-jar, C:\Users\Owner\Desktop\aegissystem\modfix\build\libs\modfix-1.0-SNAPSHOT.jar, --out-jar, C:\Users\Owner\Desktop\aegissystem\modfix\build\reobfShadowJar\output.jar, --srg-in, C:\Users\Owner\Desktop\aegissystem\modfix\build\createMcpToSrg\output.tsrg, --srg-in, C:\Users\Owner\Desktop\aegissystem\modfix\build\tmp\compileJava\compileJava-mappings.tsrg, --live'
+Java Launcher: C:\Program Files\Java\jre-1.8\bin\java.exe
+Arguments: '--in-jar, F:\desktops\aegissystem\modfix\build\libs\modfix-1.0-SNAPSHOT.jar, --out-jar, F:\desktops\aegissystem\modfix\build\reobfShadowJar\output.jar, --srg-in, F:\desktops\aegissystem\modfix\build\createMcpToSrg\output.tsrg, --srg-in, F:\desktops\aegissystem\modfix\build\tmp\compileJava\compileJava-mappings.tsrg, --live'
 Classpath:
  - C:\Users\Owner\.gradle\caches\forge_gradle\maven_downloader\net\md-5\SpecialSource\1.11.0\SpecialSource-1.11.0-shaded.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\astralsorcery-1.12.2-1.10.27.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\Baubles-1.12-1.5.2.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\Chameleon-1.12-4.1.3.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\extrautils2-1.12-1.9.9.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\GVCReversion2__1.12.2__Î±.4.6.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\ImmersiveEngineering-0.12-98.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\MCUtils-v3.8-1.12.2.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\OptiFine_1.12.2_HD_U_F5.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\ProjectE-1.12.2-PE1.4.1.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\modsrc\StorageDrawers-1.12.2-5.4.2.jar
+ - F:\desktops\aegissystem\modfix\modsrc\astralsorcery-1.12.2-1.10.27.jar
+ - F:\desktops\aegissystem\modfix\modsrc\Baubles-1.12-1.5.2.jar
+ - F:\desktops\aegissystem\modfix\modsrc\Chameleon-1.12-4.1.3.jar
+ - F:\desktops\aegissystem\modfix\modsrc\extrautils2-1.12-1.9.9.jar
+ - F:\desktops\aegissystem\modfix\modsrc\GVCReversion2__1.12.2__ƒ¿.4.6.jar
+ - F:\desktops\aegissystem\modfix\modsrc\ImmersiveEngineering-0.12-98.jar
+ - F:\desktops\aegissystem\modfix\modsrc\MCUtils-v3.8-1.12.2.jar
+ - F:\desktops\aegissystem\modfix\modsrc\OptiFine_1.12.2_HD_U_F5.jar
+ - F:\desktops\aegissystem\modfix\modsrc\ProjectE-1.12.2-PE1.4.1.jar
+ - F:\desktops\aegissystem\modfix\modsrc\StorageDrawers-1.12.2-5.4.2.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\org.spongepowered\mixin\0.8.3\5b08b203d5c601e2393be5cf9b4d39c26d12eb5f\mixin-0.8.3.jar
- - C:\Users\Owner\Desktop\aegissystem\modfix\build\fg_cache\net\minecraftforge\forge\1.12.2-14.23.5.2860_mapped_stable_39-1.12\forge-1.12.2-14.23.5.2860_mapped_stable_39-1.12.jar
+ - F:\desktops\aegissystem\modfix\build\fg_cache\net\minecraftforge\forge\1.12.2-14.23.5.2860_mapped_stable_39-1.12\forge-1.12.2-14.23.5.2860_mapped_stable_39-1.12-recomp.jar
  - C:\Users\Owner\.gradle\caches\forge_gradle\minecraft_repo\versions\1.12.2\client-extra.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\com.mojang\authlib\1.5.25\9834cdf236c22e84b946bba989e2f94ef5897c3c\authlib-1.5.25.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\com.google.code.findbugs\jsr305\3.0.1\f7be08ec23c21485b9b5a1cf1654c2ec8c58168d\jsr305-3.0.1.jar
@@ -76,7 +76,7 @@ Classpath:
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\org.lwjgl.lwjgl\lwjgl-platform\2.9.4-nightly-20150209\931074f46c795d2f7b30ed6395df5715cfd7675b\lwjgl-platform-2.9.4-nightly-20150209-natives-linux.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\org.lwjgl.lwjgl\lwjgl-platform\2.9.4-nightly-20150209\bcab850f8f487c3f4c4dbabde778bb82bd1a40ed\lwjgl-platform-2.9.4-nightly-20150209-natives-osx.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\org.codehaus.plexus\plexus-utils\3.1.0\60eecb6f15abdb1c653ad80abaac6fe188b3feaa\plexus-utils-3.1.0.jar
-Working directory: C:\Users\Owner\Desktop\aegissystem\modfix\build\reobfShadowJar
+Working directory: F:\desktops\aegissystem\modfix\build\reobfShadowJar
 Main class: net.md_5.specialsource.SpecialSource
 ====================================
 Loading mappings

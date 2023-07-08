@@ -1,4 +1,4 @@
-buildscript {
+/*buildscript {
     repositories {
         // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
         maven { url = 'https://maven.minecraftforge.net' }
@@ -13,15 +13,16 @@ buildscript {
         classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.1"
         //classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
-}
+}*/
 
 plugins {
     id "io.github.CDAGaming.cursegradle" version "1.6.0"
+    id 'net.minecraftforge.gradle' version "5.1.+"
+    id 'org.spongepowered.mixin' version "0.7.+"
+    id "com.github.johnrengelman.shadow" version "7.1.1"
 }
 
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.spongepowered.mixin'
-apply plugin: "com.github.johnrengelman.shadow"
+
 
 group = 'com.aki'
 version = '1.0-SNAPSHOT'
