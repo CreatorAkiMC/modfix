@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="astralsorcery-1.12.2-1.10.27">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/modsrc/astralsorcery-1.12.2-1.10.27.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

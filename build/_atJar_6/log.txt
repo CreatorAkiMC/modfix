@@ -1,0 +1,7 @@
+Java Launcher: C:\Program Files\Java\jdk1.8.0_291\bin\java.exe
+Arguments: '--inJar, C:\Users\Owner\Desktop\aegissystem\modfix\build\fg_cache\net\minecraftforge\forge\1.12.2-14.23.5.2860\forge-1.12.2-14.23.5.2860-injected.jar, --outJar, C:\Users\Owner\Desktop\aegissystem\modfix\build\fg_cache\net\minecraftforge\forge\1.12.2-14.23.5.2860_mapped_stable_39-1.12\forge-1.12.2-14.23.5.2860_mapped_stable_39-1.12.jar, --logFile, accesstransform.log, --atFile, C:\Users\Owner\Desktop\aegissystem\modfix\src\main\resources\META-INF\modfix_at.cfg, --atFile, C:\Users\Owner\Desktop\aegissystem\modfix\build\_atJar_6\parent_at.cfg'
+Classpath:
+ - C:\Users\Owner\.gradle\caches\forge_gradle\maven_downloader\net\minecraftforge\accesstransformers\8.0.7\accesstransformers-8.0.7-fatjar.jar
+Working directory: C:\Users\Owner\Desktop\aegissystem\modfix\build\_atJar_6
+Main class: net.minecraftforge.accesstransformer.TransformerProcessor
+====================================

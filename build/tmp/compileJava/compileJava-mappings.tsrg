@@ -1,0 +1,84 @@
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiControls buttonReset field_146493_s
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiControls screenTitle field_146495_a
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiControls OPTIONS_ARR field_146492_g
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiControls buttonId field_146491_f
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiControls options field_146497_i
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiControls parentScreen field_146496_h
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiControls time field_152177_g
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiNewChat drawnChatLines field_146253_i
+com/aki/modfix/mixin/vanilla/keybind/MixinGuiNewChat chatLines field_146252_h
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBinding keyCode field_74512_d
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings LOGGER field_151454_ax
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings invertMouse field_74338_d
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings mouseSensitivity field_74341_c
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings fovSetting field_74334_X
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings gammaSetting field_74333_Y
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings saturation field_151452_as
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings renderDistanceChunks field_151451_c
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings guiScale field_74335_Z
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings particleSetting field_74362_aa
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings viewBobbing field_74336_f
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings anaglyph field_74337_g
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings limitFramerate field_74350_i
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings fboEnable field_151448_g
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings difficulty field_74318_M
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings fancyGraphics field_74347_j
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings ambientOcclusion field_74348_k
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings clouds field_74345_l
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings GSON field_151450_ay
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings resourcePacks field_151453_l
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings incompatibleResourcePacks field_183018_l
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings lastServer field_74332_R
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings language field_74363_ab
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatVisibility field_74343_n
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatColours field_74344_o
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatLinks field_74359_p
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatLinksPrompt field_74358_q
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatOpacity field_74357_r
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings snooperEnabled field_74355_t
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings fullScreen field_74353_u
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings enableVsync field_74352_v
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings useVbo field_178881_t
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings hideServerAddress field_80005_w
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings advancedItemTooltips field_82882_x
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings pauseOnLostFocus field_82881_y
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings touchscreen field_85185_A
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings overrideWidth field_92118_B
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings overrideHeight field_92119_C
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings heldItemTooltips field_92117_D
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatHeightFocused field_96694_H
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatHeightUnfocused field_96693_G
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatScale field_96691_E
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings chatWidth field_96692_F
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings mipmapLevels field_151442_I
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings forceUnicodeFont field_151455_aw
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings reducedDebugInfo field_178879_v
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings useNativeTransport field_181150_U
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings entityShadows field_181151_V
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings mainHand field_186715_A
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings attackIndicator field_186716_M
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings showSubtitles field_186717_N
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings realmsNotifications field_183509_X
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings enableWeakAttacks field_189422_N
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings autoJump field_189989_R
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings narrator field_192571_R
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings tutorialStep field_193631_S
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings setModelParts field_178882_aU
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings optionsFile field_74354_ai
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings soundLevels field_186714_aM
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings COLON_SPLITTER field_189990_a
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings TYPE_LIST_STRING field_151449_az
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings keyBindings field_74324_K
+com/aki/modfix/mixin/immersiveengineering/MixinBlockIEBase getMetaFromState (Lnet/minecraft/block/state/IBlockState;)I func_176201_c
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings getSoundLevel (Lnet/minecraft/util/SoundCategory;)F func_186711_a
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings sendSettingsToServer ()V func_82879_c
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings dataFix (Lnet/minecraft/nbt/NBTTagCompound;)Lnet/minecraft/nbt/NBTTagCompound; func_189988_a
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings parseFloat (Ljava/lang/String;)F func_74305_a
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings setModelPartEnabled (Lnet/minecraft/entity/player/EnumPlayerModelParts;Z)V func_178878_a
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings loadOptions ()V func_74300_a
+com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings saveOptions ()V func_74303_b
+com/aki/modfix/mixin/vanilla/ray/MixinWorldFastRay getBlockState (Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/state/IBlockState; func_180495_p
+com/aki/modfix/mixin/vanilla/ray/MixinWorldFastRay spawnParticle (Lnet/minecraft/util/EnumParticleTypes;DDDDDD[I)V func_175688_a
+com/aki/modfix/mixin/vanilla/ray/MixinWorldFastRay spawnParticle (Lnet/minecraft/util/EnumParticleTypes;ZDDDDDD[I)V func_175682_a
+com/aki/modfix/mixin/vanilla/ray/MixinWorldFastRay spawnParticle (IZDDDDDD[I)V func_175720_a
+com/aki/modfix/mixin/vanilla/ray/MixinWorldFastRay rayTraceBlocks (Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;ZZZ)Lnet/minecraft/util/math/RayTraceResult; func_147447_a

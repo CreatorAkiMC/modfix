@@ -1,0 +1,40 @@
+{
+  "mappings": {
+    "com/aki/modfix/mixin/vanilla/keybind/MixinKeyBinding": {
+      "onTick": "Lnet/minecraft/client/settings/KeyBinding;func_74507_a(I)V",
+      "<init>(Ljava/lang/String;Lnet/minecraftforge/client/settings/IKeyConflictContext;Lnet/minecraftforge/client/settings/KeyModifier;ILjava/lang/String;)V": "Lnet/minecraft/client/settings/KeyBinding;<init>(Ljava/lang/String;Lnet/minecraftforge/client/settings/IKeyConflictContext;Lnet/minecraftforge/client/settings/KeyModifier;ILjava/lang/String;)V"
+    },
+    "com/aki/modfix/mixin/vanilla/rendering/MixinClientChunkProvider": {
+      "loadChunk": "Lnet/minecraft/client/multiplayer/ChunkProviderClient;func_73158_c(II)Lnet/minecraft/world/chunk/Chunk;",
+      "unloadChunk": "Lnet/minecraft/client/multiplayer/ChunkProviderClient;func_73234_b(II)V"
+    },
+    "com/aki/modfix/mixin/vanilla/rendering/MixinRenderGlobal": {
+      "setupTerrain": "Lnet/minecraft/client/renderer/RenderGlobal;func_174970_a(Lnet/minecraft/entity/Entity;DLnet/minecraft/client/renderer/culling/ICamera;IZ)V",
+      "stopChunkUpdates": "Lnet/minecraft/client/renderer/RenderGlobal;func_174986_e()V"
+    },
+    "com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings": {
+      "<init>()V": "Lnet/minecraft/client/settings/GameSettings;<init>()V",
+      "<init>(Lnet/minecraft/client/Minecraft;Ljava/io/File;)V": "Lnet/minecraft/client/settings/GameSettings;<init>(Lnet/minecraft/client/Minecraft;Ljava/io/File;)V"
+    }
+  },
+  "data": {
+    "searge": {
+      "com/aki/modfix/mixin/vanilla/keybind/MixinKeyBinding": {
+        "onTick": "Lnet/minecraft/client/settings/KeyBinding;func_74507_a(I)V",
+        "<init>(Ljava/lang/String;Lnet/minecraftforge/client/settings/IKeyConflictContext;Lnet/minecraftforge/client/settings/KeyModifier;ILjava/lang/String;)V": "Lnet/minecraft/client/settings/KeyBinding;<init>(Ljava/lang/String;Lnet/minecraftforge/client/settings/IKeyConflictContext;Lnet/minecraftforge/client/settings/KeyModifier;ILjava/lang/String;)V"
+      },
+      "com/aki/modfix/mixin/vanilla/rendering/MixinClientChunkProvider": {
+        "loadChunk": "Lnet/minecraft/client/multiplayer/ChunkProviderClient;func_73158_c(II)Lnet/minecraft/world/chunk/Chunk;",
+        "unloadChunk": "Lnet/minecraft/client/multiplayer/ChunkProviderClient;func_73234_b(II)V"
+      },
+      "com/aki/modfix/mixin/vanilla/rendering/MixinRenderGlobal": {
+        "setupTerrain": "Lnet/minecraft/client/renderer/RenderGlobal;func_174970_a(Lnet/minecraft/entity/Entity;DLnet/minecraft/client/renderer/culling/ICamera;IZ)V",
+        "stopChunkUpdates": "Lnet/minecraft/client/renderer/RenderGlobal;func_174986_e()V"
+      },
+      "com/aki/modfix/mixin/vanilla/keybind/MixinKeyBindingGameSettings": {
+        "<init>()V": "Lnet/minecraft/client/settings/GameSettings;<init>()V",
+        "<init>(Lnet/minecraft/client/Minecraft;Ljava/io/File;)V": "Lnet/minecraft/client/settings/GameSettings;<init>(Lnet/minecraft/client/Minecraft;Ljava/io/File;)V"
+      }
+    }
+  }
+}
