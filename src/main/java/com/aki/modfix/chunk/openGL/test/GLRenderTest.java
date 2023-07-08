@@ -1,8 +1,5 @@
 package com.aki.modfix.chunk.openGL.test;
 
-import com.aki.mcutils.APICore.GL.jglm.Mat4;
-import com.aki.mcutils.APICore.GL.jglm.Matrices;
-import com.aki.mcutils.APICore.GL.jglm.Vec3;
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import com.aki.mcutils.APICore.program.shader.ShaderHelper;
@@ -11,7 +8,6 @@ import com.aki.mcutils.APICore.program.shader.ShaderProgram;
 import com.aki.modfix.chunk.GLSytem.GLMutableArrayBuffer;
 import com.aki.modfix.chunk.GLSytem.GlCommandBuffer;
 import com.aki.modfix.chunk.GLSytem.GlMutableBuffer;
-import net.minecraft.client.Minecraft;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 
@@ -167,12 +163,27 @@ public class GLRenderTest {
         //Matrix指定
         GLUtils.setMatrix(projectionMatrixIndex, mat4f);
 
-        int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
+
 
         this.VaoBuffer.bind();/*
         this.VertexBuffer.bind(RenderBufferMode);
         this.PosBuffer.bind(RenderBufferMode);
         this.ColorBuffer.bind(RenderBufferMode);*/
+
+        this.commandBuffer.bind(bufferMode);
+        this.commandBuffer.begin();
+
+        for(int i = 0; i < 10; i++) {
+            //first (初期) 0, 頂点(四角) 4, BaseInstance i, instanceCount 1
+            this.commandBuffer.addIndirectDrawCall(0, 4, i, 1);
+        }
+
+        this.commandBuffer.end();
+        this.commandBuffer.unbind(bufferMode);
+
+        int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
+
+        this.commandBuffer.bind(RenderBufferMode);
 
         /**
          * レンダーリング
@@ -185,6 +196,7 @@ public class GLRenderTest {
         //ARBMultiDrawIndirect.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, 10, 0);
         //GL31.glDrawArraysInstanced(GL11.GL_QUADS, 0, 10, 10);
 
+        this.commandBuffer.unbind(RenderBufferMode);
 
         this.VaoBuffer.unbind();
 
