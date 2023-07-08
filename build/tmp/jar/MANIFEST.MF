@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
 Implementation-Title: modfix
-Implementation-Version: 1.0-SNAPSHOT
+Implementation-Version: 1.0.0-SNAPSHOT
 FMLCorePluginContainsFMLMod: true
 FMLAT: modfix_at.cfg
 Specification-Title: modsfix
-Implementation-Timestamp: 2023-07-08T22:09:35+0900
+Implementation-Timestamp: 2023-07-08T23:01:16+0900
 TweakClass: org.spongepowered.asm.launch.MixinTweaker
 ForceLoadAsMod: true
 FMLCorePlugin: com.aki.modfix.MixinModLoadConfig

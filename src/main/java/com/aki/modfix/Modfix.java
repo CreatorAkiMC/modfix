@@ -29,7 +29,7 @@ public class Modfix {
 
     public static final String MOD_ID = "modfix";
     public static final String MOD_NAME = "Modsfix";
-    public static final String VERSION = "1.0-SNAPSHOT";
+    public static final String VERSION = "1.0.0-SNAPSHOT";
 
     /**
      * This is the instance of your mod as created by Forge. It will never be null.

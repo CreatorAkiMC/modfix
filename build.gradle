@@ -1,4 +1,4 @@
-/*buildscript {
+buildscript {
     repositories {
         // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
         maven { url = 'https://maven.minecraftforge.net' }
@@ -13,19 +13,21 @@
         classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.1"
         //classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
-}*/
+}
 
 plugins {
     id "io.github.CDAGaming.cursegradle" version "1.6.0"
-    id 'net.minecraftforge.gradle' version "5.1.+"
-    id 'org.spongepowered.mixin' version "0.7.+"
-    id "com.github.johnrengelman.shadow" version "7.1.1"
+    id 'nebula.release' version '15.3.1'
 }
 
-
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
+apply plugin: "com.github.johnrengelman.shadow"
 
 group = 'com.aki'
-version = '1.0-SNAPSHOT'
+version = '1.0.0-SNAPSHOT'
+
+project.release.tagStrategy.prefixNameWithV = false
 
 java {
     archivesBaseName = 'modfix'
@@ -225,6 +227,14 @@ shadowJar {
     configurations = [project.configurations.embed]
 }
 
+processResources {
+    inputs.property('version', version)
+
+    filesMatching('mcmod.info') {
+        expand version: inputs.properties.get('version')
+    }
+}
+
 task thinShadowJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
     archiveClassifier.set("thin")
     configurations = [project.configurations.embed]
@@ -240,6 +250,10 @@ task thinShadowJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 
     from sourceSets.main.output
 }
+
+/*task commit(type: GitCommit) {
+    message = "こみっとー"
+}*/
 
 artifacts {
     archives jar

@@ -4,7 +4,7 @@
     "name": "Modsfix",
     "description": "",
     "version": "${version}",
-    "mcversion": "${mcversion}",
+    "mcversion": "1.12.2",
     "url": "",
     "updateUrl": "",
     "authorList": [],
