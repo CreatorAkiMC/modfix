@@ -41,7 +41,7 @@ public class GlCommandBuffer extends GlObject {
         //System.out.println("Mem_CD: 1");
 
         this.buffer = GLUtils.map(this.bufferIndex, this.capacity, accessRange, 0, null);
-        System.out.println("MEM_CD_BI: " + this.bufferIndex + ", B: " + this.buffer);
+        System.out.println("MEM_CD_BI: " + this.bufferIndex + ", B: " + this.buffer + ", GL45: " + GLUtils.CAPS.OpenGL45);
         this.BaseWriter = MemoryUtil.getAddress(this.buffer);//エラー
 
         //System.out.println("Mem_CD: 2");

@@ -5,11 +5,11 @@ import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.Entity;
 
 public class ChunkRenderManager {
-    public static GLRenderTest renderTest;
+    public static GLRenderTest renderTest = null;
 
     public static void SetUPTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator) {
-        while (true) {
-            renderTest.Render();
+        while (renderTest != null) {
+             renderTest.Render();
         }
     }
 
