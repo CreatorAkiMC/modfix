@@ -33,12 +33,20 @@ public class GlCommandBuffer extends GlObject {
     //System.out.println("Command_GL44: " + GLUtils.CAPS.OpenGL44);
     public GlCommandBuffer(long capacity, int flags, int usage, int persistentAccess) {
         this.capacity = capacity;
-        this.bufferIndex = GLUtils.createBuffer(capacity, flags | GL44.GL_MAP_PERSISTENT_BIT, usage);
-
-        this.setHandle(this.bufferIndex);
-        this.buffer = GLUtils.map(this.bufferIndex, this.capacity, persistentAccess | GL44.GL_MAP_PERSISTENT_BIT, 0, null);
-        //System.out.println("MEM_CD_BI: " + this.bufferIndex + ", B: " + this.buffer + ", GL45: " + GLUtils.CAPS.OpenGL45);
-        this.BaseWriter = MemoryUtil.getAddress(this.buffer);//エラー
+        //n | GL44.GL_MAP_PERSISTENT_BIT を忘れない
+        if(GLUtils.CAPS.OpenGL44) {
+            this.bufferIndex = GLUtils.createBuffer(capacity, flags | GL44.GL_MAP_PERSISTENT_BIT, usage);
+            this.mapped = true;
+            this.setHandle(this.bufferIndex);
+            this.buffer = GLUtils.map(this.bufferIndex, this.capacity, persistentAccess | GL44.GL_MAP_PERSISTENT_BIT, 0, null);
+            //System.out.println("MEM_CD_BI: " + this.bufferIndex + ", B: " + this.buffer + ", GL45: " + GLUtils.CAPS.OpenGL45);
+            this.BaseWriter = MemoryUtil.getAddress(this.buffer);
+        } else {
+            this.bufferIndex = GLUtils.createBuffer(capacity, flags, usage);
+            this.mapped = false;
+            this.setHandle(this.bufferIndex);
+            this.BaseWriter = 0L;
+        }
 
         //System.out.println("Mem_CD: 2");
 
@@ -47,15 +55,12 @@ public class GlCommandBuffer extends GlObject {
     }
 
     /**
-     * 作用範囲
+     * 作用範囲(いらない？)
      * */
-    public void bind(int target) {
+    /*public void bind(int target) {
         GL15.glBindBuffer(target, this.handle());
-    }
+    }*/
 
-    /**
-     * 作用範囲
-     * */
     public void unbind(int target) {
         GL15.glBindBuffer(target, 0);
     }
@@ -74,8 +79,11 @@ public class GlCommandBuffer extends GlObject {
         this.count = 0;
         this.arrayLength = 0;
 
+        /**
+         * GL44をサポートしているので使わない
+         * https://github.com/Meldexun/RenderLib/blob/v1.12.2-1.3.1/src/main/java/meldexun/renderlib/util/GLBuffer.java
+         * */
         this.map(GL30.GL_MAP_WRITE_BIT, GL15.GL_WRITE_ONLY);
-
         //this.buffer.clear();
 
         this.MainWriter = this.BaseWriter;
@@ -89,7 +97,13 @@ public class GlCommandBuffer extends GlObject {
 
         this.arrayLength = this.count * this.stride;
         this.buffer.limit(this.arrayLength);
+
+        /**
+         * GL44をサポートしているので使わない
+         * https://github.com/Meldexun/RenderLib/blob/v1.12.2-1.3.1/src/main/java/meldexun/renderlib/util/GLBuffer.java
+         * */
         this.unmap();
+
     }
 
     public void addIndirectDrawCall(int first, int count, int baseInstance, int instanceCount) {
@@ -110,8 +124,9 @@ public class GlCommandBuffer extends GlObject {
      * GL30.GL_MAP_WRITE_BIT, GL15.GL_WRITE_ONLY
      * */
     public void map(int rangeAccess, int access) {
-        if (!mapped) {
-            this.buffer = GLUtils.map(this.bufferIndex, this.capacity, rangeAccess, access, this.buffer);
+        if (!mapped && !GLUtils.CAPS.OpenGL44) {
+            this.buffer = GLUtils.map(this.bufferIndex, this.capacity, rangeAccess, access, this.buffer);//nullになっている
+            System.out.println("Get_Buffer: " + this.buffer);
             this.BaseWriter = MemoryUtil.getAddress(this.buffer);
             mapped = true;
         }
@@ -126,7 +141,7 @@ public class GlCommandBuffer extends GlObject {
     }
 
     private void forceUnmap() {
-        if (mapped) {
+        if (mapped && !GLUtils.CAPS.OpenGL44) {
             GLUtils.unmap(this.bufferIndex);
             mapped = false;
             this.buffer = null;

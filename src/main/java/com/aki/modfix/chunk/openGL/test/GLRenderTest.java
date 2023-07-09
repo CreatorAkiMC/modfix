@@ -177,25 +177,22 @@ public class GLRenderTest {
         this.PosBuffer.bind(RenderBufferMode);
         this.ColorBuffer.bind(RenderBufferMode);*/
 
-        this.commandBuffer.bind(bufferMode);
-        this.commandBuffer.begin();
 
+        this.commandBuffer.begin();
         for(int i = 0; i < 10; i++) {
             //first (初期) 0, 頂点(四角) 4, BaseInstance i, instanceCount 1
             this.commandBuffer.addIndirectDrawCall(0, 4, i, 1);
         }
-
         this.commandBuffer.end();
-        this.commandBuffer.unbind(bufferMode);
 
-        int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
-
-        GL15.glBindBuffer(RenderBufferMode, this.commandBuffer.getBufferIndex());
 
         /**
          * レンダーリング
          * primecount レンダリングする物の数?
          * */
+        int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
+        GL15.glBindBuffer(RenderBufferMode, this.commandBuffer.getBufferIndex());
+
         //GL11.glMultiDrawArrays にするべき？
         //https://litasa.github.io/blog/2017/09/04/OpenGL-MultiDrawIndirect-with-Individual-Textures
         GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, 10,0); //<- GL43にサポートしていない？
@@ -204,6 +201,7 @@ public class GLRenderTest {
         //GL31.glDrawArraysInstanced(GL11.GL_QUADS, 0, 10, 10);
 
         this.commandBuffer.unbind(RenderBufferMode);
+
 
         this.VaoBuffer.unbind();
 
