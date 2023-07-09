@@ -1,7 +1,6 @@
 package com.aki.modfix.chunk.GLSytem;
 
 import com.aki.mcutils.APICore.Utils.matrixutil.MemoryUtil;
-import com.aki.mcutils.APICore.Utils.memory.MemoryAccess;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
@@ -16,7 +15,7 @@ import static com.aki.mcutils.APICore.Utils.matrixutil.UnsafeUtil.UNSAFE;
  * https://github.com/CaffeineMC/sodium-fabric/blob/5af41c180e63590b7797b864393ef584a746eccd/src/main/java/me/jellysquid/mods/sodium/client/render/chunk/multidraw/ChunkDrawCallBatcher.java#L29
  * 参考
  * */
-public class GlCommandBuffer extends GlObject {
+public class GlVertexOffsetBuffer extends GlObject {
     private long BaseWriter = 0L;//デフォルト
     private long MainWriter = 0L;
     private int count = 0;//ドローコール数
@@ -31,7 +30,7 @@ public class GlCommandBuffer extends GlObject {
     //容量(size), GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW GL30.GL_MAP_WRITE_BIT
     //GL44 -> true (OK)
     //System.out.println("Command_GL44: " + GLUtils.CAPS.OpenGL44);
-    public GlCommandBuffer(long capacity, int flags, int usage, int persistentAccess) {
+    public GlVertexOffsetBuffer(long capacity, int flags, int usage, int persistentAccess) {
         this.capacity = capacity;
         //n | GL44.GL_MAP_PERSISTENT_BIT を忘れない
         if(GLUtils.CAPS.OpenGL44) {
@@ -50,7 +49,7 @@ public class GlCommandBuffer extends GlObject {
 
         //System.out.println("Mem_CD: 2");
 
-        this.stride = 16;
+        this.stride = 12;
         this.arrayLength = 0;
     }
 
@@ -106,17 +105,16 @@ public class GlCommandBuffer extends GlObject {
 
     }
 
-    public void addIndirectDrawCall(int first, int count, int baseInstance, int instanceCount) {
+    public void addIndirectDrawOffsetCall(float OffsetX, float OffsetY, float OffsetZ) {
         if (this.count++ >= this.capacity) {
             throw new BufferUnderflowException();
         }
 
-        UNSAFE.putInt(this.MainWriter     , count);         // Vertex Count
-        UNSAFE.putInt(this.MainWriter +  4, instanceCount); // Instance Count
-        UNSAFE.putInt(this.MainWriter +  8, first);         // Vertex Start
-        UNSAFE.putInt(this.MainWriter + 12, baseInstance);  // Base Instance
+        UNSAFE.putFloat(this.MainWriter     , OffsetX);    // OffsetX
+        UNSAFE.putFloat(this.MainWriter +  4, OffsetY); // OffsetY
+        UNSAFE.putFloat(this.MainWriter +  8, OffsetZ); // OffsetZ
 
-        this.MainWriter += this.stride;//main += 16
+        this.MainWriter += this.stride;//main += 12
     }
 
     /**

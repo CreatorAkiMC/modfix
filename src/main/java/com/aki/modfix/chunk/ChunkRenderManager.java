@@ -8,9 +8,9 @@ public class ChunkRenderManager {
     public static GLRenderTest renderTest = null;
 
     public static void SetUPTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator) {
-        while (renderTest != null) {
-             renderTest.Render();
-        }
+        ///while (renderTest != null) {
+        renderTest.Render();
+        //}
     }
 
     public static void loadRenderers() {

@@ -8,6 +8,7 @@ import com.aki.mcutils.APICore.program.shader.ShaderProgram;
 import com.aki.modfix.chunk.GLSytem.GLMutableArrayBuffer;
 import com.aki.modfix.chunk.GLSytem.GlCommandBuffer;
 import com.aki.modfix.chunk.GLSytem.GlMutableBuffer;
+import com.aki.modfix.chunk.GLSytem.GlVertexOffsetBuffer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 
@@ -21,7 +22,10 @@ public class GLRenderTest {
     public GlMutableBuffer PosBuffer;
     public GlMutableBuffer ColorBuffer;
     public GLMutableArrayBuffer VaoBuffer;
+
     public GlCommandBuffer commandBuffer;
+    public GlVertexOffsetBuffer offsetBuffer;
+
     public ShaderProgram program;
     public float Aspect = 0.0f;//アスペクト比
 
@@ -37,6 +41,11 @@ public class GLRenderTest {
         /**
          * GL_STATIC_DRAWは、一度だけアップロードしますが、アップロードしたデータは利用制限なしで再利用できます
          * */
+
+        /**
+         * 一つにまとめたほうが便利
+         * Consumerを使って処理するといいかも
+         * */
         this.VertexBuffer = new GlMutableBuffer(GL15.GL_STATIC_DRAW);
         this.PosBuffer = new GlMutableBuffer(GL15.GL_STATIC_DRAW);
         this.ColorBuffer = new GlMutableBuffer(GL15.GL_STATIC_DRAW);
@@ -46,10 +55,17 @@ public class GLRenderTest {
     public void init() {
         if(this.commandBuffer != null)
             this.commandBuffer.delete();
+        if(this.offsetBuffer != null)
+            this.offsetBuffer.delete();
         /**
-         * (12Chunk Render * 2 + 1)^3 * 16(...12)
+         * (12Chunk Render * 2 + 1)^3 * 16 = 250000
          * */
         this.commandBuffer = new GlCommandBuffer(250000, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT);
+
+        /**
+         * (12Chunk Render * 2 + 1)^3 * 12 = 187500
+         * */
+        this.offsetBuffer = new GlVertexOffsetBuffer(187500, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT);
 
         try {
             program = new ShaderProgram();
@@ -66,8 +82,6 @@ public class GLRenderTest {
      * GL43などが原因？ <- サポートしていない？
      * */
     public void Render() {
-        GL11.glPushMatrix();
-
         /**
          * プログラム開始
          * */
@@ -102,7 +116,7 @@ public class GLRenderTest {
             });
 
             ColorData.put(new float[] {
-                    1.0f, 1.0f, 0.0f, 0.5f
+                    1.0f, 0.0f, 1.0f, 0.5f
             });
         }
 
@@ -167,6 +181,8 @@ public class GLRenderTest {
 
         int projectionMatrixIndex = program.getUniformLocation("u_ModelViewProjectionMatrix");
         Matrix4f mat4f = GLUtils.getProjectionModelViewMatrix().copy();
+        //座標移動
+        mat4f.translate((float) GLUtils.getCameraOffsetX(), (float) GLUtils.getCameraOffsetY(), (float) GLUtils.getCameraOffsetZ());
         //Matrix指定
         GLUtils.setMatrix(projectionMatrixIndex, mat4f);
 
@@ -177,6 +193,23 @@ public class GLRenderTest {
         this.PosBuffer.bind(RenderBufferMode);
         this.ColorBuffer.bind(RenderBufferMode);*/
 
+        this.offsetBuffer.begin();
+
+        double ObjectX = 0.5;
+        double ObjectY = 1.5;
+        double ObjectZ = 0.5;
+
+        this.offsetBuffer.addIndirectDrawOffsetCall((float) (ObjectX - GLUtils.getCameraOffsetX()), (float) (ObjectY - GLUtils.getCameraOffsetY()), (float) (ObjectZ - GLUtils.getCameraOffsetZ()));
+
+        this.offsetBuffer.end();
+
+        int Offset = program.getAttributeLocation("a_offset");//vec4 色
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.offsetBuffer.getBufferIndex());
+        //4個ずつ割り当て
+        GL20.glVertexAttribPointer(Offset, 3, GL11.GL_FLOAT, false, 0, 0L);
+        GL33.glVertexAttribDivisor(Offset, 1);//1頂点で分割
+        GL20.glEnableVertexAttribArray(Offset);//VAO内で、Index を固定化
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
         this.commandBuffer.begin();
         for(int i = 0; i < 10; i++) {
@@ -195,12 +228,12 @@ public class GLRenderTest {
 
         //GL11.glMultiDrawArrays にするべき？
         //https://litasa.github.io/blog/2017/09/04/OpenGL-MultiDrawIndirect-with-Individual-Textures
-        GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, 10,0); //<- GL43にサポートしていない？
+        GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.commandBuffer.getCount(),0); //<- GL43にサポートしていない？
         //GL11.glDrawArrays(GL11.GL_QUADS, 0, 10);// <-謎
         //ARBMultiDrawIndirect.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, 10, 0);
         //GL31.glDrawArraysInstanced(GL11.GL_QUADS, 0, 10, 10);
 
-        this.commandBuffer.unbind(RenderBufferMode);
+        GL15.glBindBuffer(RenderBufferMode, 0);
 
 
         this.VaoBuffer.unbind();
@@ -223,6 +256,7 @@ public class GLRenderTest {
 
         if(this.commandBuffer != null) {
             this.commandBuffer.delete();
+            this.offsetBuffer.delete();
             program.releaseShader();
             program.Delete();
         }
