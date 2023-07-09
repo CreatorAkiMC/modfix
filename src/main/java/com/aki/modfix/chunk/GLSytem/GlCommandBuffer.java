@@ -33,15 +33,11 @@ public class GlCommandBuffer extends GlObject {
     //System.out.println("Command_GL44: " + GLUtils.CAPS.OpenGL44);
     public GlCommandBuffer(long capacity, int flags, int usage, int persistentAccess) {
         this.capacity = capacity;
-        this.bufferIndex = GLUtils.createBuffer(capacity, flags, usage);
+        this.bufferIndex = GLUtils.createBuffer(capacity, flags | GL44.GL_MAP_PERSISTENT_BIT, usage);
 
         this.setHandle(this.bufferIndex);
-        int accessRange = persistentAccess | GL44.GL_MAP_PERSISTENT_BIT;
-
-        //System.out.println("Mem_CD: 1");
-
-        this.buffer = GLUtils.map(this.bufferIndex, this.capacity, accessRange, 0, null);
-        System.out.println("MEM_CD_BI: " + this.bufferIndex + ", B: " + this.buffer + ", GL45: " + GLUtils.CAPS.OpenGL45);
+        this.buffer = GLUtils.map(this.bufferIndex, this.capacity, persistentAccess | GL44.GL_MAP_PERSISTENT_BIT, 0, null);
+        //System.out.println("MEM_CD_BI: " + this.bufferIndex + ", B: " + this.buffer + ", GL45: " + GLUtils.CAPS.OpenGL45);
         this.BaseWriter = MemoryUtil.getAddress(this.buffer);//エラー
 
         //System.out.println("Mem_CD: 2");
