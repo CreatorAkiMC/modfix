@@ -3,6 +3,7 @@ package com.aki.modfix.chunk.GLSytem;
 import com.aki.mcutils.APICore.Utils.matrixutil.MemoryUtil;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL44;
 
 import java.nio.BufferUnderflowException;
@@ -24,6 +25,7 @@ public class GlCommandBuffer extends GlObject {
     private boolean isBuilding = false;
     private int arrayLength;
     private int stride = 0;
+    private boolean mapped = false;
 
     //容量(size), GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW GL30.GL_MAP_WRITE_BIT
     public GlCommandBuffer(long capacity, int flags, int usage, int persistentAccess) {
@@ -67,7 +69,9 @@ public class GlCommandBuffer extends GlObject {
         this.count = 0;
         this.arrayLength = 0;
 
-        this.buffer.clear();
+        this.map(GL30.GL_MAP_WRITE_BIT, GL15.GL_WRITE_ONLY);
+
+        //this.buffer.clear();
 
         this.MainWriter = this.BaseWriter;
     }
@@ -80,6 +84,7 @@ public class GlCommandBuffer extends GlObject {
 
         this.arrayLength = this.count * this.stride;
         this.buffer.limit(this.arrayLength);
+        this.unmap();
     }
 
     public void addIndirectDrawCall(int first, int count, int baseInstance, int instanceCount) {
@@ -95,6 +100,36 @@ public class GlCommandBuffer extends GlObject {
         this.MainWriter += this.stride;//main += 16
     }
 
+    /**
+     * 状態変化
+     * GL30.GL_MAP_WRITE_BIT, GL15.GL_WRITE_ONLY
+     * */
+    public void map(int rangeAccess, int access) {
+        if (!mapped) {
+            this.buffer = GLUtils.map(this.bufferIndex, this.capacity, rangeAccess, access, this.buffer);
+            this.BaseWriter = MemoryUtil.getAddress(this.buffer);
+            mapped = true;
+        }
+    }
+
+    public boolean isMapped() {
+        return mapped;
+    }
+
+    public void unmap() {
+        forceUnmap();
+    }
+
+    private void forceUnmap() {
+        if (mapped) {
+            GLUtils.unmap(this.bufferIndex);
+            mapped = false;
+            this.buffer = null;
+            this.BaseWriter = 0L;
+            this.MainWriter = 0L;
+        }
+    }
+
     public boolean isBuilding() {
         return this.isBuilding;
     }
@@ -103,6 +138,7 @@ public class GlCommandBuffer extends GlObject {
         return this.arrayLength;
     }
 
+    //Don`t Use
     public ByteBuffer getBuffer() {
         return buffer;
     }
@@ -111,6 +147,9 @@ public class GlCommandBuffer extends GlObject {
         return count;
     }
 
+    /**
+     * こっちを入れる
+     * */
     public int getBufferIndex() {
         return bufferIndex;
     }

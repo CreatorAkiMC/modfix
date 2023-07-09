@@ -183,7 +183,7 @@ public class GLRenderTest {
 
         int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
 
-        this.commandBuffer.bind(RenderBufferMode);
+        GL15.glBindBuffer(RenderBufferMode, this.commandBuffer.getBufferIndex());
 
         /**
          * レンダーリング
