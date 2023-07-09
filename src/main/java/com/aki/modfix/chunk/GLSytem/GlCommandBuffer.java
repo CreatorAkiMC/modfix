@@ -1,6 +1,7 @@
 package com.aki.modfix.chunk.GLSytem;
 
 import com.aki.mcutils.APICore.Utils.matrixutil.MemoryUtil;
+import com.aki.mcutils.APICore.Utils.memory.MemoryAccess;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
@@ -37,7 +38,7 @@ public class GlCommandBuffer extends GlObject {
         int accessRange = persistentAccess | GL44.GL_MAP_PERSISTENT_BIT;
 
         this.buffer = GLUtils.map(this.bufferIndex, this.capacity, accessRange, 0, null);
-        this.MainWriter = this.BaseWriter = MemoryUtil.getAddress(this.buffer);
+        this.BaseWriter = MemoryUtil.getAddress(this.buffer);
         this.stride = 16;
         this.arrayLength = 0;
     }
