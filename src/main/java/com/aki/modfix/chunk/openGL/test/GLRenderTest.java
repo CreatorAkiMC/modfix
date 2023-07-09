@@ -206,11 +206,11 @@ public class GLRenderTest {
         this.VaoBuffer.unbind();
 
         //消去
-        this.VertexBuffer.delete();
+        /*this.VertexBuffer.delete();
         this.PosBuffer.delete();
         this.ColorBuffer.delete();
         this.VaoBuffer.delete();
-        this.commandBuffer.delete();
+        this.commandBuffer.delete();*/
 
         program.releaseShader();
     }
