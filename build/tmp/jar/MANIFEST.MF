@@ -4,7 +4,7 @@ Implementation-Version: 1.0.0-SNAPSHOT
 FMLCorePluginContainsFMLMod: true
 FMLAT: modfix_at.cfg
 Specification-Title: modsfix
-Implementation-Timestamp: 2023-07-09T21:59:56+0900
+Implementation-Timestamp: 2023-07-09T23:03:10+0900
 TweakClass: org.spongepowered.asm.launch.MixinTweaker
 ForceLoadAsMod: true
 FMLCorePlugin: com.aki.modfix.MixinModLoadConfig

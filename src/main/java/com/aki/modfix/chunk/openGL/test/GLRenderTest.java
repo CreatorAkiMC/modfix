@@ -76,12 +76,107 @@ public class GLRenderTest {
         }
     }
 
+    public void Render() {
+        program.useShader();
+
+        //四角形
+        float[] vertices = new float[] {
+                0.5f, 0.5f, 0.0f,
+                -0.5f, 0.5f, 0.0f,
+                0.5f, -0.5f, 0.0f,
+                -0.5f, -0.5f, 0.0f
+        };
+
+        //2個だけ
+        float[] Pos = new float[] {
+                0, 0, 0,
+                10, 10, 10
+        };
+
+        FloatBuffer bufferData = BufferUtils.createFloatBuffer(vertices.length).put(vertices);
+        FloatBuffer PosData = BufferUtils.createFloatBuffer(Pos.length).put(Pos);
+        bufferData.flip();
+        PosData.flip();
+        //頂点座標
+        VertexBuffer.bind(GL15.GL_ARRAY_BUFFER);
+        VertexBuffer.upload(GL15.GL_ARRAY_BUFFER, bufferData);
+        VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+
+        //位置座標
+        PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
+        PosBuffer.upload(GL15.GL_ARRAY_BUFFER, PosData);
+        PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+
+        this.VaoBuffer.bind();
+
+        VertexBuffer.bind(GL15.GL_ARRAY_BUFFER);
+        int VPos = this.program.getAttributeLocation("vertexPos");
+        //Size は分割する量
+        GL20.glVertexAttribPointer(VPos, 3, GL11.GL_FLOAT, false, 0,0L);
+        GL33.glVertexAttribDivisor(VPos, 0);//頂点は４つで複数ないので分割しない -> 0
+        GL20.glEnableVertexAttribArray(VPos);
+        VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+
+        PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
+        int A_Pos = this.program.getAttributeLocation("a_pos");
+        //Size は分割する量
+        GL20.glVertexAttribPointer(A_Pos, 3, GL11.GL_FLOAT, false, 0,0L);
+        //GL33.glVertexAttribDivisor(A_Pos, 1);//複数図形の座標があるので-> 1  (いらない)
+        GL20.glEnableVertexAttribArray(A_Pos);
+        PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+
+        this.VaoBuffer.unbind();
+
+        int projectionMatrixIndex = program.getUniformLocation("u_ModelViewProjectionMatrix");
+        Matrix4f mat4f = GLUtils.getProjectionModelViewMatrix().copy();
+        //座標移動
+        mat4f.translate((float) GLUtils.getCameraOffsetX(), (float) GLUtils.getCameraOffsetY(), (float) GLUtils.getCameraOffsetZ());
+        //Matrix指定
+        GLUtils.setMatrix(projectionMatrixIndex, mat4f);
+
+        this.offsetBuffer.begin();
+
+        double ObjectX = 0.5;
+        double ObjectY = 1.5;
+        double ObjectZ = 0.5;
+
+        this.offsetBuffer.addIndirectDrawOffsetCall((float) (ObjectX - GLUtils.getCameraOffsetX()), (float) (ObjectY - GLUtils.getCameraOffsetY()), (float) (ObjectZ - GLUtils.getCameraOffsetZ()));
+
+        this.offsetBuffer.end();
+
+        int Offset = program.getAttributeLocation("a_offset");//vec4 色
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.offsetBuffer.getBufferIndex());
+        //4個ずつ割り当て
+        GL20.glVertexAttribPointer(Offset, 3, GL11.GL_FLOAT, false, 0, 0L);
+        GL33.glVertexAttribDivisor(Offset, 1);//1頂点で分割
+        GL20.glEnableVertexAttribArray(Offset);//VAO内で、Index を固定化
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+
+        this.commandBuffer.begin();
+        for(int i = 0; i < 2; i++) {
+            //first (初期) 0, 頂点(四角) 4, BaseInstance i, instanceCount 1
+            this.commandBuffer.addIndirectDrawCall(0, 4, i, 1);
+        }
+        this.commandBuffer.end();
+
+        this.VaoBuffer.bind();
+
+        int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
+        GL15.glBindBuffer(RenderBufferMode, this.commandBuffer.getBufferIndex());
+        GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.commandBuffer.getCount(),0); //<- GL43にサポートしていない？
+        GL15.glBindBuffer(RenderBufferMode, 0);
+
+        this.VaoBuffer.unbind();
+
+        program.releaseShader();
+    }
+
     /**
      * BlocKPos などを使ったほうがいい
      *
      * GL43などが原因？ <- サポートしていない？
      * */
-    public void Render() {
+    public void Render1() {
         /**
          * プログラム開始
          * */
@@ -176,7 +271,7 @@ public class GLRenderTest {
         GL20.glEnableVertexAttribArray(T_color);//VAO内で、Index を固定化
         this.ColorBuffer.unbind(bufferMode);
 
-        this.VaoBuffer.unbind();
+
 
 
         int projectionMatrixIndex = program.getUniformLocation("u_ModelViewProjectionMatrix");
@@ -186,9 +281,7 @@ public class GLRenderTest {
         //Matrix指定
         GLUtils.setMatrix(projectionMatrixIndex, mat4f);
 
-
-
-        this.VaoBuffer.bind();/*
+        /*
         this.VertexBuffer.bind(RenderBufferMode);
         this.PosBuffer.bind(RenderBufferMode);
         this.ColorBuffer.bind(RenderBufferMode);*/
@@ -211,6 +304,8 @@ public class GLRenderTest {
         GL20.glEnableVertexAttribArray(Offset);//VAO内で、Index を固定化
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
+        this.VaoBuffer.unbind();
+
         this.commandBuffer.begin();
         for(int i = 0; i < 10; i++) {
             //first (初期) 0, 頂点(四角) 4, BaseInstance i, instanceCount 1
@@ -218,6 +313,7 @@ public class GLRenderTest {
         }
         this.commandBuffer.end();
 
+        this.VaoBuffer.bind();
 
         /**
          * レンダーリング
