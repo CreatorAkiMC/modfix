@@ -29,16 +29,23 @@ public class GlCommandBuffer extends GlObject {
     private boolean mapped = false;
 
     //容量(size), GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW GL30.GL_MAP_WRITE_BIT
+    //GL44 -> true (OK)
+    //System.out.println("Command_GL44: " + GLUtils.CAPS.OpenGL44);
     public GlCommandBuffer(long capacity, int flags, int usage, int persistentAccess) {
         this.capacity = capacity;
         this.bufferIndex = GLUtils.createBuffer(capacity, flags, usage);
 
         this.setHandle(this.bufferIndex);
-
         int accessRange = persistentAccess | GL44.GL_MAP_PERSISTENT_BIT;
 
+        //System.out.println("Mem_CD: 1");
+
         this.buffer = GLUtils.map(this.bufferIndex, this.capacity, accessRange, 0, null);
-        this.BaseWriter = MemoryUtil.getAddress(this.buffer);
+        System.out.println("MEM_CD_BI: " + this.bufferIndex + ", B: " + this.buffer);
+        this.BaseWriter = MemoryUtil.getAddress(this.buffer);//エラー
+
+        //System.out.println("Mem_CD: 2");
+
         this.stride = 16;
         this.arrayLength = 0;
     }
@@ -58,6 +65,7 @@ public class GlCommandBuffer extends GlObject {
     }
 
     public void delete() {
+        this.forceUnmap();
         GL15.glDeleteBuffers(this.handle());//bufferIndex
         this.invalidateHandle();
     }

@@ -41,8 +41,15 @@ public class GLRenderTest {
         this.PosBuffer = new GlMutableBuffer(GL15.GL_STATIC_DRAW);
         this.ColorBuffer = new GlMutableBuffer(GL15.GL_STATIC_DRAW);
         this.VaoBuffer = new GLMutableArrayBuffer();
+    }
 
-        this.commandBuffer = new GlCommandBuffer(2048, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT);
+    public void init() {
+        if(this.commandBuffer != null)
+            this.commandBuffer.delete();
+        /**
+         * (12Chunk Render * 2 + 1)^3 * 16(...12)
+         * */
+        this.commandBuffer = new GlCommandBuffer(250000, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT);
 
         try {
             program = new ShaderProgram();
@@ -208,6 +215,19 @@ public class GLRenderTest {
         this.commandBuffer.delete();
 
         program.releaseShader();
+    }
+
+    public void deleteDatas() {
+        this.VertexBuffer.delete();
+        this.PosBuffer.delete();
+        this.ColorBuffer.delete();
+        this.VaoBuffer.delete();
+
+        if(this.commandBuffer != null) {
+            this.commandBuffer.delete();
+            program.releaseShader();
+            program.Delete();
+        }
     }
 
     public int gcd(int a, int b) {
