@@ -1,7 +1,7 @@
 package com.aki.modfix.chunk.GLSytem;
 
+import com.aki.mcutils.APICore.Utils.matrixutil.MemoryUtil;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
-import org.lwjgl.MemoryUtil;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL44;
 
