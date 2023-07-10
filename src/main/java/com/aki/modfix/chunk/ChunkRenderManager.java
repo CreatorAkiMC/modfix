@@ -13,7 +13,7 @@ public class ChunkRenderManager {
         //renderTest.Render();
         //}
 
-        renderTest.init();
+        renderTest.SetUP();
     }
 
     public static void loadRenderers() {

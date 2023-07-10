@@ -56,10 +56,10 @@ public abstract class MixinRenderGlobal {
 
     @Shadow private int renderEntitiesStartupCounter;
 
-    @Inject(method = "stopChunkUpdates", cancellable = true, at = @At("HEAD"))
+    /*@Inject(method = "stopChunkUpdates", cancellable = true, at = @At("HEAD"))
     public void stopChunkUpdates(CallbackInfo info) {
         info.cancel();
-    }
+    }*/
 
     /*@Inject(method = "getRenderedChunks", cancellable = true, at = @At("HEAD"))
     public void getRenderedChunks(CallbackInfoReturnable<Integer> info) {
@@ -83,6 +83,8 @@ public abstract class MixinRenderGlobal {
                 this.renderDispatcher = new ChunkRenderDispatcher();
             }
 
+
+            //追加
             ChunkRenderManager.loadRenderers();
 
             this.displayListEntitiesDirty = true;
@@ -122,7 +124,7 @@ public abstract class MixinRenderGlobal {
                 this.setTileEntities.clear();
             }
 
-            this.viewFrustum = new ViewFrustum(this.world, this.mc.gameSettings.renderDistanceChunks, (RenderGlobal)(Object) this, this.renderChunkFactory);
+            this.viewFrustum = new ViewFrustum(this.world, this.mc.gameSettings.renderDistanceChunks, (RenderGlobal) (Object)this, this.renderChunkFactory);
 
             if (this.world != null)
             {
@@ -141,14 +143,14 @@ public abstract class MixinRenderGlobal {
         ci.cancel();
     }
 
-    @Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
+    /*@Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
     public void loadRenderers(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn, CallbackInfoReturnable<Integer> cir)
     {
         ChunkRenderManager.Render(blockLayerIn, partialTicks, pass, entityIn);
-        cir.cancel();
-    }
+        //cir.cancel();
+    }*/
 
-    @Inject(method = "getRenderChunkOffset", remap = false, cancellable = true, at = @At("HEAD"))
+    /*@Inject(method = "getRenderChunkOffset", remap = false, cancellable = true, at = @At("HEAD"))
     public void getRenderChunkOffset(CallbackInfoReturnable<RenderChunk> info) {
         info.setReturnValue(null);
     }
@@ -158,7 +160,6 @@ public abstract class MixinRenderGlobal {
         return false;
     }
 
-    /** {@link RenderGlobal#updateChunks(long)} */
     @Inject(method = "updateChunks", cancellable = true, at = @At("HEAD"))
     public void updateChunks(long finishTimeNano, CallbackInfo info) {
         info.cancel();
@@ -167,7 +168,7 @@ public abstract class MixinRenderGlobal {
     @Inject(method = "hasNoChunkUpdates", cancellable = true, at = @At("HEAD"))
     public void hasNoChunkUpdates(CallbackInfoReturnable<Boolean> info) {
         info.setReturnValue(true);
-    }
+    }*/
 
 
     /**
@@ -212,18 +213,5 @@ public abstract class MixinRenderGlobal {
 
             this.renderDispatcher = null;
         }
-    }*/
-
-    /*@Unique
-    public long Time = 0L;
-
-    @Inject(method = "setupTerrain", at = @At("HEAD"))
-    public void CheckTimeStart(Entity p_174970_1_, double p_174970_2_, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_, CallbackInfo ci) {
-        Time = System.currentTimeMillis();
-    }
-
-    @Inject(method = "setupTerrain", at = @At("RETURN"))
-    public void CheckTimeEnd(Entity p_174970_1_, double p_174970_2_, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_, CallbackInfo ci) {
-        System.out.println("RenderAllTime: " + (System.currentTimeMillis() - Time));
     }*/
 }
