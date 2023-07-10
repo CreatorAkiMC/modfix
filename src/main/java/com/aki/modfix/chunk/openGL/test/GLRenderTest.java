@@ -121,7 +121,7 @@ public class GLRenderTest {
         int A_Pos = this.program.getAttributeLocation("a_pos");
         //Size は分割する量
         GL20.glVertexAttribPointer(A_Pos, 3, GL11.GL_FLOAT, false, 0,0L);
-        //GL33.glVertexAttribDivisor(A_Pos, 1);//複数図形の座標があるので-> 1  (いらない)
+        //GL33.glVertexAttribDivisor(A_Pos, 1);//複数図形の座標があるので-> 1  (いらない？)
         GL20.glEnableVertexAttribArray(A_Pos);
         PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
 
