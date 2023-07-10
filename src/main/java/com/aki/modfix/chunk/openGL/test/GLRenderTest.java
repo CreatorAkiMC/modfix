@@ -74,11 +74,13 @@ public class GLRenderTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        this.InitBuffer();
     }
 
-    public void Render() {
-        program.useShader();
-
+    //init で実行
+    //BlockRenderLayers分やったほうがいい？
+    private void InitBuffer() {
         //四角形
         float[] vertices = new float[] {
                 0.5f, 0.5f, 0.0f,
@@ -113,37 +115,21 @@ public class GLRenderTest {
         int VPos = this.program.getAttributeLocation("vertexPos");
         //Size は分割する量
         GL20.glVertexAttribPointer(VPos, 3, GL11.GL_FLOAT, false, 0,0L);
-        GL33.glVertexAttribDivisor(VPos, 0);//頂点は４つで複数ないので分割しない -> 0
         GL20.glEnableVertexAttribArray(VPos);
+        GL33.glVertexAttribDivisor(VPos, 0);//頂点は４つで複数ないので分割しない -> 0
         VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);
 
         PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
         int A_Pos = this.program.getAttributeLocation("a_pos");
         //Size は分割する量
         GL20.glVertexAttribPointer(A_Pos, 3, GL11.GL_FLOAT, false, 0,0L);
-        //GL33.glVertexAttribDivisor(A_Pos, 1);//複数図形の座標があるので-> 1  (いらない？)
         GL20.glEnableVertexAttribArray(A_Pos);
+        GL33.glVertexAttribDivisor(A_Pos, 1);//複数図形の座標があるので-> 1  (いらない？)
         PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
 
-        this.VaoBuffer.unbind();
 
-        int projectionMatrixIndex = program.getUniformLocation("u_ModelViewProjectionMatrix");
-        Matrix4f mat4f = GLUtils.getProjectionModelViewMatrix().copy();
-        //座標移動
-        mat4f.translate((float) GLUtils.getCameraOffsetX(), (float) GLUtils.getCameraOffsetY(), (float) GLUtils.getCameraOffsetZ());
-        //Matrix指定
-        GLUtils.setMatrix(projectionMatrixIndex, mat4f);
-
-        this.offsetBuffer.begin();
-
-        double ObjectX = 0.5;
-        double ObjectY = 1.5;
-        double ObjectZ = 0.5;
-
-        this.offsetBuffer.addIndirectDrawOffsetCall((float) (ObjectX - GLUtils.getCameraOffsetX()), (float) (ObjectY - GLUtils.getCameraOffsetY()), (float) (ObjectZ - GLUtils.getCameraOffsetZ()));
-
-        this.offsetBuffer.end();
-
+        //this.offsetBufferがここで登録されても、内部ではメモリのアドレスが共有されているため後から変更されても
+        //ちゃんと変更が適用される
         int Offset = program.getAttributeLocation("a_offset");//vec4 色
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.offsetBuffer.getBufferIndex());
         //4個ずつ割り当て
@@ -152,12 +138,42 @@ public class GLRenderTest {
         GL20.glEnableVertexAttribArray(Offset);//VAO内で、Index を固定化
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
+        this.VaoBuffer.unbind();
+    }
+
+    /**
+     * RenderGlobal SetupTerrain でする
+     * */
+    public void SetUP () {
+        this.offsetBuffer.begin();
+
+        double ObjectX = 0.5; //+ Math.random() * 10;
+        double ObjectY = 1.5; //+ Math.random() * 10;
+        double ObjectZ = 0.5; //+ Math.random() * 10;
+
+        //System.out.println("ObjectX: " + ObjectX + ", ObjectY: " + ObjectY + ", ObjectZ: " + ObjectZ);
+
+        this.offsetBuffer.addIndirectDrawOffsetCall((float) (ObjectX - GLUtils.getCameraX()), (float) (ObjectY - GLUtils.getCameraY()), (float) (ObjectZ - GLUtils.getCameraZ()));
+
+        this.offsetBuffer.end();
+
         this.commandBuffer.begin();
         for(int i = 0; i < 2; i++) {
             //first (初期) 0, 頂点(四角) 4, BaseInstance i, instanceCount 1
             this.commandBuffer.addIndirectDrawCall(0, 4, i, 1);
         }
         this.commandBuffer.end();
+    }
+
+    public void Render() {
+        program.useShader();
+
+        int projectionMatrixIndex = program.getUniformLocation("u_ModelViewProjectionMatrix");
+        Matrix4f mat4f = GLUtils.getProjectionModelViewMatrix().copy();
+        //座標移動
+        mat4f.translate((float) GLUtils.getCameraOffsetX(), (float) GLUtils.getCameraOffsetY(), (float) GLUtils.getCameraOffsetZ());
+        //Matrix指定
+        GLUtils.setMatrix(projectionMatrixIndex, mat4f);
 
         this.VaoBuffer.bind();
 

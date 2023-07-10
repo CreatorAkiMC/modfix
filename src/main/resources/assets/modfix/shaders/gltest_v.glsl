@@ -8,5 +8,10 @@ uniform mat4 u_ModelViewProjectionMatrix;
 
 void main() {
     vec3 pos = a_pos + a_offset;
-    gl_Position = u_ModelViewProjectionMatrix * vec4(pos.xyz, 1.0) * vec4(vertexPos, 1.0);
+    mat4 m4 = mat4(1.0, 0.0, 0.0, 0.0,
+                   0.0, 1.0, 0.0, 0.0,
+                   0.0, 0.0, 1.0, 0.0,
+                   pos.x, pos.y, pos.z, 1.0
+    );
+    gl_Position = u_ModelViewProjectionMatrix * m4 * vec4(vertexPos, 1.0);
 }
