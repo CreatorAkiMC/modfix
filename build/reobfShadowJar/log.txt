@@ -13,7 +13,7 @@ Classpath:
  - F:\desktops\aegissystem\modfix\modsrc\ProjectE-1.12.2-PE1.4.1.jar
  - F:\desktops\aegissystem\modfix\modsrc\StorageDrawers-1.12.2-5.4.2.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\org.spongepowered\mixin\0.8.3\5b08b203d5c601e2393be5cf9b4d39c26d12eb5f\mixin-0.8.3.jar
- - F:\desktops\aegissystem\modfix\build\fg_cache\net\minecraftforge\forge\1.12.2-14.23.5.2860_mapped_stable_39-1.12\forge-1.12.2-14.23.5.2860_mapped_stable_39-1.12-recomp.jar
+ - F:\desktops\aegissystem\modfix\build\fg_cache\net\minecraftforge\forge\1.12.2-14.23.5.2860_mapped_stable_39-1.12\forge-1.12.2-14.23.5.2860_mapped_stable_39-1.12.jar
  - C:\Users\Owner\.gradle\caches\forge_gradle\minecraft_repo\versions\1.12.2\client-extra.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\com.mojang\authlib\1.5.25\9834cdf236c22e84b946bba989e2f94ef5897c3c\authlib-1.5.25.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\com.google.code.findbugs\jsr305\3.0.1\f7be08ec23c21485b9b5a1cf1654c2ec8c58168d\jsr305-3.0.1.jar
