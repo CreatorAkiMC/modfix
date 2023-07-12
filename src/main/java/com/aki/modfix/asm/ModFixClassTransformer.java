@@ -18,7 +18,7 @@ public class ModFixClassTransformer extends HashMapClassNodeClassTransformer imp
     protected void registerTransformers(IClassTransformerRegistry reg) {
         //Output.srg と Output.tsrg 参照
         reg.add("net.minecraft.client.renderer.RenderGlobal", "loadRenderers", "()V", "a", "()V", ClassWriter.COMPUTE_FRAMES, methodNode -> {
-            Modfix.logger.info("ModFix -> Transform net.minecraft.client.renderer.RenderGlobal -> loadRenderers");
+            ASMUtil.LOGGER.info("ModFix -> Transform net.minecraft.client.renderer.RenderGlobal -> loadRenderers");
             // new ChunkRenderDispatcher の変数を探す
             AbstractInsnNode targetNode1 = ASMUtil.first(methodNode).methodInsn(Opcodes.INVOKESPECIAL, "bxm", "<init>", "()V", "net/minecraft/client/renderer/chunk/ChunkRenderDispatcher", "<init>", "()V").find();
             targetNode1 = ASMUtil.prev(targetNode1).type(JumpInsnNode.class).find();//命令範囲の初め
@@ -35,11 +35,11 @@ public class ModFixClassTransformer extends HashMapClassNodeClassTransformer imp
             AbstractInsnNode popNode2 = ASMUtil.last(methodNode).fieldInsn(Opcodes.PUTFIELD, "buy", "Q", "I", "net/minecraft/client/renderer/RenderGlobal", "renderEntitiesStartupCounter", "I").find();
             popNode2 = ASMUtil.next(popNode2).type(LabelNode.class).find();
 
-            /**
+            /*
              * LabelNode でラベル化しなければ insert などができない？ ok
              *
              * JumpInsnNode は targetNode1 から popNode1 までの間の処理を飛ばして、[popNode1]まで移動
-             * */
+             */
             methodNode.instructions.insert(targetNode1, ASMUtil.listOf(
                     new JumpInsnNode(Opcodes.GOTO, (LabelNode) popNode1)
             ));
