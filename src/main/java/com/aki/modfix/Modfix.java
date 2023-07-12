@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import org.apache.logging.log4j.Logger;
 
 @Mod(
         modid = Modfix.MOD_ID,
@@ -37,6 +38,8 @@ public class Modfix {
     @Mod.Instance(MOD_ID)
     public static Modfix INSTANCE;
 
+    public static Logger logger;
+
     /**
      * This is the first initialization event. Register tile entities here.
      * The registry events below will have fired prior to entry to this method.
@@ -44,6 +47,7 @@ public class Modfix {
     @Mod.EventHandler
     public void preinit(FMLPreInitializationEvent event) {
         ForgeModContainer.alwaysSetupTerrainOffThread = true;
+        logger = event.getModLog();
     }
 
     /**

@@ -26,36 +26,6 @@ import java.util.Set;
  * */
 @Mixin(value = RenderGlobal.class)
 public abstract class MixinRenderGlobal {
-    @Shadow private WorldClient world;
-
-    @Shadow private ChunkRenderDispatcher renderDispatcher;
-
-    @Shadow private boolean displayListEntitiesDirty;
-
-    @Shadow @Final private Minecraft mc;
-
-    @Shadow private int renderDistanceChunks;
-
-    @Shadow private boolean vboEnabled;
-
-    @Shadow private IRenderChunkFactory renderChunkFactory;
-
-    @Shadow private ChunkRenderContainer renderContainer;
-
-    @Shadow protected abstract void generateStars();
-
-    @Shadow protected abstract void generateSky2();
-
-    @Shadow protected abstract void generateSky();
-
-    @Shadow private ViewFrustum viewFrustum;
-
-    @Shadow @Final private Set<TileEntity> setTileEntities;
-
-    @Shadow protected abstract void stopChunkUpdates();
-
-    @Shadow private int renderEntitiesStartupCounter;
-
     /*@Inject(method = "stopChunkUpdates", cancellable = true, at = @At("HEAD"))
     public void stopChunkUpdates(CallbackInfo info) {
         info.cancel();
@@ -73,7 +43,7 @@ public abstract class MixinRenderGlobal {
         ci.cancel();
     }
 
-    @Inject(method = "loadRenderers", at = @At("HEAD"), cancellable = true)
+    /*@Inject(method = "loadRenderers", at = @At("HEAD"), cancellable = true)
     public void loadRenderers(CallbackInfo ci)
     {
         if (this.world != null)
@@ -141,14 +111,14 @@ public abstract class MixinRenderGlobal {
 
         //上書き
         ci.cancel();
-    }
+    }*/
 
-    /*@Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
     public void loadRenderers(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn, CallbackInfoReturnable<Integer> cir)
     {
         ChunkRenderManager.Render(blockLayerIn, partialTicks, pass, entityIn);
         //cir.cancel();
-    }*/
+    }
 
     /*@Inject(method = "getRenderChunkOffset", remap = false, cancellable = true, at = @At("HEAD"))
     public void getRenderChunkOffset(CallbackInfoReturnable<RenderChunk> info) {

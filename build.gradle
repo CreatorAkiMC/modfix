@@ -51,6 +51,7 @@ jar.manifest.attributes(
         'FMLCorePlugin': 'com.aki.modfix.MixinModLoadConfig',
         'ForceLoadAsMod': true,
         'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+        'TweakOrder': '0',
         'FMLAT': 'modfix_at.cfg'
 )
 

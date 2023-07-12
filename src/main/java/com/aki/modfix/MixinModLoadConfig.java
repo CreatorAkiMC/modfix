@@ -2,8 +2,11 @@ package com.aki.modfix;
 
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.common.ForgeVersion;
+import net.minecraftforge.fml.relauncher.CoreModManager;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.asm.launch.MixinBootstrap;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 import sun.misc.URLClassPath;
 
@@ -15,6 +18,7 @@ import java.util.*;
 
 @IFMLLoadingPlugin.MCVersion(ForgeVersion.mcVersion)
 @IFMLLoadingPlugin.SortingIndex(9999)
+@IFMLLoadingPlugin.TransformerExclusions("com.aki.modfix.asm")
 public class MixinModLoadConfig implements IFMLLoadingPlugin {
     public static List<String> LateMixinMods = Arrays.asList(
             "mixins.projecte.json",
@@ -72,7 +76,7 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
 
     @Override
     public String[] getASMTransformerClass() {
-        return new String[0];
+        return new String[] {"com.aki.modfix.asm.ModFixClassTransformer"};
     }
 
     @Override
@@ -88,7 +92,11 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
 
     @Override
     public void injectData(Map<String, Object> data) {
-
+        if (Boolean.FALSE.equals(data.get("runtimeDeobfuscationEnabled"))) {
+            MixinBootstrap.init();
+            MixinEnvironment.getDefaultEnvironment().setObfuscationContext("searge");
+            CoreModManager.getReparseableCoremods().removeIf(s -> StringUtils.containsIgnoreCase(s, "mcutils"));
+        }
     }
 
     @Override

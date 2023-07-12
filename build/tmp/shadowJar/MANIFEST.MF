@@ -1,10 +1,11 @@
 Manifest-Version: 1.0
+TweakOrder: 0
 Implementation-Title: modfix
 Implementation-Version: task ':jar' property 'archiveVersion'
 FMLCorePluginContainsFMLMod: true
 FMLAT: modfix_at.cfg
 Specification-Title: modsfix
-Implementation-Timestamp: 2023-07-10T20:20:40+0900
+Implementation-Timestamp: 2023-07-12T15:58:39+0900
 TweakClass: org.spongepowered.asm.launch.MixinTweaker
 ForceLoadAsMod: true
 FMLCorePlugin: com.aki.modfix.MixinModLoadConfig
