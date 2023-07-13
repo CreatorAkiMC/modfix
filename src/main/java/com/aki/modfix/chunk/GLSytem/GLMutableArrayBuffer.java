@@ -1,9 +1,6 @@
 package com.aki.modfix.chunk.GLSytem;
 
-import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
-
-import java.nio.ByteBuffer;
 
 public class GLMutableArrayBuffer extends GlObject {
     public GLMutableArrayBuffer() {
@@ -20,6 +17,7 @@ public class GLMutableArrayBuffer extends GlObject {
 
     public void delete() {
         unbind();
+        System.out.println("VAO -> Delete");
         GL30.glDeleteVertexArrays(this.handle());
         this.invalidateHandle();
     }

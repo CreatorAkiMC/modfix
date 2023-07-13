@@ -15,6 +15,10 @@ public class GlObject {
         return this.handle;
     }
 
+    public final int GetDebugHandle() {
+        return this.handle;
+    }
+
     protected final void checkHandle() {
         if (!this.isHandleValid()) {
             throw new IllegalStateException("Handle is not valid");

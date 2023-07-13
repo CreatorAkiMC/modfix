@@ -6,26 +6,34 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockRenderLayer;
 
 public class ChunkRenderManager {
-    public static GLRenderTest renderTest = null;
+    private static GLRenderTest renderTest = null;
 
     public static void SetUPTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator) {
         ///while (renderTest != null) {
         //renderTest.Render();
         //}
-
-        renderTest.SetUP();
+        if(renderTest != null)
+            renderTest.SetUP();
     }
 
-    public static void loadRenderers() {
+    public static void loadRender() {
         if (renderTest != null) {
             renderTest.deleteDatas();
+            renderTest = null;
         }
         renderTest = new GLRenderTest();
         renderTest.init();
     }
 
     public static void Render(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn) {
-        renderTest.Render();
+        if(renderTest != null)
+            renderTest.Render(blockLayerIn);
+    }
+
+    public static void dispose() {
+        if(renderTest != null)
+            renderTest.deleteDatas();
+        renderTest = null;
     }
 
     public static void LoadChunk(int chunkX, int chunkZ) {

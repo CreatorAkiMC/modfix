@@ -20,6 +20,6 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(value = EntityRenderer.class)
-public abstract class MixinEntityRenderer {
+public class MixinEntityRenderer {
 
 }

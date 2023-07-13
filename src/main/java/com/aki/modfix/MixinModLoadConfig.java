@@ -18,7 +18,7 @@ import java.util.*;
 
 @IFMLLoadingPlugin.MCVersion(ForgeVersion.mcVersion)
 //@IFMLLoadingPlugin.SortingIndex(9999)
-@IFMLLoadingPlugin.TransformerExclusions("com.aki.modfix.asm")
+@IFMLLoadingPlugin.TransformerExclusions({"com.aki.modfix.asm", "com.aki.MixinModLoadConfig"})
 public class MixinModLoadConfig implements IFMLLoadingPlugin {
     public static List<String> LateMixinMods = Arrays.asList(
             "mixins.projecte.json",

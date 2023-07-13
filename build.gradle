@@ -47,6 +47,7 @@ compileJava {
 }
 
 jar.manifest.attributes(
+        'ModSide': 'CLIENT',
         'FMLCorePluginContainsFMLMod': true,
         'FMLCorePlugin': 'com.aki.modfix.MixinModLoadConfig',
         'ForceLoadAsMod': true,

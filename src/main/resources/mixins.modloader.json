@@ -11,15 +11,14 @@
     "vanilla.keybind.MixinGuiControls",
     "vanilla.keybind.MixinKeyBinding",
     "vanilla.keybind.MixinKeyBindingGameSettings",
-    "vanilla.keybind.MixinGuiNewChat",
-    "vanilla.rendering.MixinEntityRenderer",
-    "vanilla.rendering.MixinRenderGlobal"
+    "vanilla.keybind.MixinGuiNewChat"
   ],
   "server": [
 
   ],
   "client": [
-    "modsupport.MixinLoader"
+    "modsupport.MixinLoader",
+    "vanilla.rendering.MixinRenderGlobal"
   ],
   "injectors": {
     "defaultRequire": 1
