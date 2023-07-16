@@ -19,7 +19,6 @@ public class ChunkRenderManager {
     public static void loadRender() {
         if (renderTest != null) {
             renderTest.deleteDatas();
-            renderTest = null;
         }
         renderTest = new GLRenderTest();
         renderTest.init();

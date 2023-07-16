@@ -45,6 +45,12 @@ public abstract class MixinRenderGlobal {
         ci.cancel();
     }
 
+    @Inject(method = "getDebugInfoRenders", cancellable = true, at = @At("HEAD"))
+    public void getDebugInfoRenders(CallbackInfoReturnable<String> info) {
+        info.setReturnValue("C: 0/0 (s) D: 0, L: 0, pC: 0, pU: 0, aB: 0");
+    }
+
+
     @Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
     public void RenderChunkBlockLayer(BlockRenderLayer p_174977_1_, double p_174977_2_, int p_174977_4_, Entity p_174977_5_, CallbackInfoReturnable<Integer> cir) {
         ChunkRenderManager.Render(p_174977_1_, p_174977_2_, p_174977_4_, p_174977_5_);

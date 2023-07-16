@@ -10,7 +10,12 @@ import com.aki.modfix.chunk.GLSytem.GlCommandBuffer;
 import com.aki.modfix.chunk.GLSytem.GlMutableBuffer;
 import com.aki.modfix.chunk.GLSytem.GlVertexOffsetBuffer;
 import com.aki.modfix.util.gl.RTList;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
@@ -32,7 +37,6 @@ public class GLRenderTest {
 
     public ShaderProgram program;
     public float Aspect = 0.0f;//アスペクト比
-    private boolean IsRemoved = false;//確認用
 
     private RTList<Integer> SyncList;
 
@@ -61,8 +65,6 @@ public class GLRenderTest {
     }
 
     public void init() {
-        System.out.println("VAO Create");
-
         if(this.commandBuffer != null)
             this.commandBuffer.delete();
         if(this.offsetBuffer != null)
@@ -85,150 +87,177 @@ public class GLRenderTest {
             e.printStackTrace();
         }
 
-        this.IsRemoved = false;
-
         this.InitBuffer();
     }
 
     //init で実行
     //BlockRenderLayers分やったほうがいい？
     private void InitBuffer() {
-        //四角形
-        float[] vertices = new float[] {
-                0.5f, 0.5f, 0.0f,
-                -0.5f, 0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                -0.5f, -0.5f, 0.0f
-        };
+        try {
 
-        //2個だけ
-        float[] Pos = new float[] {
-                0, 0, 0,
-                10, 10, 10
-        };
+            //四角形
+            /*float[] vertices = new float[]{
+                    0.5f, 0.5f, 0.0f,
+                    -0.5f, 0.5f, 0.0f,
+                    0.5f, -0.5f, 0.0f,
+                    -0.5f, -0.5f, 0.0f
+            };*/
 
-        FloatBuffer bufferData = BufferUtils.createFloatBuffer(vertices.length).put(vertices);
-        FloatBuffer PosData = BufferUtils.createFloatBuffer(Pos.length).put(Pos);
-        bufferData.flip();
-        PosData.flip();
-        //頂点座標
-        VertexBuffer.bind(GL15.GL_ARRAY_BUFFER);
-        VertexBuffer.upload(GL15.GL_ARRAY_BUFFER, bufferData);
-        VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+            float[] Pos = new float[]{
+                    1.5f, 1.5f, 0.0f,
+                    -1.5f, 1.5f, 0.0f,
+                    1.5f, -1.5f, 0.0f//,
+                    -1.5f, -1.5f, 0.0f
+            };
 
-        //位置座標
-        PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
-        PosBuffer.upload(GL15.GL_ARRAY_BUFFER, PosData);
-        PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+            float[] Color = new float[]{
+                    (float)Math.random() * 10.0F + 0.2f, (float)Math.random() * 10.0F + 0.2f, (float)Math.random() * 10.0F + 0.2f, 1.0F,
+                    (float)Math.random() * 10.0F + 0.2f, (float)Math.random() * 10.0F + 0.2f, (float)Math.random() * 10.0F + 0.2f, 1.0F,
+                    (float)Math.random() * 10.0F + 0.2f, (float)Math.random() * 10.0F + 0.2f, (float)Math.random() * 10.0F + 0.2f, 1.0F,
+                    (float)Math.random() * 10.0F + 0.2f, (float)Math.random() * 10.0F + 0.2f, (float)Math.random() * 10.0F + 0.2f, 1.0F
+            };
 
-        this.program.useShader();
+            //FloatBuffer bufferData = BufferUtils.createFloatBuffer(vertices.length).put(vertices);
+            FloatBuffer PosData = BufferUtils.createFloatBuffer(Pos.length).put(Pos);
+            FloatBuffer ColorData = BufferUtils.createFloatBuffer(Color.length).put(Color);
+            //bufferData.flip();
+            PosData.flip();
+            //頂点座標
+            /*VertexBuffer.bind(GL15.GL_ARRAY_BUFFER);
+            VertexBuffer.upload(GL15.GL_ARRAY_BUFFER, bufferData);
+            VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);*/
 
-        this.VaoBuffer.bind();
+            //位置座標 -> これを頂点にすればよい。
+            PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
+            PosBuffer.upload(GL15.GL_ARRAY_BUFFER, PosData);
+            PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
 
-        VertexBuffer.bind(GL15.GL_ARRAY_BUFFER);
-        int VPos = this.program.getAttributeLocation("vertexPos");
-        //Size は分割する量
-        GL20.glVertexAttribPointer(VPos, 3, GL11.GL_FLOAT, false, 0,0L);
-        GL20.glEnableVertexAttribArray(VPos);
-        GL33.glVertexAttribDivisor(VPos, 0);//頂点は４つで複数ないので分割しない -> 0
-        VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+            ColorBuffer.bind(GL15.GL_ARRAY_BUFFER);
+            ColorBuffer.upload(GL15.GL_ARRAY_BUFFER, ColorData);
+            ColorBuffer.unbind(GL15.GL_ARRAY_BUFFER);
 
-        PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
-        int A_Pos = this.program.getAttributeLocation("a_pos");
-        //Size は分割する量
-        GL20.glVertexAttribPointer(A_Pos, 3, GL11.GL_FLOAT, false, 0,0L);
-        GL20.glEnableVertexAttribArray(A_Pos);
-        GL33.glVertexAttribDivisor(A_Pos, 1);//複数図形の座標があるので-> 1  (いらない？)
-        PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+            this.program.useShader();
+
+            this.VaoBuffer.bind();
+
+            /*VertexBuffer.bind(GL15.GL_ARRAY_BUFFER);
+            int VPos = this.program.getAttributeLocation("vertexPos");
+            //Size は分割する量
+            GL20.glVertexAttribPointer(VPos, 3, GL11.GL_FLOAT, false, 0, 0L);
+            GL20.glEnableVertexAttribArray(VPos);
+            GL33.glVertexAttribDivisor(VPos, 0);//頂点は４つで複数ないので分割しない -> 0
+            VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);*/
+
+            PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
+            int A_Pos = this.program.getAttributeLocation("a_pos");
+            //Size は分割する量
+            GL20.glVertexAttribPointer(A_Pos, 3, GL11.GL_FLOAT, false, 0, 0L);
+            GL20.glEnableVertexAttribArray(A_Pos);
+            //GL33.glVertexAttribDivisor(A_Pos, 1);//複数図形の座標があるので-> 1  (いらない？) -> Vertexの代わりに使うから行わない
+            PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+
+            ColorBuffer.bind(GL15.GL_ARRAY_BUFFER);
+            int A_Color = this.program.getAttributeLocation("a_color");
+            //Size は分割する量
+            GL20.glVertexAttribPointer(A_Color, 4, GL11.GL_FLOAT, false, 0, 0L);
+            GL20.glEnableVertexAttribArray(A_Color);
+            //GL33.glVertexAttribDivisor(A_Pos, 1);//複数図形の座標があるので-> 1  (いらない？) -> Vertexの代わりに使うから行わない
+            ColorBuffer.unbind(GL15.GL_ARRAY_BUFFER);
 
 
-        //this.offsetBufferがここで登録されても、内部ではメモリのアドレスが共有されているため後から変更されても
-        //ちゃんと変更が適用される
-        int Offset = program.getAttributeLocation("a_offset");//vec4 色
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.offsetBuffer.getBufferIndex());
-        //4個ずつ割り当て
-        GL20.glVertexAttribPointer(Offset, 3, GL11.GL_FLOAT, false, 0, 0L);
-        GL33.glVertexAttribDivisor(Offset, 1);//1頂点で分割
-        GL20.glEnableVertexAttribArray(Offset);//VAO内で、Index を固定化
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+            //this.offsetBufferがここで登録されても、内部ではメモリのアドレスが共有されているため後から変更されても
+            //ちゃんと変更が適用される
+            int Offset = program.getAttributeLocation("a_offset");
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.offsetBuffer.getBufferIndex());
 
-        this.VaoBuffer.unbind();
+            GL20.glVertexAttribPointer(Offset, 3, GL11.GL_FLOAT, false, 0, 0L);
+            GL20.glEnableVertexAttribArray(Offset);//VAO内で、Index を固定化
+            GL33.glVertexAttribDivisor(Offset, 1);//1頂点で分割
 
-        this.program.releaseShader();
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+
+            this.VaoBuffer.unbind();
+
+            this.program.releaseShader();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * RenderGlobal SetupTerrain でする
      * */
     public void SetUP () {
+        try {
+            this.SyncList.ToNext();
+            this.offsetBuffer.begin();
 
-        this.SyncList.ToNext();
-        this.offsetBuffer.begin();
+            if (this.SyncList.getSelect() != -1) {
+                GL33.glGetQueryObjecti64(this.SyncList.getSelect(), GL15.GL_QUERY_RESULT);
+                GL15.glDeleteQueries(this.SyncList.getSelect());
+                this.SyncList.setSelect(-1);
+            }
 
-        if(this.SyncList.getSelect() != -1) {
-            GL33.glGetQueryObjecti64(this.SyncList.getSelect(), GL15.GL_QUERY_RESULT);
-            GL15.glDeleteQueries(this.SyncList.getSelect());
-            this.SyncList.setSelect(-1);
+            double ObjectX = 0.5; //+ Math.random() * 10;
+            double ObjectY = 1.5; //+ Math.random() * 10;
+            double ObjectZ = 0.5; //+ Math.random() * 10;
+
+            this.offsetBuffer.addIndirectDrawOffsetCall((float) (ObjectX - GLUtils.getCameraX()), (float) (ObjectY - GLUtils.getCameraY()), (float) (ObjectZ - GLUtils.getCameraZ()));
+
+            this.offsetBuffer.end();
+
+            this.commandBuffer.begin();
+
+            /**
+             * count の値は本当に大事 -> 形にかかわる
+             * 色を付けたほうが見やすいかも？
+             * */
+            for (int i = 0; i < 1; i++) {// i < 表示するものの量
+                //first (初期) 0, 頂点(四角 = 三角形 * 2) 6, BaseInstance i, instanceCount 1
+                this.commandBuffer.addIndirectDrawCall(i, 12, i, 1);
+            }
+            this.commandBuffer.end();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        double ObjectX = 0.5; //+ Math.random() * 10;
-        double ObjectY = 1.5; //+ Math.random() * 10;
-        double ObjectZ = 0.5; //+ Math.random() * 10;
-
-        //System.out.println("ObjectX: " + ObjectX + ", ObjectY: " + ObjectY + ", ObjectZ: " + ObjectZ);
-
-        this.offsetBuffer.addIndirectDrawOffsetCall((float) (ObjectX - GLUtils.getCameraX()), (float) (ObjectY - GLUtils.getCameraY()), (float) (ObjectZ - GLUtils.getCameraZ()));
-
-        this.offsetBuffer.end();
-
-        this.commandBuffer.begin();
-        for(int i = 0; i < 2; i++) {
-            //first (初期) 0, 頂点(四角) 4, BaseInstance i, instanceCount 1
-            this.commandBuffer.addIndirectDrawCall(0, 4, i, 1);
-        }
-        this.commandBuffer.end();
     }
 
     public void Render(BlockRenderLayer layer) {
-        System.out.println("VAO Render Remove: " + this.IsRemoved);
+        try {
 
-        program.useShader();
+            program.useShader();
 
-        int projectionMatrixIndex = program.getUniformLocation("u_ModelViewProjectionMatrix");
-        Matrix4f mat4f = GLUtils.getProjectionModelViewMatrix().copy();
-        //座標移動
-        mat4f.translate((float) GLUtils.getCameraOffsetX(), (float) GLUtils.getCameraOffsetY(), (float) GLUtils.getCameraOffsetZ());
-        //Matrix指定
-        GLUtils.setMatrix(projectionMatrixIndex, mat4f);
+            int projectionMatrixIndex = program.getUniformLocation("u_ModelViewProjectionMatrix");
+            Matrix4f mat4f = GLUtils.getProjectionModelViewMatrix().copy();
+            //座標移動
+            mat4f.translate((float) GLUtils.getCameraOffsetX(), (float) GLUtils.getCameraOffsetY(), (float) GLUtils.getCameraOffsetZ());
+            //Matrix指定
+            GLUtils.setMatrix(projectionMatrixIndex, mat4f);
 
-        System.out.println("VAOID: " + this.VaoBuffer.GetDebugHandle() + ", CS Side: " + FMLCommonHandler.instance().getSide().name());
-        this.VaoBuffer.bind();
+            this.VaoBuffer.bind();
 
-        System.out.println("VAO -> OK");
+            int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
+            this.commandBuffer.bind(RenderBufferMode);
 
-        int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
-        GL15.glBindBuffer(RenderBufferMode, this.commandBuffer.getBufferIndex());
-        GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.commandBuffer.getCount(), 0); //<- GL43にサポートしていない？
-        if (layer == BlockRenderLayer.TRANSLUCENT) {//同期
-            if (this.SyncList.getSelect() != -1)
-                GL15.glDeleteQueries(this.SyncList.getSelect());
-            int query = GL15.glGenQueries();
-            GL33.glQueryCounter(query, GL33.GL_TIMESTAMP);
-            this.SyncList.setSelect(query);
+            GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.commandBuffer.getCount(), 0); //<- GL43にサポートしていない？
+            if (layer == BlockRenderLayer.TRANSLUCENT) {//同期
+                if (this.SyncList.getSelect() != -1)
+                    GL15.glDeleteQueries(this.SyncList.getSelect());
+                int query = GL15.glGenQueries();
+                GL33.glQueryCounter(query, GL33.GL_TIMESTAMP);
+                this.SyncList.setSelect(query);
+            }
+
+            this.commandBuffer.unbind(RenderBufferMode);//GL15.glBindBuffer(RenderBufferMode, 0);
+
+            this.VaoBuffer.unbind();
+            program.releaseShader();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        GL15.glBindBuffer(RenderBufferMode, 0);
-
-        this.VaoBuffer.unbind();
-
-        program.releaseShader();
     }
 
     public void deleteDatas() {
-        System.out.println("VAO Remove");
-
-        this.IsRemoved = true;
-
         this.VertexBuffer.delete();
         this.PosBuffer.delete();
         this.ColorBuffer.delete();
@@ -237,19 +266,18 @@ public class GLRenderTest {
         if(this.commandBuffer != null) {
             this.commandBuffer.delete();
             this.offsetBuffer.delete();
-            program.releaseShader();
             program.Delete();
         }
 
-        this.SyncList.getList().forEach(GL15::glDeleteQueries);
+        this.SyncList.getList().stream().filter(i -> i != -1).forEach(GL15::glDeleteQueries);
 
-        this.VertexBuffer = null;
+        /*this.VertexBuffer = null;
         this.PosBuffer = null;
         this.ColorBuffer = null;
         this.VaoBuffer = null;
         this.commandBuffer = null;
         this.offsetBuffer = null;
-        this.program = null;
+        this.program = null;*/
     }
 
     public int gcd(int a, int b) {

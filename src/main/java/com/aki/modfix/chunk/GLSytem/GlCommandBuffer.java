@@ -57,9 +57,9 @@ public class GlCommandBuffer extends GlObject {
     /**
      * 作用範囲(いらない？)
      * */
-    /*public void bind(int target) {
-        GL15.glBindBuffer(target, this.handle());
-    }*/
+    public void bind(int target) {
+        GL15.glBindBuffer(target, this.bufferIndex);
+    }
 
     public void unbind(int target) {
         GL15.glBindBuffer(target, 0);
