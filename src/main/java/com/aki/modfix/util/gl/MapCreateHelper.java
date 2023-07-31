@@ -20,7 +20,6 @@ public class MapCreateHelper {
     }
 
     public static <K, V> LinkedHashMap<K, V> CreateLinkedHashMap(K[] Keys, IntFunction<V> ValueFunc) {
-        HashMap<K, V> hashMap = CreateHashMap(Keys, ValueFunc);
-        return hashMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldV, newV) -> newV, LinkedHashMap::new));
+        return new LinkedHashMap<>(CreateHashMap(Keys, ValueFunc));
     }
 }
