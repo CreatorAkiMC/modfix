@@ -1,4 +1,4 @@
-package com.aki.modfix.chunk.openGL;
+package com.aki.modfix.chunk.openGL.renderers;
 
 //VertexBuffer を置き換える感じ
 //texturedump が使えるかも
@@ -10,31 +10,21 @@ import com.aki.mcutils.APICore.program.shader.ShaderHelper;
 import com.aki.mcutils.APICore.program.shader.ShaderObject;
 import com.aki.mcutils.APICore.program.shader.ShaderProgram;
 import com.aki.modfix.chunk.GLSytem.*;
+import com.aki.modfix.chunk.openGL.ChunkRender;
+import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
+import com.aki.modfix.chunk.openGL.RenderEngineType;
 import com.aki.modfix.util.gl.*;
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.client.FMLClientHandler;
 import org.lwjgl.opengl.*;
 
-import java.awt.*;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.Objects;
 
 /**
  * BlockRenderDispatcher で取得した BufferBuilder をもとに描画する。
  * */
-public class ChunkRenderingGL43 extends ChunkRendererBase<ChunkRender> {
+public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
     /**
      * Bufferのデータマッピング
      *
@@ -54,13 +44,13 @@ public class ChunkRenderingGL43 extends ChunkRendererBase<ChunkRender> {
      * 		    //Index 24 ~ 27 (Vec2 光の座標 2個)
      * 			GL20.glVertexAttribPointer(shader.getAttribute(A_LIGHTCOORD), 2, GL11.GL_SHORT, false, 28, 24);
      * */
-    public ChunkRenderingGL43() {
+    public ChunkRendererGL43() {
         super();
     }
 
     @Override
     public RenderEngineType getRenderEngine() {
-        return null;
+        return RenderEngineType.GL43;
     }
 
     @Override
@@ -70,14 +60,6 @@ public class ChunkRenderingGL43 extends ChunkRendererBase<ChunkRender> {
 
         this.CommandBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
         this.OffsetBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
-
-        try {
-            program = new ShaderProgram();
-            program.attachShader(new ShaderObject(ShaderObject.ShaderType.VERTEX, ShaderHelper.readShader(ShaderHelper.getStream("/assets/modfix/shaders/gltest_v.glsl"))));
-            program.attachShader(new ShaderObject(ShaderObject.ShaderType.FRAGMENT, ShaderHelper.readShader(ShaderHelper.getStream("/assets/modfix/shaders/gltest_f.glsl"))));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         this.InitVAOs();
     }
@@ -89,11 +71,11 @@ public class ChunkRenderingGL43 extends ChunkRendererBase<ChunkRender> {
                 VAO.ChangeNewVAO();
                 VAO.bind();
 
-                int A_Pos = this.program.getAttributeLocation("a_pos");
-                int A_Color = this.program.getAttributeLocation("a_color");
-                int a_texCoord = this.program.getAttributeLocation("a_TexCoord");
-                int a_lightCoord = this.program.getAttributeLocation("a_LightCoord");
-                int Offset = program.getAttributeLocation("a_offset");
+                int A_Pos = this.program.getAttributeLocation(A_POS);
+                int A_Color = this.program.getAttributeLocation(A_COLOR);
+                int a_texCoord = this.program.getAttributeLocation(A_TEXCOORD);
+                int a_lightCoord = this.program.getAttributeLocation(A_LIGHTCOORD);
+                int Offset = program.getAttributeLocation(A_OFFSET);
 
                 //読み込み
                 this.DynamicBuffers.get(renderPass).bind(GL15.GL_ARRAY_BUFFER);
@@ -144,23 +126,8 @@ public class ChunkRenderingGL43 extends ChunkRendererBase<ChunkRender> {
 
             CommandBuffers.forEach((pass, buf) -> {
                 ListUtil.forEach(this.RenderChunks.get(pass), pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
-                    /**
-                     * いらないかも(entity.motion...)
-                     * */
-                    Entity entity = Minecraft.getMinecraft().getRenderViewEntity();
-                    double factor = 0.75;
-                    if (entity != null) {
-                        /**
-                         * 位置座標を決める
-                         * チャンクの中心でいい？
-                         * */
-                        this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (0 - cameraX - entity.motionX * factor), (float) (0 - cameraY - entity.motionY * factor), (float) (0 - cameraZ - entity.motionZ * factor));
-                    }
+                    this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
 
-                    /**
-                     * count の値は本当に大事 -> 形にかかわる
-                     * 色を付けたほうが見やすいかも？
-                     * */
                     //first (初期) 0, 頂点(四角 = 4 or 三角形 * 2 = 6？ 立方体は 3 * 2 * 6 -> 36 ?) 4, BaseInstance i, instanceCount 1
 
                     //first オフセット スキップする頂点の数を入れる <- renderBlock で取得した Buffer を DefaultVertexFormats.BLOCK.getSize() で割るとよさそう (合計)。
@@ -183,12 +150,6 @@ public class ChunkRenderingGL43 extends ChunkRendererBase<ChunkRender> {
     }
 
     public void RenderChunks(ChunkRenderPass pass) {
-        program.useShader(cache -> {
-            //マッピング用
-            cache.glUniform1I("u_BlockTex", 0);
-            cache.glUniform1I("u_LightTex", 1);
-        });
-
         int projectionMatrixIndex = program.getUniformLocation("u_ModelViewProjectionMatrix");
         Matrix4f mat4f = GLUtils.getProjectionModelViewMatrix().copy();
         //座標移動
@@ -213,7 +174,5 @@ public class ChunkRenderingGL43 extends ChunkRendererBase<ChunkRender> {
         }
         this.CommandBuffers.get(pass).unbind(RenderBufferMode);//GL15.glBindBuffer(RenderBufferMode, 0);
         this.VaoBuffers.get(pass).unbind();
-
-        program.releaseShader();
     }
 }

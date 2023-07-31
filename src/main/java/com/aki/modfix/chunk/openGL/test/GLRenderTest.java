@@ -16,22 +16,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 
 import java.awt.*;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.Arrays;
-import java.util.Random;
 
 public class GLRenderTest {
     public GlMutableBuffer PosBuffer;
@@ -96,8 +90,8 @@ public class GLRenderTest {
 
         try {
             program = new ShaderProgram();
-            program.attachShader(new ShaderObject(ShaderObject.ShaderType.VERTEX, ShaderHelper.readShader(ShaderHelper.getStream("/assets/modfix/shaders/gltest_v.glsl"))));
-            program.attachShader(new ShaderObject(ShaderObject.ShaderType.FRAGMENT, ShaderHelper.readShader(ShaderHelper.getStream("/assets/modfix/shaders/gltest_f.glsl"))));
+            program.attachShader(new ShaderObject(ShaderObject.ShaderType.VERTEX, ShaderHelper.readShader(ShaderHelper.getStream("/assets/modfix/shaders/ChunkGL_v.glsl"))));
+            program.attachShader(new ShaderObject(ShaderObject.ShaderType.FRAGMENT, ShaderHelper.readShader(ShaderHelper.getStream("/assets/modfix/shaders/ChunkGL_f.glsl"))));
         } catch (IOException e) {
             e.printStackTrace();
         }

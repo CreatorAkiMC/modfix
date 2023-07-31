@@ -2,6 +2,7 @@ package com.aki.modfix.chunk.openGL;
 
 import com.aki.mcutils.APICore.Utils.memory.UnsafeByteBuffer;
 import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
+import com.aki.modfix.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.SortVertexUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;

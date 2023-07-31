@@ -1,5 +1,7 @@
 package com.aki.modfix.chunk.openGL;
 
+import com.aki.modfix.chunk.openGL.renderers.ChunkRendererBase;
+
 import java.util.function.Supplier;
 
 public abstract class ChunkRenderTaskBase<T extends ChunkRender> implements Supplier<ChunkRenderTaskResult> {

@@ -6,8 +6,8 @@ package com.aki.modfix.chunk.openGL;
 
 import com.aki.mcutils.APICore.Utils.memory.NIOBufferUtil;
 import com.aki.modfix.Modfix;
-import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
 import com.aki.modfix.chunk.openGL.integreate.BetterFoliage;
+import com.aki.modfix.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.ChunkRenderPass;
 import com.aki.modfix.util.gl.GraphVisibility;
 import com.aki.modfix.util.gl.SortVertexUtil;
