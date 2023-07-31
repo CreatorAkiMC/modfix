@@ -1,6 +1,5 @@
 package com.aki.modfix.mixin.vanilla.rendering;
 
-import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import com.aki.modfix.chunk.ChunkRenderManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -33,14 +32,9 @@ public abstract class MixinRenderGlobal {
         info.cancel();
     }
 
-    /*@Inject(method = "getRenderedChunks", cancellable = true, at = @At("HEAD"))
-    public void getRenderedChunks(CallbackInfoReturnable<Integer> info) {
-        info.setReturnValue(ChunkRenderManager.renderedSections());
-    }*/
-
     @Inject(method = "setupTerrain", at = @At("HEAD"), cancellable = true)
     public void SetUP(Entity p_174970_1_, double p_174970_2_, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_, CallbackInfo ci) {
-        GLUtils.updateCamera();
+        //GLUtils.updateCamera();
         ChunkRenderManager.SetUPTerrain(p_174970_1_, p_174970_2_, p_174970_4_, p_174970_5_, p_174970_6_);
         ci.cancel();
     }
@@ -54,7 +48,7 @@ public abstract class MixinRenderGlobal {
     @Inject(method = "renderBlockLayer(Lnet/minecraft/util/BlockRenderLayer;DILnet/minecraft/entity/Entity;)I", at = @At("HEAD"), cancellable = true)
     public void RenderChunkBlockLayer(BlockRenderLayer p_174977_1_, double p_174977_2_, int p_174977_4_, Entity p_174977_5_, CallbackInfoReturnable<Integer> cir) {
         ChunkRenderManager.Render(p_174977_1_, p_174977_2_, p_174977_4_, p_174977_5_);
-        cir.cancel();
+        cir.setReturnValue(0);
     }
 
     @Inject(method = "markBlocksForUpdate", cancellable = true, at = @At("HEAD"))
@@ -62,6 +56,7 @@ public abstract class MixinRenderGlobal {
         for (int chunkX = minX >> 4; chunkX <= maxX >> 4; chunkX++) {
             for (int chunkY = minY >> 4; chunkY <= maxY >> 4; chunkY++) {
                 for (int chunkZ = minZ >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
+                    ChunkRenderManager.getRenderProvider().setDirty(chunkX, chunkY, chunkZ);
                     //ChunkRenderManager.getProvider().setDirty(chunkX, chunkY, chunkZ);
                 }
             }

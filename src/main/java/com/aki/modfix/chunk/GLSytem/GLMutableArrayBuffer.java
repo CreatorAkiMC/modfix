@@ -11,6 +11,11 @@ public class GLMutableArrayBuffer extends GlObject {
         GL30.glBindVertexArray(this.handle());
     }
 
+    public void ChangeNewVAO() {
+        GL30.glDeleteVertexArrays(this.handle());
+        this.setHandle(GL30.glGenVertexArrays());
+    }
+
     public void unbind() {
         GL30.glBindVertexArray(0);
     }
