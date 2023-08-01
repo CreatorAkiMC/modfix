@@ -32,6 +32,9 @@ public class ChunkRenderManager {
             RenderDispatcher.update();
         if(renderProvider != null)
             renderProvider.repositionCamera(GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ());
+
+        System.out.println("Frustum Is Null: " + (GLUtils.getFrustum() == null));
+
         if(ChunkRender != null)
             ChunkRender.SetUP(renderProvider, GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ(), GLUtils.getFrustum(), GLUtils.getFrame());
     }

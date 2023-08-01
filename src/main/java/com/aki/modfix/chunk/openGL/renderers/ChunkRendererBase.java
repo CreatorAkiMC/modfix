@@ -50,7 +50,20 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     public String A_LIGHTCOORD = "a_LightCoord";
     public String A_OFFSET = "a_offset";
 
-    public ShaderProgram program = getProgram();
+    public ShaderProgram program;
+
+
+
+
+    public RTList<Integer> SyncList;
+
+    public ChunkRendererBase() {
+        program = getProgram();
+
+        this.VaoBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GLMutableArrayBuffer());
+        this.DynamicBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlDynamicVBO());
+        this.SyncList = new RTList<>(0, Arrays.asList(-1, -1));
+    }
 
     public ShaderProgram getProgram() {
         ShaderProgram Cprogram = new ShaderProgram();
@@ -64,15 +77,6 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         }
 
         return Cprogram;
-    }
-
-
-    public RTList<Integer> SyncList;
-
-    public ChunkRendererBase() {
-        this.VaoBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GLMutableArrayBuffer());
-        this.DynamicBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlDynamicVBO());
-        this.SyncList = new RTList<>(0, Arrays.asList(-1, -1));
     }
 
     public abstract RenderEngineType getRenderEngine();

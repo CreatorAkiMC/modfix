@@ -66,6 +66,8 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
     private void InitVAOs() {
         try {
+            this.program.useShader();
+
             this.VaoBuffers.forEach((renderPass, VAO) -> {
 
                 VAO.ChangeNewVAO();
@@ -103,6 +105,8 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            this.program.releaseShader();
         }
     }
 

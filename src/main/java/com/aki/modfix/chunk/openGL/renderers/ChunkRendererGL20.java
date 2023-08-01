@@ -34,6 +34,7 @@ public class ChunkRendererGL20 extends ChunkRendererBase<ChunkRender> {
         GLUtils.setMatrix(program.getUniformLocation("u_ModelViewProjectionMatrix"), matrix);
         GLFogUtils.setupFogFromGL(program);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, DynamicBuffers.get(pass).handle());
+
         setupClientState(pass);
         setupAttributePointers(pass);
 

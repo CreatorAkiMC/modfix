@@ -194,7 +194,9 @@ public class ChunkRender {
     public void Delete() {
         this.deleteTask();
         Arrays.stream(ChunkRenderPass.ALL).forEach(i -> {
-            this.VBOs.get(i).free();
+            if(this.VBOs.get(i) != null) {
+                this.VBOs.get(i).free();
+            }
             this.VBOs.replace(i, null);
         });//this.VBOs.forEach((key, value) -> this.VBOs.replace(key, null));
         this.setTranslucentVertexData(null);
