@@ -3,7 +3,6 @@ package com.aki.modfix.asm;
 import com.aki.mcutils.APICore.asm.ASMUtil;
 import com.aki.mcutils.APICore.asm.HashMapClassNodeClassTransformer;
 import com.aki.mcutils.APICore.asm.IClassTransformerRegistry;
-import com.aki.modfix.Modfix;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;

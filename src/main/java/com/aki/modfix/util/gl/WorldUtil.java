@@ -43,6 +43,8 @@ public class WorldUtil {
 
 
     public static boolean isChunkLoaded(int chunkX, int chunkZ) {
+        if(getWorld() == null)
+            return false;
         return getWorld().getChunkProvider().getLoadedChunk(chunkX, chunkZ) != null;
     }
 }

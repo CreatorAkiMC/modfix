@@ -35,6 +35,21 @@ java {
     withSourcesJar()
 }
 
+//AccessTransformer が適用されなくなった時用
+//This method use when AccessTransformer can`t attach to This Project.
+task deleteFGFiles {
+    def Check_dir = "$buildDir/fg_cache/net/minecraftforge/forge"
+    file(Check_dir).listFiles().findAll {
+        def fName = it.getName()
+        return fName.contains("1.12.2-14.23.5.2860") && !fName.contains("_mapped_stable_39-1.12")
+    }.each {f -> {
+        println(f.getPath())
+        project.delete(f)
+    }}
+}
+
+compileJava.dependsOn(deleteFGFiles)
+
 jar {
     manifest {
         attributes 'FMLAT': 'modfix_at.cfg'
@@ -44,6 +59,10 @@ jar {
 def defaultEncoding = 'UTF-8'
 compileJava {
     options.encoding = defaultEncoding
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }
 
 jar.manifest.attributes(
@@ -210,6 +229,8 @@ mixin {
 
 // Example for how to get properties into the manifest for reading at runtime.
 jar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
     manifest {
         attributes([
                 "Specification-Title"     : "modsfix",
@@ -268,4 +289,13 @@ artifacts {
 reobf {
     shadowJar {}
     thinShadowJar {}
+}
+
+copy {
+    delete {
+        delete "$buildDir/classes/java/main"
+    }
+
+    from sourceSets.main.resources
+    into "$buildDir/classes/java/main"
 }

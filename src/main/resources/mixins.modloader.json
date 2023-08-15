@@ -9,9 +9,9 @@
   "mixins": [
     "vanilla.keybind.MixinClientRegistryKeyBind",
     "vanilla.keybind.MixinGuiControls",
+    "vanilla.keybind.MixinGuiNewChat",
     "vanilla.keybind.MixinKeyBinding",
-    "vanilla.keybind.MixinKeyBindingGameSettings",
-    "vanilla.keybind.MixinGuiNewChat"
+    "vanilla.keybind.MixinKeyBindingGameSettings"
   ],
   "server": [
 

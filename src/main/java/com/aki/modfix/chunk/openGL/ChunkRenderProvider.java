@@ -64,6 +64,9 @@ public class ChunkRenderProvider<T extends ChunkRender> {
     public void setDirty(int chunkX, int chunkY, int chunkZ) {
         ChunkRender renderChunk = this.getRenderChunkAt(chunkX, chunkY, chunkZ);
         if (renderChunk != null) {
+
+            System.out.println("Provider SetDirty: X: " + chunkX + ", Y: " + chunkY + ", Z: " + chunkZ);
+
             renderChunk.markDirty();
         }
     }

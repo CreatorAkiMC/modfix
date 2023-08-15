@@ -4,8 +4,8 @@ import net.minecraft.util.BlockRenderLayer;
 
 public enum ChunkRenderPass {
     SOLID,
-    CUTOUT,
     CUTOUT_MIPPED,
+    CUTOUT,
     TRANSLUCENT;
 
     public static final ChunkRenderPass[] ALL = ChunkRenderPass.values();

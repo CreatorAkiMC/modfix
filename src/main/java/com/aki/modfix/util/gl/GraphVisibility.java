@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static net.minecraft.util.EnumFacing.*;
+import static net.minecraft.util.EnumFacing.VALUES;
 
 public class GraphVisibility {
     private static final int DX = 1 << 8;

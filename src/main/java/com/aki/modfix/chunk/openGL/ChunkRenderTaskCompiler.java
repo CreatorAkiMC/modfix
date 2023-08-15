@@ -7,6 +7,7 @@ package com.aki.modfix.chunk.openGL;
 import com.aki.mcutils.APICore.Utils.memory.NIOBufferUtil;
 import com.aki.modfix.Modfix;
 import com.aki.modfix.chunk.openGL.integreate.BetterFoliage;
+import com.aki.modfix.chunk.openGL.integreate.FluidLoggedAPI;
 import com.aki.modfix.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.ChunkRenderPass;
 import com.aki.modfix.util.gl.GraphVisibility;
@@ -17,6 +18,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.crash.CrashReport;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
@@ -45,6 +47,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         this.access = access;
     }
 
+    @Override
     public ChunkRenderTaskResult run() {
         if (access instanceof GLChunkRenderCache) {
             ((GLChunkRenderCache) access).initCaches();
@@ -105,9 +108,9 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                     IBlockState blockState = this.access.getBlockState(pos);
                     renderBlockState(blockState, pos, visibilityGraph, bufferBuilderPack, mc);
 
-                    /*if (Nothirium.isFluidloggedAPIInstalled) {
-                        FluidloggedAPI.renderFluidState(blockState, this.chunkCache, pos, fluidState -> renderBlockState(fluidState, pos, visibilityGraph, bufferBuilderPack, mc));
-                    }*/
+                    if (Modfix.isFluidloggedAPIInstalled) {
+                        FluidLoggedAPI.renderFluidState(blockState, this.access, pos, fluidState -> renderBlockState(fluidState, pos, visibilityGraph, bufferBuilderPack, mc));
+                    }
                 }
             }
 
@@ -133,7 +136,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         }
 
         BufferBuilder[] finishedBufferBuilders = Arrays.stream(BlockRenderLayer.values()).map(bufferBuilderPack::getWorldRendererByLayer).map(bufferBuilder -> {
-            if (!bufferBuilder.isDrawing) {
+            if (!bufferBuilder.isDrawing) {//...OK..?
                 return null;
             }
             bufferBuilder.finishDrawing();
@@ -142,10 +145,6 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
             }
             return bufferBuilder;
         }).toArray(BufferBuilder[]::new);
-
-        if (this.getCancel()) {
-            return ChunkRenderTaskResult.CANCELLED;
-        }
 
         this.dispatcher.runOnRenderThread(() -> {
             try {
@@ -156,13 +155,15 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         if (bufferBuilder == null) {
                             this.chunkRender.setVBO(pass, null);
                         } else {
-                            this.chunkRender.setVBO(pass, this.renderer.buffer(pass, bufferBuilder.getByteBuffer()));
+                            this.chunkRender.setVBO(pass, this.renderer.buffer(pass, this.chunkRender, bufferBuilder.getByteBuffer()));
                             if (pass == ChunkRenderPass.TRANSLUCENT) {
                                 this.chunkRender.setTranslucentVertexData(NIOBufferUtil.copyAsUnsafeBuffer(bufferBuilder.getByteBuffer()));
                             }
                         }
                     }
                 }
+            } catch (Exception e) {
+                Minecraft.getMinecraft().crashed(new CrashReport("ModFix ChunkRenderTaskCompiler MultiThread", e));
             } finally {
                 freeBufferBuilder(bufferBuilderPack);
             }
@@ -189,6 +190,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 continue;
             }
             ForgeHooksClient.setRenderLayer(layer);
+
             BufferBuilder bufferBuilder = bufferBuilderPack.getWorldRendererByLayer(layer);
             if (!bufferBuilder.isDrawing) {
                 bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);

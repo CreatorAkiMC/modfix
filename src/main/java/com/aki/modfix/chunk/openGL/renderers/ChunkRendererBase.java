@@ -9,7 +9,10 @@ import com.aki.mcutils.APICore.program.shader.ShaderHelper;
 import com.aki.mcutils.APICore.program.shader.ShaderObject;
 import com.aki.mcutils.APICore.program.shader.ShaderProgram;
 import com.aki.modfix.chunk.ChunkRenderManager;
-import com.aki.modfix.chunk.GLSytem.*;
+import com.aki.modfix.chunk.GLSytem.GLMutableArrayBuffer;
+import com.aki.modfix.chunk.GLSytem.GlCommandBuffer;
+import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
+import com.aki.modfix.chunk.GLSytem.GlVertexOffsetBuffer;
 import com.aki.modfix.chunk.openGL.ChunkGLDispatcher;
 import com.aki.modfix.chunk.openGL.ChunkRender;
 import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
@@ -26,6 +29,7 @@ import org.lwjgl.opengl.GL15;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class ChunkRendererBase<T extends ChunkRender> {
     /**
@@ -38,6 +42,7 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     private int renderedChunks;
     protected final LinkedHashMap<ChunkRenderPass, List<ChunkRender>> RenderChunks = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.values(), i -> new ArrayList<>());
 
+    private int ID = 0;
 
     public LinkedHashMap<ChunkRenderPass, GLMutableArrayBuffer> VaoBuffers;
     public LinkedHashMap<ChunkRenderPass, GlDynamicVBO> DynamicBuffers;
@@ -51,9 +56,6 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     public String A_OFFSET = "a_offset";
 
     public ShaderProgram program;
-
-
-
 
     public RTList<Integer> SyncList;
 
@@ -121,6 +123,9 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         RenderChunks.values().forEach(List::clear);
         ChunkRender rootRenderChunk = provider.getRenderChunkAt(chunkX, chunkY, chunkZ);
         rootRenderChunk.VisibleDirections = 0x3F;
+
+        ID = 0;
+
         chunkQueue.add(rootRenderChunk);
 
         double fogEndSqr = GLFogUtils.calculateFogEndSqr();
@@ -128,8 +133,10 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
 
         ChunkRender renderChunk;
         while ((renderChunk = chunkQueue.poll()) != null) {
+
             renderChunk.lastRecordedTime = Frame;
-            renderChunk.ChunkRenderCompileAsync(this, ChunkRenderManager.getRenderDispatcher());
+            renderChunk = renderChunk.setID(ID++);
+            renderChunk.ChunkRenderCompileAsync((ChunkRendererBase<ChunkRender>) this, ChunkRenderManager.getRenderDispatcher());
             addToRenderLists(renderChunk);
 
             for (EnumFacing facing : EnumFacing.VALUES) {
@@ -144,10 +151,12 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
                     continue;
                 if (neighbor.lastEnqueuedTime != Frame) {
                     neighbor.lastEnqueuedTime = Frame;
-                    if (neighbor.isFogCulled(cameraX, cameraY, cameraZ, fogEndSqr) || neighbor.isFrustumCulled(frustum)) {
+
+                    if (neighbor.isFogCulled(cameraX, cameraY, cameraZ, fogEndSqr) || (frustum != null && neighbor.isFrustumCulled(frustum))) {
                         neighbor.lastRecordedTime = Frame;
                         continue;
                     }
+
                     neighbor.resetOrigins();
                     chunkQueue.add(neighbor);
                 }
@@ -160,7 +169,12 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         return this.RenderChunks.get(pass).size();
     }
 
-
+    public int getAllPassRenderChunks() {
+        AtomicInteger count = new AtomicInteger();
+        count.set(0);
+        this.RenderChunks.values().forEach(l -> count.addAndGet(l.size()));
+        return count.get();
+    }
 
     public int getRenderedChunks() {
         return renderedChunks;
@@ -223,8 +237,8 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         this.SyncList.getList().stream().filter(i -> i != -1).forEach(GL15::glDeleteQueries);
     }
 
-    public GlDynamicVBO.VBOPart buffer(ChunkRenderPass pass, ByteBuffer buffer) {
-        return this.DynamicBuffers.get(pass).Buf_Upload(buffer);
+    public GlDynamicVBO.VBOPart buffer(ChunkRenderPass pass, ChunkRender render, ByteBuffer buffer) {
+        return this.DynamicBuffers.get(pass).Buf_Upload(render, buffer);
     }
 
     protected boolean isSpectator() {

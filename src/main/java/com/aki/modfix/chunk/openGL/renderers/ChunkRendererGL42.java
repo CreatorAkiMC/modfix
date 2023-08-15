@@ -3,7 +3,6 @@ package com.aki.modfix.chunk.openGL.renderers;
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.Frustum;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
-import com.aki.modfix.chunk.GLSytem.GlCommandBuffer;
 import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
 import com.aki.modfix.chunk.GLSytem.GlVertexOffsetBuffer;
 import com.aki.modfix.chunk.openGL.ChunkRender;
@@ -13,11 +12,9 @@ import com.aki.modfix.util.gl.ChunkRenderPass;
 import com.aki.modfix.util.gl.GLFogUtils;
 import com.aki.modfix.util.gl.ListUtil;
 import com.aki.modfix.util.gl.MapCreateHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.*;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
     public ChunkRendererGL42() {
@@ -91,8 +88,7 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
         super.SetUP(provider, cameraX, cameraY, cameraZ, frustum, Frame);
         try {
             this.SyncList.ToNext();
-
-            this.OffsetBuffers.values().forEach(GlVertexOffsetBuffer::begin);
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.get(pass).begin());
 
             if (this.SyncList.getSelect() != -1) {
                 GL33.glGetQueryObjecti64(this.SyncList.getSelect(), GL15.GL_QUERY_RESULT);
@@ -100,13 +96,14 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
                 this.SyncList.setSelect(-1);
             }
 
-            OffsetBuffers.forEach((pass, buf) -> {
+            this.OffsetBuffers.forEach((pass, buf) -> {
+
                 ListUtil.forEach(this.RenderChunks.get(pass), pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
                     this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
-                    this.OffsetBuffers.get(pass).end();
                 });
             });
 
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.get(pass).end());
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,7 +1,7 @@
 package com.aki.modfix.mixin.modsupport;
 
 import com.aki.modfix.MixinModLoadConfig;
-import net.minecraft.launchwrapper.Launch;
+import com.aki.modfix.Modfix;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModClassLoader;
 import net.minecraftforge.fml.common.ModContainer;
@@ -17,10 +17,9 @@ import org.spongepowered.asm.mixin.transformer.ext.Extensions;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
-import java.util.Arrays;
 import java.util.List;
 
-@Mixin(Loader.class)
+@Mixin(value = Loader.class, priority = Modfix.ModPriority)
 public class MixinLoader {
     @Shadow(remap = false) private List<ModContainer> mods;
     @Shadow(remap = false) private ModClassLoader modClassLoader;

@@ -10,9 +10,7 @@ import java.util.function.Supplier;
 public class ChunkGLDispatcher {
     private final ExecutorService executor = new ForkJoinPool(Math.max(Runtime.getRuntime().availableProcessors() - 2, 1),
             pool -> new ForkJoinWorkerThread(pool) {
-            }, (thread, exception) -> {
-        Minecraft.getMinecraft().crashed(new CrashReport("Chunk Compile Thread crashed.", exception));
-    }, true);
+            }, (thread, exception) -> Minecraft.getMinecraft().crashed(new CrashReport("Chunk Compile Thread crashed.", exception)), true);
     private final BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
     private final Thread thread = Thread.currentThread();
 

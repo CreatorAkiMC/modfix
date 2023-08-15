@@ -7,7 +7,7 @@
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.3/6cf746792770de8756bcde5781367e54eeccaa1a/mixin-0.8.3-processor.jar" />
         </processorPath>
-        <module name="com.aki.modfix.main" />
+        <module name="modfix.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8" />

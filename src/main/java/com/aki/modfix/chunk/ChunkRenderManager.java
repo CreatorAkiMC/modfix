@@ -1,7 +1,9 @@
 package com.aki.modfix.chunk;
 
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
-import com.aki.modfix.chunk.openGL.*;
+import com.aki.modfix.chunk.openGL.ChunkGLDispatcher;
+import com.aki.modfix.chunk.openGL.ChunkRender;
+import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.chunk.openGL.renderers.*;
 import com.aki.modfix.util.gl.ChunkRenderPass;
 import net.minecraft.client.Minecraft;
@@ -28,15 +30,9 @@ public class ChunkRenderManager {
     }
 
     public static void SetUPTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator) {
-        if(RenderDispatcher != null)
-            RenderDispatcher.update();
-        if(renderProvider != null)
-            renderProvider.repositionCamera(GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ());
-
-        System.out.println("Frustum Is Null: " + (GLUtils.getFrustum() == null));
-
-        if(ChunkRender != null)
-            ChunkRender.SetUP(renderProvider, GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ(), GLUtils.getFrustum(), GLUtils.getFrame());
+        RenderDispatcher.update();
+        renderProvider.repositionCamera(GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ());
+        ChunkRender.SetUP(renderProvider, GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ(), GLUtils.getFrustum(), GLUtils.getFrame());
     }
 
     public static void loadRender() {
@@ -77,16 +73,28 @@ public class ChunkRenderManager {
     }
 
     public static void dispose() {
-        if(ChunkRender != null)
-            ChunkRender.deleteDatas();
         if(renderProvider != null)
             renderProvider.Delete();
+        if(ChunkRender != null)
+            ChunkRender.deleteDatas();
         if(RenderDispatcher != null)
             RenderDispatcher.Remove_ShutDown();
 
         ChunkRender = null;
         renderProvider = null;
         RenderDispatcher = null;
+    }
+
+    public static int RenderSections(ChunkRenderPass pass) {
+        return ChunkRender.getRenderedChunks(pass);
+    }
+
+    public static int totalRenderedSections() {
+        return ChunkRender.getRenderedChunks();
+    }
+
+    public static int AllPassRenderSize() {
+        return ChunkRender.getAllPassRenderChunks();
     }
 
     public static void LoadChunk(int chunkX, int chunkZ) {

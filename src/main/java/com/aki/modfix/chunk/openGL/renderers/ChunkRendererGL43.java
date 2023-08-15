@@ -6,19 +6,19 @@ package com.aki.modfix.chunk.openGL.renderers;
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.Frustum;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
-import com.aki.mcutils.APICore.program.shader.ShaderHelper;
-import com.aki.mcutils.APICore.program.shader.ShaderObject;
-import com.aki.mcutils.APICore.program.shader.ShaderProgram;
-import com.aki.modfix.chunk.GLSytem.*;
+import com.aki.modfix.chunk.GLSytem.GlCommandBuffer;
+import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
+import com.aki.modfix.chunk.GLSytem.GlVertexOffsetBuffer;
 import com.aki.modfix.chunk.openGL.ChunkRender;
 import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.chunk.openGL.RenderEngineType;
-import com.aki.modfix.util.gl.*;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
+import com.aki.modfix.util.gl.ChunkRenderPass;
+import com.aki.modfix.util.gl.GLFogUtils;
+import com.aki.modfix.util.gl.ListUtil;
+import com.aki.modfix.util.gl.MapCreateHelper;
 import org.lwjgl.opengl.*;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -60,7 +60,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
         this.CommandBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
         this.OffsetBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
-
+        this.DynamicBuffers.forEach((pass, vbo) -> vbo.AddListener(this::InitVAOs));
         this.InitVAOs();
     }
 
@@ -119,8 +119,10 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
         try {
             this.SyncList.ToNext();
 
-            this.OffsetBuffers.values().forEach(GlVertexOffsetBuffer::begin);
-            this.CommandBuffers.values().forEach(GlCommandBuffer::begin);
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> {
+                this.OffsetBuffers.get(pass).begin();
+                this.CommandBuffers.get(pass).begin();
+            });
 
             if (this.SyncList.getSelect() != -1) {
                 GL33.glGetQueryObjecti64(this.SyncList.getSelect(), GL15.GL_QUERY_RESULT);
@@ -128,26 +130,26 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                 this.SyncList.setSelect(-1);
             }
 
-            CommandBuffers.forEach((pass, buf) -> {
-                ListUtil.forEach(this.RenderChunks.get(pass), pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
-                    this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
+            this.RenderChunks.forEach((pass, list) -> ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
 
-                    //first (初期) 0, 頂点(四角 = 4 or 三角形 * 2 = 6？ 立方体は 3 * 2 * 6 -> 36 ?) 4, BaseInstance i, instanceCount 1
+                //this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (0 - cameraX), (float) (0 - cameraY), (float) (0 - cameraZ));
+                this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
 
-                    //first オフセット スキップする頂点の数を入れる <- renderBlock で取得した Buffer を DefaultVertexFormats.BLOCK.getSize() で割るとよさそう (合計)。
-                    //だから、連続する見えないブロックではそれぞれのブロックのBuffer を合計して割るとよさそう。
-                    //(ただし、連続しないブロックの場合、addIndirectDrawCall を分割して実行するとよさそう (配列で))
+                //first (初期) 0, 頂点(四角 = 4 or 三角形 * 2 = 6？ 立方体は 3 * 2 * 6 -> 36 ?) 4, BaseInstance i, instanceCount 1
+                //first オフセット スキップする頂点の数を入れる <- renderBlock で取得した Buffer を DefaultVertexFormats.BLOCK.getSize() で割るとよさそう (合計)。
+                //だから、連続する見えないブロックではそれぞれのブロックのBuffer を合計して割るとよさそう。
+                //(ただし、連続しないブロックの場合、addIndirectDrawCall を分割して実行するとよさそう (配列で))
 
-                    //DefaultVertexFormats.BLOCK.getSize() は 11
-                    //...スキップするブロックの数は引いておいたほうが軽くなる
-                    GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
+                //DefaultVertexFormats.BLOCK.getSize() は 11
+                //...スキップするブロックの数は引いておいたほうが軽くなる
+                GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
+                this.CommandBuffers.get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
+            }));
 
-                    this.CommandBuffers.get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
-                    this.OffsetBuffers.get(pass).end();
-                    this.CommandBuffers.get(pass).end();
-                });
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> {
+                this.CommandBuffers.get(pass).end();
+                this.OffsetBuffers.get(pass).end();
             });
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -163,11 +165,12 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
         GLFogUtils.setupFogFromGL(program);
 
-
         this.VaoBuffers.get(pass).bind();
         int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
         this.CommandBuffers.get(pass).bind(RenderBufferMode);
         //this.CommandBuffers.get(pass).getCount() == this.RenderChunks.get(pass).size()
+
+        //Test
         GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.CommandBuffers.get(pass).getCount(), 0);
         if (pass == ChunkRenderPass.TRANSLUCENT) {//同期
             if (this.SyncList.getSelect() != -1)

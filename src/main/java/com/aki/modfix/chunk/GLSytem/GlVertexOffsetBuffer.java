@@ -94,6 +94,7 @@ public class GlVertexOffsetBuffer extends GlObject {
     public void end() {
         this.isBuilding = false;
 
+
         this.arrayLength = this.count * this.stride;
         this.buffer.limit(this.arrayLength);
 

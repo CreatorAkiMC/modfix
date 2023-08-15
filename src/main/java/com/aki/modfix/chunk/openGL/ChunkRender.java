@@ -8,7 +8,6 @@ import com.aki.modfix.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.*;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.world.ChunkCache;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import javax.annotation.Nullable;
@@ -21,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
  * 透過タスクの実行も
  * */
 public class ChunkRender {
-    private ChunkCache cache = null;
     //private RegionRenderCacheBuilder VBOs = null;
     private final LinkedHashMap<ChunkRenderPass, GlDynamicVBO.VBOPart> VBOs = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> null);
     private boolean dirty;
@@ -41,7 +39,9 @@ public class ChunkRender {
 
     private SectionPos pos;
 
-    private int EmptyCount = ChunkRenderPass.values().length;//空の場合は加算
+    private int EmptyCount = 0;//空の場合は加算
+
+    private int ID = -1;
 
     public ChunkRender(int X, int Y, int Z) {
         this.pos = SectionPos.of(X, Y, Z);
@@ -60,6 +60,15 @@ public class ChunkRender {
         }
 
         return false;
+    }
+
+    public ChunkRender setID(int id) {
+        this.ID = id;
+        return this;
+    }
+
+    public int getID() {
+        return this.ID;
     }
 
     //BlockX
@@ -126,8 +135,8 @@ public class ChunkRender {
         return Math.max(x * x + z * z, y * y) > fogEndSqr;
     }
 
-    public double clamp(double x, double min, double max) {
-        return x <= min ? min : (Math.min(x, max));
+    public double clamp(double a, double min, double max) {
+        return a <= min ? min : (Math.min(a, max));
     }
 
     public boolean isFrustumCulled(Frustum frustum) {
@@ -143,22 +152,26 @@ public class ChunkRender {
         return this.VBOs.get(pass);
     }
 
-    public void setVBO(ChunkRenderPass pass, GlDynamicVBO.VBOPart SetVBO) {
+    public void setVBO(ChunkRenderPass pass, @Nullable GlDynamicVBO.VBOPart SetVBO) {
         GlDynamicVBO.VBOPart vboPart = this.VBOs.get(pass);
         if(vboPart != null)
             vboPart.free();
-        GlDynamicVBO.VBOPart before = this.VBOs.replace(pass, SetVBO);
-        if(before == null && SetVBO != null)
-            EmptyCount--;
-        else if(before != null && SetVBO == null)
-            EmptyCount++;
+        this.VBOs.replace(pass, SetVBO);
+
+        if(SetVBO != null)
+            EmptyCount = Math.max(EmptyCount - 1, 0);
+        else EmptyCount = Math.min(EmptyCount + 1, ChunkRenderPass.values().length);
 
         if(pass == ChunkRenderPass.TRANSLUCENT)
             this.setTranslucentVertexData(null);
     }
 
     public boolean IsVBOEmpty() {
-        return this.EmptyCount == ChunkRenderPass.values().length;
+        return this.EmptyCount >= ChunkRenderPass.values().length;
+    }
+
+    public int EmptyCount() {
+        return this.EmptyCount;
     }
 
     public boolean canCompile() {
@@ -181,6 +194,9 @@ public class ChunkRender {
             this.getVisibility().setAllVisible();
             return;
         }
+
+        System.out.println("Dirty: X: " + this.getX() + ", Y: " + this.getY() + ", Z: " + this.getZ());
+
         this.dirty = true;
     }
 
@@ -210,7 +226,7 @@ public class ChunkRender {
         }
     }
 
-    public void ChunkRenderCompileAsync(ChunkRendererBase chunkRenderer, ChunkGLDispatcher taskDispatcher) {
+    public void ChunkRenderCompileAsync(ChunkRendererBase<ChunkRender> chunkRenderer, ChunkGLDispatcher taskDispatcher) {
         if (!this.isDirty() || !this.canCompile()) {
             return;
         }
@@ -219,11 +235,11 @@ public class ChunkRender {
 
         ExtendedBlockStorage blockStorage = WorldUtil.getSection(this.pos.getX(), this.pos.getY(), this.pos.getZ());
         if (blockStorage == null || blockStorage.isEmpty()) {
-            this.LastChunkRenderCompileTask = new ChunkRenderTaskCompiler(chunkRenderer, taskDispatcher, this, new GLChunkRenderCache(WorldUtil.getWorld(), this.pos));
-            this.lastChunkRenderCompileTaskResult = taskDispatcher.runAsync(this.LastChunkRenderCompileTask);
-        } else {
             Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.setVBO(pass, null));
             this.VisibilitySet.setAllVisible();
+        } else {
+            this.LastChunkRenderCompileTask = new ChunkRenderTaskCompiler<>(chunkRenderer, taskDispatcher, this, new GLChunkRenderCache(WorldUtil.getWorld(), this.pos));
+            this.lastChunkRenderCompileTaskResult = taskDispatcher.runAsync(this.LastChunkRenderCompileTask);
         }
     }
 

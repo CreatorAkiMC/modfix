@@ -14,10 +14,13 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @IFMLLoadingPlugin.MCVersion(ForgeVersion.mcVersion)
-//@IFMLLoadingPlugin.SortingIndex(9999)
+@IFMLLoadingPlugin.SortingIndex(374)
 @IFMLLoadingPlugin.TransformerExclusions({"com.aki.modfix.asm", "com.aki.MixinModLoadConfig"})
 public class MixinModLoadConfig implements IFMLLoadingPlugin {
     public static List<String> LateMixinMods = Arrays.asList(
