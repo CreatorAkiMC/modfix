@@ -173,7 +173,7 @@ public class ChainSectors {
         /**
          * コピーする位置が間違っているかも.
          *
-         * InitVBOsの読み込みタイミングが間違っている？
+         * InitVBOs の読み込みタイミングが間違っている？
          * */
         //glMapBuffer と glGetBufferSubDataなどで作った方が安全かも？
         if(UpdateOffset != 0)
