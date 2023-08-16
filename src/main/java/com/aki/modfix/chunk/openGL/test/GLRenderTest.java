@@ -25,7 +25,6 @@ import org.lwjgl.opengl.*;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.Arrays;
 
 public class GLRenderTest {
     public GlMutableBuffer PosBuffer;
@@ -70,7 +69,7 @@ public class GLRenderTest {
         this.DynamicVBO = new GlMutableBuffer(GL15.GL_STATIC_DRAW);
 
         this.VaoBuffer = new GLMutableArrayBuffer();
-        this.SyncList = new RTList<>(0, Arrays.asList(-1, -1));
+        this.SyncList = new RTList<>(2, 0, i -> -1);
     }
 
     public void init() {
