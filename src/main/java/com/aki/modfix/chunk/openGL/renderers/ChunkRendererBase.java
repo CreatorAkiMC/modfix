@@ -44,10 +44,10 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
 
     private int ID = 0;
 
-    public LinkedHashMap<ChunkRenderPass, GLMutableArrayBuffer> VaoBuffers;
+    public RTList<LinkedHashMap<ChunkRenderPass, GLMutableArrayBuffer>> VaoBuffers;
     public LinkedHashMap<ChunkRenderPass, GlDynamicVBO> DynamicBuffers;
-    public LinkedHashMap<ChunkRenderPass, GlCommandBuffer> CommandBuffers;
-    public LinkedHashMap<ChunkRenderPass, GlVertexOffsetBuffer> OffsetBuffers;
+    public RTList<LinkedHashMap<ChunkRenderPass, GlCommandBuffer>> CommandBuffers;
+    public RTList<LinkedHashMap<ChunkRenderPass, GlVertexOffsetBuffer>> OffsetBuffers;
 
     public String A_POS = "a_pos";
     public String A_COLOR = "a_color";
@@ -62,9 +62,10 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     public ChunkRendererBase() {
         program = getProgram();
 
-        this.VaoBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GLMutableArrayBuffer());
+        //SyncListのように実装
+        this.VaoBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GLMutableArrayBuffer()));
         this.DynamicBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlDynamicVBO());
-        this.SyncList = new RTList<>(0, Arrays.asList(-1, -1));
+        this.SyncList = new RTList<>(2, 0, i -> -1);
     }
 
     public ShaderProgram getProgram() {
@@ -223,16 +224,16 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     }
 
     public void deleteDatas() {
-        this.VaoBuffers.values().forEach(GLMutableArrayBuffer::delete);
+        this.VaoBuffers.forEach((index, map) -> map.values().forEach(GLMutableArrayBuffer::delete));
         this.DynamicBuffers.values().forEach(GlDynamicVBO::Delete);
 
         if(program != null)
             program.Delete();
 
         if(this.CommandBuffers != null)
-            this.CommandBuffers.values().forEach(GlCommandBuffer::delete);
+            this.CommandBuffers.forEach((index, map) -> map.values().forEach(GlCommandBuffer::delete));
         if(this.OffsetBuffers != null)
-            this.OffsetBuffers.values().forEach(GlVertexOffsetBuffer::delete);
+            this.OffsetBuffers.forEach((index, map) -> map.values().forEach(GlVertexOffsetBuffer::delete));
 
         this.SyncList.getList().stream().filter(i -> i != -1).forEach(GL15::glDeleteQueries);
     }

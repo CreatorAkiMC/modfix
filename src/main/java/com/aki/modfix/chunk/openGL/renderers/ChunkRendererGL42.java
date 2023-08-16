@@ -3,15 +3,13 @@ package com.aki.modfix.chunk.openGL.renderers;
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.Frustum;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
+import com.aki.modfix.chunk.GLSytem.GLMutableArrayBuffer;
 import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
 import com.aki.modfix.chunk.GLSytem.GlVertexOffsetBuffer;
 import com.aki.modfix.chunk.openGL.ChunkRender;
 import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.chunk.openGL.RenderEngineType;
-import com.aki.modfix.util.gl.ChunkRenderPass;
-import com.aki.modfix.util.gl.GLFogUtils;
-import com.aki.modfix.util.gl.ListUtil;
-import com.aki.modfix.util.gl.MapCreateHelper;
+import com.aki.modfix.util.gl.*;
 import org.lwjgl.opengl.*;
 
 import java.util.Arrays;
@@ -32,16 +30,17 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
         int dist3 = (int)Math.pow(PD, 3);
 
         //this.CommandBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
-        this.OffsetBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
+        this.OffsetBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
 
-        this.InitVAOs();
+        Arrays.stream(ChunkRenderPass.ALL).forEach(this::InitVAOs);
     }
 
-    private void InitVAOs() {
+    private void InitVAOs(ChunkRenderPass pass) {
         try {
             this.program.useShader();
 
-            this.VaoBuffers.forEach((renderPass, VAO) -> {
+            this.VaoBuffers.forEach((index, VAOMap) -> {
+                GLMutableArrayBuffer VAO = VAOMap.get(pass);
 
                 VAO.ChangeNewVAO();
                 VAO.bind();
@@ -53,7 +52,7 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
                 int Offset = program.getAttributeLocation(A_OFFSET);
 
                 //読み込み
-                this.DynamicBuffers.get(renderPass).bind(GL15.GL_ARRAY_BUFFER);
+                this.DynamicBuffers.get(pass).bind(GL15.GL_ARRAY_BUFFER);
 
                 //Size は分割する量
                 GL20.glVertexAttribPointer(A_Pos, 3, GL11.GL_FLOAT, false, 28, 0L);
@@ -65,22 +64,23 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
                 GL20.glEnableVertexAttribArray(a_texCoord);
                 GL20.glEnableVertexAttribArray(a_lightCoord);
 
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.OffsetBuffers.get(renderPass).getBufferIndex());
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.OffsetBuffers.get(index).get(pass).getBufferIndex());
                 GL20.glVertexAttribPointer(Offset, 3, GL11.GL_FLOAT, false, 0, 0L);
                 GL20.glEnableVertexAttribArray(Offset);//VAO内で、Index を固定化
                 GL33.glVertexAttribDivisor(Offset, 1);//1頂点で分割
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
-                this.DynamicBuffers.get(renderPass).unbind(GL15.GL_ARRAY_BUFFER);
+                this.DynamicBuffers.get(pass).unbind(GL15.GL_ARRAY_BUFFER);
 
                 VAO.unbind();
+                VAOMap.replace(pass, VAO);
             });
 
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            this.program.releaseShader();
         }
-
-        this.program.releaseShader();
     }
 
     @Override
@@ -88,7 +88,10 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
         super.SetUP(provider, cameraX, cameraY, cameraZ, frustum, Frame);
         try {
             this.SyncList.ToNext();
-            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.get(pass).begin());
+            this.OffsetBuffers.ToNext();
+            this.VaoBuffers.ToNext();
+
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.getSelect().get(pass).begin());
 
             if (this.SyncList.getSelect() != -1) {
                 GL33.glGetQueryObjecti64(this.SyncList.getSelect(), GL15.GL_QUERY_RESULT);
@@ -96,14 +99,14 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
                 this.SyncList.setSelect(-1);
             }
 
-            this.OffsetBuffers.forEach((pass, buf) -> {
+            this.RenderChunks.forEach((pass, list) -> {
 
-                ListUtil.forEach(this.RenderChunks.get(pass), pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
-                    this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
+                ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
+                    this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
                 });
             });
 
-            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.get(pass).end());
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.getSelect().get(pass).end());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -117,7 +120,7 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
         GLUtils.setMatrix(projectionMatrixIndex, mat4f);
         GLFogUtils.setupFogFromGL(program);
 
-        this.VaoBuffers.get(pass).bind();
+        this.VaoBuffers.getSelect().get(pass).bind();
         //this.CommandBuffers.get(pass).getCount() == this.RenderChunks.get(pass).size()
         ListUtil.forEach(RenderChunks.get(pass), pass == ChunkRenderPass.TRANSLUCENT, (renderChunk, i) -> {
             GlDynamicVBO.VBOPart vboPart = renderChunk.getVBO(pass);
@@ -133,6 +136,6 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
             this.SyncList.setSelect(query);
         }
 
-        this.VaoBuffers.get(pass).unbind();
+        this.VaoBuffers.getSelect().get(pass).unbind();
     }
 }
