@@ -14,6 +14,7 @@ import com.aki.modfix.chunk.openGL.ChunkRender;
 import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.chunk.openGL.RenderEngineType;
 import com.aki.modfix.util.gl.*;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.*;
 
 import java.util.Arrays;
@@ -122,18 +123,16 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
             this.CommandBuffers.ToNext();
             this.VaoBuffers.ToNext();
 
-            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> {
-                this.OffsetBuffers.getSelect().get(pass).begin();
-                this.CommandBuffers.getSelect().get(pass).begin();
-            });
-
             if (this.SyncList.getSelect() != -1) {
                 GL33.glGetQueryObjecti64(this.SyncList.getSelect(), GL15.GL_QUERY_RESULT);
                 GL15.glDeleteQueries(this.SyncList.getSelect());
                 this.SyncList.setSelect(-1);
             }
 
-            this.RenderChunks.forEach((pass, list) -> ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
+            this.RenderChunks.forEach((pass, list) -> {
+                this.OffsetBuffers.getSelect().get(pass).begin();
+                this.CommandBuffers.getSelect().get(pass).begin();
+                ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) -> {
 
                 //this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (0 - cameraX), (float) (0 - cameraY), (float) (0 - cameraZ));
                 this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
@@ -146,10 +145,9 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                 //DefaultVertexFormats.BLOCK.getSize() は 11
                 //...スキップするブロックの数は引いておいたほうが軽くなる
                 GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
+                System.out.println("Pass: " + pass.name() + ", chunkX: " + chunkRender.getX() + ", Y: " + chunkRender.getY() + ", Z: " + chunkRender.getZ() + ", First: " + part.getVBOFirst() + ", Byte: " + (part.getVertexCount() * DefaultVertexFormats.BLOCK.getSize()) + ", VCount: " + part.getVertexCount() + ", SectorId: " + part.getSectorIndex());
                 this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
-            }));
-
-            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> {
+                });
                 this.CommandBuffers.getSelect().get(pass).end();
                 this.OffsetBuffers.getSelect().get(pass).end();
             });

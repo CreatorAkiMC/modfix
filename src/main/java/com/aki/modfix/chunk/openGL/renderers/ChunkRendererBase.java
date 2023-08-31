@@ -199,12 +199,12 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
             for (int x = -r; x <= r; x++) {
                 for (int y = -r; y <= r; y++) {
                     for (int z = -r; z <= r; z++) {
-                        T renderChunk = (T) provider.getRenderChunkAt(chunkX + x, chunkY + y, chunkZ + z);
+                        ChunkRender renderChunk = provider.getRenderChunkAt(chunkX + x, chunkY + y, chunkZ + z);
                         if (renderChunk == null)
                             continue;
                         if (renderChunk.isFrustumCulled(frustum))
                             continue;
-                        renderChunk.ChunkRenderResortTransparency(this, taskDispatcher);
+                        renderChunk.ChunkRenderResortTransparency((ChunkRendererBase<ChunkRender>) this, taskDispatcher);
                     }
                 }
             }

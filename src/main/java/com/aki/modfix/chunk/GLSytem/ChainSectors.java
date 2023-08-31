@@ -74,8 +74,6 @@ public class ChainSectors {
 
         int Sizes = this.buffer != null ? this.buffer.limit() : 0;
 
-        System.out.println(" BufferSizeIndex: " + this.ID_Index + ", Size: " + Sizes);
-
         if(this.ID_Index == TargetIndex)
             return Sizes;
 
@@ -164,10 +162,7 @@ public class ChainSectors {
          this.ExecuteToIndexChainSector(chainSectors -> {
              chainSectors.BufferOffset += UpdateOffset;
              chainSectors.BufferFirst = chainSectors.BufferOffset;/* + atomicOldByteSize.getAndAdd(chainSectors.buffer != null ? chainSectors.buffer.limit() : 0);*/
-
-             System.out.println("NextChainUpdate ID: " + chainSectors.ID_Index + ", Offset: " + chainSectors.BufferOffset + ", Update: " + UpdateOffset + ", PrevCounts: " + chainSectors.PrevChainCounts + ", NextCount: " + chainSectors.NextChainCounts);
-
-             }, this.ID_Index + this.NextChainCounts);
+         }, this.ID_Index + this.NextChainCounts);
 
         int NewVBO = VBOID;
         /**
@@ -183,7 +178,7 @@ public class ChainSectors {
         //Index: 0 の時は、PrevBytes だと自分以前保持していたBuffer.limit が加算されて Firstが0なのに674のなったりする。
         this.BufferFirst = this.BufferOffset;// + this.BufferOffset;
 
-        System.out.println("Index: " + this.ID_Index + ", First: " + this.BufferFirst + ", Buffer: " + size + ", OldBuffer: " + OldSize + ", NextByte: " + NextByteSize + ", PrevByte: " + PrevByteSize + ", UpdateOffset: " + UpdateOffset + ", BO: " + this.BufferOffset + ", From Offset: " + this.FromOffset);
+        System.out.println("Index: " + this.ID_Index + ", First: " + this.BufferFirst + ", AllBytes: " + (NextByteSize + PrevByteSize) + ", Buffer: " + size + ", OldBuffer: " + OldSize + ", NextByte: " + NextByteSize + ", PrevByte: " + PrevByteSize + ", UpdateOffset: " + UpdateOffset + ", BO: " + this.BufferOffset + ", From Offset: " + this.FromOffset);
 
         this.UpdateBuffers(NewVBO);
         /*GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, NewVBO);
@@ -201,9 +196,6 @@ public class ChainSectors {
                 this.ExecuteToIndexChainSector(chainSectors -> {
                     chainSectors.BufferOffset -= this.FromOffset;
                     chainSectors.BufferFirst -= this.FromOffset;
-
-                    System.out.println("NextChainRemoveUpdate ID: " + chainSectors.ID_Index + ", Offset: " + chainSectors.BufferOffset + ", Update: " + FromOffset + ", PrevCounts: " + chainSectors.PrevChainCounts + ", NextCount: " + chainSectors.NextChainCounts);
-
                 }, this.ID_Index + this.NextChainCounts);
 
             System.out.println("FreeBuffer Index: " + this.ID_Index + ", BufferSize: " + this.buffer.limit() + ", NextBytes: " + NextByteSize + ", PrevBytes: " + PrevByteSize + ", NextCounts: " + this.NextChainCounts + ", PrevCounts: " + this.PrevChainCounts);

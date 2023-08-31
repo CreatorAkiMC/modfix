@@ -91,8 +91,6 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
             this.OffsetBuffers.ToNext();
             this.VaoBuffers.ToNext();
 
-            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.getSelect().get(pass).begin());
-
             if (this.SyncList.getSelect() != -1) {
                 GL33.glGetQueryObjecti64(this.SyncList.getSelect(), GL15.GL_QUERY_RESULT);
                 GL15.glDeleteQueries(this.SyncList.getSelect());
@@ -100,13 +98,12 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
             }
 
             this.RenderChunks.forEach((pass, list) -> {
-
+                this.OffsetBuffers.getSelect().get(pass).begin();
                 ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
                     this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
                 });
+                this.OffsetBuffers.getSelect().get(pass).end();
             });
-
-            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.getSelect().get(pass).end());
         } catch (Exception e) {
             e.printStackTrace();
         }

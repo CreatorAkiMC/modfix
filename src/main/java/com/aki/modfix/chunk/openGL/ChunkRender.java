@@ -159,15 +159,15 @@ public class ChunkRender {
         this.VBOs.replace(pass, SetVBO);
 
         if(SetVBO != null)
-            EmptyCount = Math.max(EmptyCount - 1, 0);
-        else EmptyCount = Math.min(EmptyCount + 1, ChunkRenderPass.values().length);
+            EmptyCount |= 1 << pass.ordinal();
+        else EmptyCount &= ~(1 << pass.ordinal());
 
         if(pass == ChunkRenderPass.TRANSLUCENT)
             this.setTranslucentVertexData(null);
     }
 
     public boolean IsVBOEmpty() {
-        return this.EmptyCount >= ChunkRenderPass.values().length;
+        return this.EmptyCount == 0;
     }
 
     public int EmptyCount() {
@@ -235,15 +235,21 @@ public class ChunkRender {
 
         ExtendedBlockStorage blockStorage = WorldUtil.getSection(this.pos.getX(), this.pos.getY(), this.pos.getZ());
         if (blockStorage == null || blockStorage.isEmpty()) {
+            this.LastChunkRenderCompileTask = null;
             Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.setVBO(pass, null));
             this.VisibilitySet.setAllVisible();
         } else {
+            /**
+             * この処理の後に、MarkDirty となったチャンクが読み込まれなくなる。
+             * ほかのチャンクが表示されないのもここに原因がありそう。
+             * XYZ(0, 0, 0)が FreeBuffer化される。 <- 解決済み
+             * */
             this.LastChunkRenderCompileTask = new ChunkRenderTaskCompiler<>(chunkRenderer, taskDispatcher, this, new GLChunkRenderCache(WorldUtil.getWorld(), this.pos));
             this.lastChunkRenderCompileTaskResult = taskDispatcher.runAsync(this.LastChunkRenderCompileTask);
         }
     }
 
-    public void ChunkRenderResortTransparency(ChunkRendererBase<?> chunkRenderer, ChunkGLDispatcher taskDispatcher) {
+    public void ChunkRenderResortTransparency(ChunkRendererBase<ChunkRender> chunkRenderer, ChunkGLDispatcher taskDispatcher) {
         if (this.isDirty())
             return;
         if (this.lastChunkRenderCompileTaskResult != null && !this.lastChunkRenderCompileTaskResult.isDone())
@@ -251,8 +257,11 @@ public class ChunkRender {
 
         GlDynamicVBO.VBOPart vboPart = this.getVBO(ChunkRenderPass.TRANSLUCENT);
         if (vboPart != null) {
-            this.LastChunkRenderCompileTask = new ChunkRenderTranslucentSorter(chunkRenderer, taskDispatcher, this, vboPart, this.getTranslucentVertexData());
+            this.LastChunkRenderCompileTask = new ChunkRenderTranslucentSorter<>(chunkRenderer, taskDispatcher, this, vboPart, this.getTranslucentVertexData());
+
             this.lastChunkRenderCompileTaskResult = taskDispatcher.runAsync(this.LastChunkRenderCompileTask);
+        } else {
+            this.LastChunkRenderCompileTask = null;
         }
     }
 

@@ -56,20 +56,18 @@ public class GlDynamicVBO extends GlObject {
     public VBOPart Buf_Upload(ChunkRender render, ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
         int dataLim = buffer.limit();
 
-        /**
+        /*
          * datas >= PerSectionBlock ? ((datas - Math.floorMod(datas, PerSectionBlock)) / PerSectionBlock) : 0;
          * でやるべき？ でも 16 * 16 * 16 = 4096 * Vertex.size チャンク分だから合わない...
          * */
         int SectionCheck = render.getID();//datas >= PerSectionBlock ? ((datas - Math.floorMod(datas, PerSectionBlock)) / PerSectionBlock) : 0;
 
-        ChainSectors sector = BaseSector.getChainSectorFromIndex(SectionCheck);//getChainSector(); <- LowSpeed ?
+        /*
+         * getChainSectorFromIndex にすると重複する可能性あり
+         * */
+        ChainSectors sector = BaseSector.getChainSector(SectionCheck);//getChainSector(); <- LowSpeed ?
         sector.setUsed(true);
         sector.BufferUpload(this.handle(), buffer);
-
-        /*
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.handle());
-        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, sector.GetRenderFirst(), buffer);
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);*/
 
         return new VBOPart(sector);
     }
@@ -95,11 +93,9 @@ public class GlDynamicVBO extends GlObject {
     public class VBOPart {
         private boolean valid = true;//free = false
         private final ChainSectors sector;
-        private final int VertexCount;
 
         public VBOPart(ChainSectors sector) {
             this.sector = sector;
-            this.VertexCount = this.sector.GetVertexCount();
         }
 
         public int getVBO() {
@@ -108,7 +104,7 @@ public class GlDynamicVBO extends GlObject {
 
         //return =  dataLim / DefaultVertexFormats.BLOCK.getSize()
         public int getVertexCount() {
-            return VertexCount;
+            return this.sector.GetVertexCount();
         }
 
         //バグってる？

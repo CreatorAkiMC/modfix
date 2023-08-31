@@ -6,6 +6,7 @@ package com.aki.modfix.chunk.openGL;
 
 import com.aki.mcutils.APICore.Utils.memory.NIOBufferUtil;
 import com.aki.modfix.Modfix;
+import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
 import com.aki.modfix.chunk.openGL.integreate.BetterFoliage;
 import com.aki.modfix.chunk.openGL.integreate.FluidLoggedAPI;
 import com.aki.modfix.chunk.openGL.renderers.ChunkRendererBase;
@@ -136,7 +137,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         }
 
         BufferBuilder[] finishedBufferBuilders = Arrays.stream(BlockRenderLayer.values()).map(bufferBuilderPack::getWorldRendererByLayer).map(bufferBuilder -> {
-            if (!bufferBuilder.isDrawing) {//...OK..?
+            if (!bufferBuilder.isDrawing) {
                 return null;
             }
             bufferBuilder.finishDrawing();
@@ -155,7 +156,12 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         if (bufferBuilder == null) {
                             this.chunkRender.setVBO(pass, null);
                         } else {
-                            this.chunkRender.setVBO(pass, this.renderer.buffer(pass, this.chunkRender, bufferBuilder.getByteBuffer()));
+                            GlDynamicVBO.VBOPart vboPart = this.chunkRender.getVBO(pass);
+                            //VBO のずれを減らす
+                            if(vboPart != null)
+                                vboPart.free();
+                            vboPart = this.renderer.buffer(pass, this.chunkRender, bufferBuilder.getByteBuffer());
+                            this.chunkRender.setVBO(pass, vboPart);
                             if (pass == ChunkRenderPass.TRANSLUCENT) {
                                 this.chunkRender.setTranslucentVertexData(NIOBufferUtil.copyAsUnsafeBuffer(bufferBuilder.getByteBuffer()));
                             }

@@ -63,11 +63,6 @@ public class GLHelper {
             GL45.glNamedBufferData(newVbo, Size + AddDataSize, GL15.GL_DYNAMIC_DRAW);
             if(AddDataSize >= 0) {//増加するときは大きなBufferを作りそこに小さなものを入れる
                 GL45.glCopyNamedBufferSubData(vbo, newVbo, 0, 0, Size);//すべてコピー
-                if(AddBuffer != null) {
-                    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, newVbo);
-                    GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, FromOffset, AddBuffer);
-                    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-                }
             } else {
                 GL45.glCopyNamedBufferSubData(vbo, newVbo, 0, 0, ToOffset);//ToOffsetより前をコピー
                 //GL45.glCopyNamedBufferSubData(vbo, newVbo, FromOffset, ToOffset);
@@ -75,6 +70,12 @@ public class GLHelper {
             }
             GL45.glCopyNamedBufferSubData(vbo, newVbo, FromOffset, ToOffset, FromReadSize);
             GL15.glDeleteBuffers(vbo);
+
+            if(AddBuffer != null && AddDataSize >= 0) {
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, newVbo);
+                GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, FromOffset, AddBuffer);
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+            }
             return newVbo;
         } else if (GLUtils.CAPS.OpenGL31) {
             int newVbo = GL15.glGenBuffers();
