@@ -14,7 +14,6 @@ import com.aki.modfix.chunk.openGL.ChunkRender;
 import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.chunk.openGL.RenderEngineType;
 import com.aki.modfix.util.gl.*;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.*;
 
 import java.util.Arrays;
@@ -145,7 +144,10 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                 //DefaultVertexFormats.BLOCK.getSize() は 11
                 //...スキップするブロックの数は引いておいたほうが軽くなる
                 GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
-                System.out.println("Pass: " + pass.name() + ", chunkX: " + chunkRender.getX() + ", Y: " + chunkRender.getY() + ", Z: " + chunkRender.getZ() + ", First: " + part.getVBOFirst() + ", Byte: " + (part.getVertexCount() * DefaultVertexFormats.BLOCK.getSize()) + ", VCount: " + part.getVertexCount() + ", SectorId: " + part.getSectorIndex());
+
+                if(pass == ChunkRenderPass.SOLID)
+                    System.out.println("First: " + part.getVBOFirst() + ", Vertex: " + part.getVertexCount() + ", X: " + chunkRender.getX() + ", Y: " + chunkRender.getY() + ", Z: " + chunkRender.getZ() + ", index: " + index);
+
                 this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
                 });
                 this.CommandBuffers.getSelect().get(pass).end();
@@ -173,7 +175,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
         //Test
         GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.CommandBuffers.getSelect().get(pass).getCount(), 0);
-        if (pass == ChunkRenderPass.TRANSLUCENT) {//同期
+        if (pass == ChunkRenderPass.TRANSLUCENT) {//culling
             if (this.SyncList.getSelect() != -1)
                 GL15.glDeleteQueries(this.SyncList.getSelect());
             int query = GL15.glGenQueries();

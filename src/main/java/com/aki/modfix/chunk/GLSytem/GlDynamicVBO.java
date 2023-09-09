@@ -21,24 +21,12 @@ public class GlDynamicVBO extends GlObject {
     public GlDynamicVBO() {
         this.setHandle(GL15.glGenBuffers());
 
-        //this.SectorMax = 16 * (int)Math.pow(Minecraft.getMinecraft().gameSettings.renderDistanceChunks * 2 + 1, 2.0d);
-
         BaseSector = new ChainSectors(integer -> {
             if(integer != this.handle()) {
                 this.setHandle(integer);
                 this.Listeners.forEach(Runnable::run);
             }
         });
-
-        /*IntStream.range(0, this.SectorMax).forEach(i -> {
-            this.FreeChunkSectors.add(new ChunkSector(i, 0));
-        });*/
-
-        /*GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.handle());
-        //使わない領域がないほうが、メモリを使わない
-        //4096(Block 16 * 16 * 16) * DefaultVertexFormats.BLOCK.getSize() で分割して入れていく
-        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, PerSectionBlock * 16 * (long)Math.pow(Minecraft.getMinecraft().gameSettings.renderDistanceChunks * 2 + 1, 2.0d) * (long)DefaultVertexFormats.BLOCK.getSize(), GL15.GL_STREAM_DRAW);//領域の確保 4096(16 * 16 * 16) * 16(Y 16*16=256) (Chunk) * (DistMax * 2 + 1) * (DistMax * 2 + 1) 正方形の一辺
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);*/
     }
 
     public void AddListener(Runnable runnable) {
@@ -54,18 +42,12 @@ public class GlDynamicVBO extends GlObject {
      * */
 
     public VBOPart Buf_Upload(ChunkRender render, ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
-        int dataLim = buffer.limit();
-
-        /*
-         * datas >= PerSectionBlock ? ((datas - Math.floorMod(datas, PerSectionBlock)) / PerSectionBlock) : 0;
-         * でやるべき？ でも 16 * 16 * 16 = 4096 * Vertex.size チャンク分だから合わない...
-         * */
-        int SectionCheck = render.getID();//datas >= PerSectionBlock ? ((datas - Math.floorMod(datas, PerSectionBlock)) / PerSectionBlock) : 0;
+        int SectionCheck = render.getID();
 
         /*
          * getChainSectorFromIndex にすると重複する可能性あり
          * */
-        ChainSectors sector = BaseSector.getChainSector(SectionCheck);//getChainSector(); <- LowSpeed ?
+        ChainSectors sector = BaseSector.getChainSector(SectionCheck);
         sector.setUsed(true);
         sector.BufferUpload(this.handle(), buffer);
 

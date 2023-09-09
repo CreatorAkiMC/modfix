@@ -9,6 +9,7 @@ Classpath:
  - F:\desktops\aegissystem\modfix\modsrc\CubicChunks-1.12.2-0.0.1208.0-SNAPSHOT-all.jar
  - F:\desktops\aegissystem\modfix\modsrc\extrautils2-1.12-1.9.9.jar
  - F:\desktops\aegissystem\modfix\modsrc\Fluidlogged-API-v2.2.4-mc1.12.2.jar
+ - F:\desktops\aegissystem\modfix\modsrc\GVCLib__1.12.2__5.4.2.jar
  - F:\desktops\aegissystem\modfix\modsrc\GVCReversion2__1.12.2__α.4.6.jar
  - F:\desktops\aegissystem\modfix\modsrc\ImmersiveEngineering-0.12-98.jar
  - F:\desktops\aegissystem\modfix\modsrc\MCUtils-v3.8-1.12.2.jar

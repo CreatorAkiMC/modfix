@@ -64,9 +64,6 @@ public class ChunkRenderProvider<T extends ChunkRender> {
     public void setDirty(int chunkX, int chunkY, int chunkZ) {
         ChunkRender renderChunk = this.getRenderChunkAt(chunkX, chunkY, chunkZ);
         if (renderChunk != null) {
-
-            System.out.println("Provider SetDirty: X: " + chunkX + ", Y: " + chunkY + ", Z: " + chunkZ);
-
             renderChunk.markDirty();
         }
     }
@@ -259,9 +256,5 @@ public class ChunkRenderProvider<T extends ChunkRender> {
     @SuppressWarnings("unchecked")
     public T getNeighbor(T renderChunk, EnumFacing facing) {
         return (T) renderChunk.getNeighbor(facing);
-    }
-
-    public void setNeighbor(T renderChunk, EnumFacing facing, T neighbor) {
-        renderChunk.setNeighbor(facing, neighbor);
     }
 }

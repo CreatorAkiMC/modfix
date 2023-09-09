@@ -155,35 +155,16 @@ public class ChainSectors {
 
         this.FromOffset += UpdateOffset;
 
-        //AtomicInteger atomicOldByteSize = new AtomicInteger();
-        //atomicOldByteSize.set(PrevByteSize);//Prev`s Size
-
         if(this.NextChainCounts > 0)
          this.ExecuteToIndexChainSector(chainSectors -> {
              chainSectors.BufferOffset += UpdateOffset;
-             chainSectors.BufferFirst = chainSectors.BufferOffset;/* + atomicOldByteSize.getAndAdd(chainSectors.buffer != null ? chainSectors.buffer.limit() : 0);*/
+             chainSectors.BufferFirst = chainSectors.BufferOffset;
          }, this.ID_Index + this.NextChainCounts);
-
         int NewVBO = VBOID;
-        /**
-         * コピーする位置が間違っているかも.
-         *
-         * InitVBOs の読み込みタイミングが間違っている？
-         * */
-        //glMapBuffer と glGetBufferSubDataなどで作った方が安全かも？
         if(UpdateOffset != 0)
             this.VBOUpdate.accept((NewVBO = GLHelper.CopyMoveBuffer(VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize + UpdateOffset, this.buffer)));
-        //PrevByteSize も、this.BufferOffset も変わらない？
-        //コンソールだと、[PrevByteSize < this.BufferOffset]という関係に時間が経つとなる。
-        //Index: 0 の時は、PrevBytes だと自分以前保持していたBuffer.limit が加算されて Firstが0なのに674のなったりする。
-        this.BufferFirst = this.BufferOffset;// + this.BufferOffset;
-
-        System.out.println("Index: " + this.ID_Index + ", First: " + this.BufferFirst + ", AllBytes: " + (NextByteSize + PrevByteSize) + ", Buffer: " + size + ", OldBuffer: " + OldSize + ", NextByte: " + NextByteSize + ", PrevByte: " + PrevByteSize + ", UpdateOffset: " + UpdateOffset + ", BO: " + this.BufferOffset + ", From Offset: " + this.FromOffset);
-
-        this.UpdateBuffers(NewVBO);
-        /*GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, NewVBO);
-        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, this.BufferFirst, UploadBuffer);
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);*/
+        this.BufferFirst = this.BufferOffset;
+        //this.UpdateBuffers(NewVBO);
     }
 
     public void Free(int VBOID) {
@@ -197,9 +178,6 @@ public class ChainSectors {
                     chainSectors.BufferOffset -= this.FromOffset;
                     chainSectors.BufferFirst -= this.FromOffset;
                 }, this.ID_Index + this.NextChainCounts);
-
-            System.out.println("FreeBuffer Index: " + this.ID_Index + ", BufferSize: " + this.buffer.limit() + ", NextBytes: " + NextByteSize + ", PrevBytes: " + PrevByteSize + ", NextCounts: " + this.NextChainCounts + ", PrevCounts: " + this.PrevChainCounts);
-
             this.VBOUpdate.accept(GLHelper.CopyMoveBuffer(VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize - this.buffer.limit(), null));
             this.BufferFirst = -1;
             this.FromOffset = 0;

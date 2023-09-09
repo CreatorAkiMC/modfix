@@ -194,9 +194,6 @@ public class ChunkRender {
             this.getVisibility().setAllVisible();
             return;
         }
-
-        System.out.println("Dirty: X: " + this.getX() + ", Y: " + this.getY() + ", Z: " + this.getZ());
-
         this.dirty = true;
     }
 
