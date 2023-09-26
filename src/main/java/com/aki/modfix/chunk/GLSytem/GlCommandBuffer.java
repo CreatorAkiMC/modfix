@@ -1,15 +1,15 @@
 package com.aki.modfix.chunk.GLSytem;
 
 import com.aki.mcutils.APICore.Utils.matrixutil.MemoryUtil;
+import com.aki.mcutils.APICore.Utils.matrixutil.UnsafeUtil;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL44;
+import sun.misc.Unsafe;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-
-import static com.aki.mcutils.APICore.Utils.matrixutil.UnsafeUtil.UNSAFE;
 
 /**
  * https://github.com/CaffeineMC/sodium-fabric/blob/5af41c180e63590b7797b864393ef584a746eccd/src/main/java/me/jellysquid/mods/sodium/client/render/chunk/multidraw/ChunkDrawCallBatcher.java#L29
@@ -22,14 +22,10 @@ public class GlCommandBuffer extends GlObject {
     private long capacity = 0L;
     public ByteBuffer buffer = null;
     private int bufferIndex = 0;
-    private boolean isBuilding = false;
-    private int arrayLength;
     private int stride = 0;
     private boolean mapped = false;
+    private final boolean persistent;
 
-    //容量(size), GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW GL30.GL_MAP_WRITE_BIT
-    //GL44 -> true (OK)
-    //System.out.println("Command_GL44: " + GLUtils.CAPS.OpenGL44);
     public GlCommandBuffer(long capacity, int flags, int usage, int persistentAccess) {
         this.capacity = capacity;
         //n | GL44.GL_MAP_PERSISTENT_BIT を忘れない
@@ -37,20 +33,17 @@ public class GlCommandBuffer extends GlObject {
             this.bufferIndex = GLUtils.createBuffer(capacity, flags | GL44.GL_MAP_PERSISTENT_BIT, usage);
             this.mapped = true;
             this.setHandle(this.bufferIndex);
+            this.persistent = true;
             this.buffer = GLUtils.map(this.bufferIndex, this.capacity, persistentAccess | GL44.GL_MAP_PERSISTENT_BIT, 0, null);
-            //System.out.println("MEM_CD_BI: " + this.bufferIndex + ", B: " + this.buffer + ", GL45: " + GLUtils.CAPS.OpenGL45);
             this.BaseWriter = MemoryUtil.getAddress(this.buffer);
         } else {
             this.bufferIndex = GLUtils.createBuffer(capacity, flags, usage);
             this.mapped = false;
             this.setHandle(this.bufferIndex);
             this.BaseWriter = 0L;
+            this.persistent = false;
         }
-
-        //System.out.println("Mem_CD: 2");
-
         this.stride = 16;
-        this.arrayLength = 0;
     }
 
     /**
@@ -74,9 +67,8 @@ public class GlCommandBuffer extends GlObject {
      * addIndirectDrawCall 前
      * */
     public void begin() {
-        this.isBuilding = true;
         this.count = 0;
-        this.arrayLength = 0;
+        this.ResetWriter();
 
         /**
          * GL44をサポートしているので使わない
@@ -85,6 +77,9 @@ public class GlCommandBuffer extends GlObject {
         this.map(GL30.GL_MAP_WRITE_BIT, GL15.GL_WRITE_ONLY);
         //this.buffer.clear();
 
+    }
+
+    public void ResetWriter() {
         this.MainWriter = this.BaseWriter;
     }
 
@@ -92,11 +87,6 @@ public class GlCommandBuffer extends GlObject {
      * addIndirectDrawCall 後
      * */
     public void end() {
-        this.isBuilding = false;
-
-        this.arrayLength = this.count * this.stride;
-        this.buffer.limit(this.arrayLength);
-
         /**
          * GL44をサポートしているので使わない
          * https://github.com/Meldexun/RenderLib/blob/v1.12.2-1.3.1/src/main/java/meldexun/renderlib/util/GLBuffer.java
@@ -110,10 +100,12 @@ public class GlCommandBuffer extends GlObject {
             throw new BufferUnderflowException();
         }
 
-        UNSAFE.putInt(this.MainWriter     , count);         // Vertex Count
-        UNSAFE.putInt(this.MainWriter +  4, instanceCount); // Instance Count
-        UNSAFE.putInt(this.MainWriter +  8, first);         // Vertex Start
-        UNSAFE.putInt(this.MainWriter + 12, baseInstance);  // Base Instance
+        Unsafe Un_Safe = UnsafeUtil.UNSAFE;
+
+        Un_Safe.putInt(this.MainWriter     , count);         // Vertex Count
+        Un_Safe.putInt(this.MainWriter +  4, instanceCount); // Instance Count
+        Un_Safe.putInt(this.MainWriter +  8, first);         // Vertex Start
+        Un_Safe.putInt(this.MainWriter + 12, baseInstance);  // Base Instance
 
         this.MainWriter += this.stride;//main += 16
     }
@@ -123,9 +115,10 @@ public class GlCommandBuffer extends GlObject {
      * GL30.GL_MAP_WRITE_BIT, GL15.GL_WRITE_ONLY
      * */
     public void map(int rangeAccess, int access) {
-        if (!mapped && !GLUtils.CAPS.OpenGL44) {
+        if (!mapped && !this.persistent) {
             this.buffer = GLUtils.map(this.bufferIndex, this.capacity, rangeAccess, access, this.buffer);//nullになっている
             this.BaseWriter = MemoryUtil.getAddress(this.buffer);
+            this.MainWriter = this.BaseWriter;
             mapped = true;
         }
     }
@@ -135,7 +128,8 @@ public class GlCommandBuffer extends GlObject {
     }
 
     public void unmap() {
-        forceUnmap();
+        if(!this.persistent)
+            forceUnmap();
     }
 
     private void forceUnmap() {
@@ -148,20 +142,13 @@ public class GlCommandBuffer extends GlObject {
         }
     }
 
-    public boolean isBuilding() {
-        return this.isBuilding;
-    }
-
-    public int getArrayLength() {
-        return this.arrayLength;
-    }
-
     //Don`t Use
     public ByteBuffer getBuffer() {
         return buffer;
     }
 
     public int getCount() {
+        System.out.println("Count: " + count);
         return count;
     }
 

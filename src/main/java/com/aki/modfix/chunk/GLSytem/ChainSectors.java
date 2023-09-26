@@ -162,9 +162,9 @@ public class ChainSectors {
          }, this.ID_Index + this.NextChainCounts);
         int NewVBO = VBOID;
         if(UpdateOffset != 0)
-            this.VBOUpdate.accept((NewVBO = GLHelper.CopyMoveBuffer(VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize + UpdateOffset, this.buffer)));
+            this.VBOUpdate.accept((NewVBO = GLHelper.CopyMoveBuffer(VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize + UpdateOffset)));
         this.BufferFirst = this.BufferOffset;
-        //this.UpdateBuffers(NewVBO);
+        this.UpdateBuffers(NewVBO);
     }
 
     public void Free(int VBOID) {
@@ -178,7 +178,7 @@ public class ChainSectors {
                     chainSectors.BufferOffset -= this.FromOffset;
                     chainSectors.BufferFirst -= this.FromOffset;
                 }, this.ID_Index + this.NextChainCounts);
-            this.VBOUpdate.accept(GLHelper.CopyMoveBuffer(VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize - this.buffer.limit(), null));
+            this.VBOUpdate.accept(GLHelper.CopyMoveBuffer(VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize - this.buffer.limit()));
             this.BufferFirst = -1;
             this.FromOffset = 0;
             this.buffer = null;

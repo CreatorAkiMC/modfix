@@ -128,28 +128,37 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                 this.SyncList.setSelect(-1);
             }
 
-            this.RenderChunks.forEach((pass, list) -> {
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> {
                 this.OffsetBuffers.getSelect().get(pass).begin();
                 this.CommandBuffers.getSelect().get(pass).begin();
+            });
+
+            this.RenderChunks.forEach((pass, list) -> {
+                //forですべてのPassにやった方がいいかも
+                this.CommandBuffers.getSelect().get(pass).ResetWriter();
+                this.OffsetBuffers.getSelect().get(pass).ResetWriter();
                 ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) -> {
 
-                //this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (0 - cameraX), (float) (0 - cameraY), (float) (0 - cameraZ));
-                this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
+                    //this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (0 - cameraX), (float) (0 - cameraY), (float) (0 - cameraZ));
+                    this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
 
-                //first (初期) 0, 頂点(四角 = 4 or 三角形 * 2 = 6？ 立方体は 3 * 2 * 6 -> 36 ?) 4, BaseInstance i, instanceCount 1
-                //first オフセット スキップする頂点の数を入れる <- renderBlock で取得した Buffer を DefaultVertexFormats.BLOCK.getSize() で割るとよさそう (合計)。
-                //だから、連続する見えないブロックではそれぞれのブロックのBuffer を合計して割るとよさそう。
-                //(ただし、連続しないブロックの場合、addIndirectDrawCall を分割して実行するとよさそう (配列で))
+                    //first (初期) 0, 頂点(四角 = 4 or 三角形 * 2 = 6？ 立方体は 3 * 2 * 6 -> 36 ?) 4, BaseInstance i, instanceCount 1
+                    //first オフセット スキップする頂点の数を入れる <- renderBlock で取得した Buffer を DefaultVertexFormats.BLOCK.getSize() で割るとよさそう (合計)。
+                    //だから、連続する見えないブロックではそれぞれのブロックのBuffer を合計して割るとよさそう。
+                    //(ただし、連続しないブロックの場合、addIndirectDrawCall を分割して実行するとよさそう (配列で))
 
-                //DefaultVertexFormats.BLOCK.getSize() は 11
-                //...スキップするブロックの数は引いておいたほうが軽くなる
-                GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
+                    //DefaultVertexFormats.BLOCK.getSize() は 11
+                    //...スキップするブロックの数は引いておいたほうが軽くなる
+                    GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
 
-                if(pass == ChunkRenderPass.SOLID)
-                    System.out.println("First: " + part.getVBOFirst() + ", Vertex: " + part.getVertexCount() + ", X: " + chunkRender.getX() + ", Y: " + chunkRender.getY() + ", Z: " + chunkRender.getZ() + ", index: " + index);
-
-                this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
+                    if(pass == ChunkRenderPass.SOLID)
+                        System.out.println("Sector ID: " + part.getSector().getIndex() + ", First: " + part.getVBOFirst() + ", Vertex: " + part.getVertexCount() + ", X: " + chunkRender.getX() + ", Y: " + chunkRender.getY() + ", Z: " + chunkRender.getZ() + ", index: " + index);
+                    //428400など、初め(0)のセクター以外データが入っていない？
+                    this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(58912/*part.getVBOFirst()*/, part.getVertexCount(), index, 1);
                 });
+            });
+
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> {
                 this.CommandBuffers.getSelect().get(pass).end();
                 this.OffsetBuffers.getSelect().get(pass).end();
             });
@@ -172,8 +181,6 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
         int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
         this.CommandBuffers.getSelect().get(pass).bind(RenderBufferMode);
         //this.CommandBuffers.get(pass).getCount() == this.RenderChunks.get(pass).size()
-
-        //Test
         GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.CommandBuffers.getSelect().get(pass).getCount(), 0);
         if (pass == ChunkRenderPass.TRANSLUCENT) {//culling
             if (this.SyncList.getSelect() != -1)

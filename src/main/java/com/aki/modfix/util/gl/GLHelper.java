@@ -55,7 +55,7 @@ public class GLHelper {
      * Size 10, From 3, To 3
      * (10 - 3) - (10 - 3) = 7 - 7 = 0(変化なし)
      */
-    public static int CopyMoveBuffer(int vbo, long Size, long FromOffset, long ToOffset, ByteBuffer AddBuffer) {
+    public static int CopyMoveBuffer(int vbo, long Size, long FromOffset, long ToOffset) {
         long AddDataSize = ToOffset - FromOffset;//(Size - FromOffset) - (Size - ToOffset);
         long FromReadSize = Size - FromOffset;
         if (GLUtils.CAPS.OpenGL45) {
@@ -70,12 +70,6 @@ public class GLHelper {
             }
             GL45.glCopyNamedBufferSubData(vbo, newVbo, FromOffset, ToOffset, FromReadSize);
             GL15.glDeleteBuffers(vbo);
-
-            if(AddBuffer != null && AddDataSize >= 0) {
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, newVbo);
-                GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, FromOffset, AddBuffer);
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-            }
             return newVbo;
         } else if (GLUtils.CAPS.OpenGL31) {
             int newVbo = GL15.glGenBuffers();
@@ -84,11 +78,11 @@ public class GLHelper {
             GL15.glBindBuffer(GL31.GL_COPY_READ_BUFFER, vbo);
             if(AddDataSize >= 0) {
                 GL31.glCopyBufferSubData(GL31.GL_COPY_READ_BUFFER, GL31.GL_COPY_WRITE_BUFFER, 0, 0, Size);
-                if(AddBuffer != null) {
+                /*if(AddBuffer != null) {
                     GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, newVbo);
                     GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, FromOffset, AddBuffer);
                     GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-                }
+                }*/
             } else
                 GL31.glCopyBufferSubData(GL31.GL_COPY_READ_BUFFER, GL31.GL_COPY_WRITE_BUFFER, 0, 0, Size + AddDataSize);
             GL31.glCopyBufferSubData(GL31.GL_COPY_READ_BUFFER, GL31.GL_COPY_WRITE_BUFFER, FromOffset, ToOffset, FromReadSize);
@@ -113,9 +107,9 @@ public class GLHelper {
 
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, NewVBO);
                 GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, VBOBuffer);
-                if(AddBuffer != null) {
+                /*if(AddBuffer != null) {
                     GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, FromOffset, AddBuffer);
-                }
+                }*/
                 GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, Size, CopyBuffer);
             } else {
                 GL15.glBufferData(GL15.GL_ARRAY_BUFFER, Size + AddDataSize, GL15.GL_DYNAMIC_COPY);

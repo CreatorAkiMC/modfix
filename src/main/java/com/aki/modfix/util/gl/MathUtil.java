@@ -15,8 +15,8 @@ public class MathUtil {
             return x < 0 != y < 0 && x != y * i ? i - 1 : i;
         }
 
-        public static int floorMod(int x, int y) {
-            return x - floorDiv(x, y) * y;
+        public static int floorMod(int a, int b) {
+            return a - floorDiv(a, b) * b;
         }
 
         public static int ceil(double x) {

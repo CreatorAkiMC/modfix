@@ -94,7 +94,6 @@ public abstract class MixinRenderGlobal {
             for (int chunkY = minY >> 4; chunkY <= maxY >> 4; chunkY++) {
                 for (int chunkZ = minZ >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
                     ChunkRenderManager.getRenderProvider().setDirty(chunkX, chunkY, chunkZ);
-                    //ChunkRenderManager.getProvider().setDirty(chunkX, chunkY, chunkZ);
                 }
             }
         }

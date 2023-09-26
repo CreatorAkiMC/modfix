@@ -237,9 +237,7 @@ public class ChunkRender {
             this.VisibilitySet.setAllVisible();
         } else {
             /**
-             * この処理の後に、MarkDirty となったチャンクが読み込まれなくなる。
              * ほかのチャンクが表示されないのもここに原因がありそう。
-             * XYZ(0, 0, 0)が FreeBuffer化される。 <- 解決済み
              * */
             this.LastChunkRenderCompileTask = new ChunkRenderTaskCompiler<>(chunkRenderer, taskDispatcher, this, new GLChunkRenderCache(WorldUtil.getWorld(), this.pos));
             this.lastChunkRenderCompileTaskResult = taskDispatcher.runAsync(this.LastChunkRenderCompileTask);

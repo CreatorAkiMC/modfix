@@ -8,12 +8,6 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class GlDynamicVBO extends GlObject {
-    /**
-     * free と used で分けて、使っていないもの(読み込まれていないChunkRender)は、freeに入れればよさそう
-     * (読み込まれているものしか forループ処理 されないから。)
-     */
-    //private int SectorMax = 0;
-    private final int PerSectionBlock = 4096;
     private ChainSectors BaseSector = null;
 
     private final Queue<Runnable> Listeners = new ArrayDeque<>();//IniVBOS を実行 -> レンダーを更新
@@ -42,12 +36,11 @@ public class GlDynamicVBO extends GlObject {
      * */
 
     public VBOPart Buf_Upload(ChunkRender render, ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
-        int SectionCheck = render.getID();
-
         /*
          * getChainSectorFromIndex にすると重複する可能性あり
          * */
-        ChainSectors sector = BaseSector.getChainSector(SectionCheck);
+        //ChainSectors sector = BaseSector.getChainSector(render.getID());
+        ChainSectors sector = BaseSector.getChainSectorFromIndex(render.getID());
         sector.setUsed(true);
         sector.BufferUpload(this.handle(), buffer);
 
@@ -96,6 +89,10 @@ public class GlDynamicVBO extends GlObject {
 
         public int getSectorIndex() {
             return sector.getIndex();
+        }
+
+        public ChainSectors getSector() {
+            return this.sector;
         }
 
         public long getSectorByteBufferOffset() {

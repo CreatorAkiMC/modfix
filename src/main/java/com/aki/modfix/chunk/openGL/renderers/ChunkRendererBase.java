@@ -42,8 +42,6 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     private int renderedChunks;
     protected final LinkedHashMap<ChunkRenderPass, List<ChunkRender>> RenderChunks = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.values(), i -> new ArrayList<>());
 
-    private int ID = 0;
-
     public RTList<LinkedHashMap<ChunkRenderPass, GLMutableArrayBuffer>> VaoBuffers;
     public LinkedHashMap<ChunkRenderPass, GlDynamicVBO> DynamicBuffers;
     public RTList<LinkedHashMap<ChunkRenderPass, GlCommandBuffer>> CommandBuffers;
@@ -125,7 +123,7 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         ChunkRender rootRenderChunk = provider.getRenderChunkAt(chunkX, chunkY, chunkZ);
         rootRenderChunk.VisibleDirections = 0x3F;
 
-        ID = 0;
+        int ID = 0;
 
         chunkQueue.add(rootRenderChunk);
 
