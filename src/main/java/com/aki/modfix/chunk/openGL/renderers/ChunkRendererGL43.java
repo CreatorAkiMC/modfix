@@ -134,9 +134,6 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
             });
 
             this.RenderChunks.forEach((pass, list) -> {
-                //forですべてのPassにやった方がいいかも
-                this.CommandBuffers.getSelect().get(pass).ResetWriter();
-                this.OffsetBuffers.getSelect().get(pass).ResetWriter();
                 ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) -> {
 
                     //this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (0 - cameraX), (float) (0 - cameraY), (float) (0 - cameraZ));
@@ -151,10 +148,10 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                     //...スキップするブロックの数は引いておいたほうが軽くなる
                     GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
 
-                    if(pass == ChunkRenderPass.SOLID)
-                        System.out.println("Sector ID: " + part.getSector().getIndex() + ", First: " + part.getVBOFirst() + ", Vertex: " + part.getVertexCount() + ", X: " + chunkRender.getX() + ", Y: " + chunkRender.getY() + ", Z: " + chunkRender.getZ() + ", index: " + index);
+                    //if(pass == ChunkRenderPass.SOLID)
+                      //  System.out.println("Sector ID: " + part.getSector().getIndex() + ", First: " + part.getVBOFirst() + ", Vertex: " + part.getVertexCount() + ", X: " + chunkRender.getX() + ", Y: " + chunkRender.getY() + ", Z: " + chunkRender.getZ() + ", index: " + index);
                     //428400など、初め(0)のセクター以外データが入っていない？
-                    this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(58912/*part.getVBOFirst()*/, part.getVertexCount(), index, 1);
+                    this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
                 });
             });
 

@@ -155,15 +155,22 @@ public class ChainSectors {
 
         this.FromOffset += UpdateOffset;
 
-        if(this.NextChainCounts > 0)
-         this.ExecuteToIndexChainSector(chainSectors -> {
-             chainSectors.BufferOffset += UpdateOffset;
-             chainSectors.BufferFirst = chainSectors.BufferOffset;
-         }, this.ID_Index + this.NextChainCounts);
         int NewVBO = VBOID;
         if(UpdateOffset != 0)
             this.VBOUpdate.accept((NewVBO = GLHelper.CopyMoveBuffer(VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize + UpdateOffset)));
+        if(this.NextChainCounts > 0) {
+            int finalNewVBO = NewVBO;
+            this.ExecuteToIndexChainSector(chainSectors -> {
+                chainSectors.BufferOffset += UpdateOffset;
+                chainSectors.BufferFirst = chainSectors.BufferOffset;
+                if(chainSectors.isUsed()) {
+                    chainSectors.UpdateBuffers(finalNewVBO);
+                }
+            }, this.ID_Index + this.NextChainCounts);
+        }
+
         this.BufferFirst = this.BufferOffset;
+        System.out.println("ID: " + this.ID_Index + ", BufferSize: " + size + ", Update: " + UpdateOffset + ", Range: " + this.BufferFirst + " <---> " + (this.BufferFirst + size - 1));
         this.UpdateBuffers(NewVBO);
     }
 
@@ -224,7 +231,7 @@ public class ChainSectors {
     /**
      * IsUsed = false の時は Return 0
      * */
-    public long GetRenderFirst() {
+    public int GetRenderFirst() {
         return this.BufferFirst;//this.GetPMBlocks() * DefaultVertexFormats.BLOCK.getSize();
     }
 }

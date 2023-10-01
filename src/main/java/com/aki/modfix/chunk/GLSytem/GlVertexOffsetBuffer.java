@@ -58,18 +58,14 @@ public class GlVertexOffsetBuffer extends GlObject {
      * */
     public void begin() {
         this.count = 0;
-        this.ResetWriter();
 
         /**
          * GL44をサポートしているので使わない
          * https://github.com/Meldexun/RenderLib/blob/v1.12.2-1.3.1/src/main/java/meldexun/renderlib/util/GLBuffer.java
          * */
         this.map(GL30.GL_MAP_WRITE_BIT, GL15.GL_WRITE_ONLY);
-        //this.buffer.clear();
-    }
-
-    public void ResetWriter() {
         this.MainWriter = this.BaseWriter;
+        //this.buffer.clear();
     }
 
     /**

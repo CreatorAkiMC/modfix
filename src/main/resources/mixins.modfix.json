@@ -13,6 +13,12 @@
 
   ],
   "client": [
+    "vanilla.rendering.MixinBlock",
+    "vanilla.rendering.MixinDynamicLight",
+    "vanilla.rendering.MixinEntityRenderer",
+    "vanilla.rendering.vertex.MixinBufferBuilder_FA",
+    "vanilla.rendering.vertex.MixinVertexFormat",
+    "vanilla.rendering.vertex.MixinVertexFormatElement"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -4,6 +4,8 @@ import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import com.aki.modfix.chunk.openGL.ChunkGLDispatcher;
 import com.aki.modfix.chunk.openGL.ChunkRender;
 import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
+import com.aki.modfix.chunk.openGL.RenderEngineType;
+import com.aki.modfix.chunk.openGL.integreate.optifine.GLOptifine;
 import com.aki.modfix.chunk.openGL.renderers.*;
 import com.aki.modfix.util.gl.ChunkRenderPass;
 import net.minecraft.client.Minecraft;
@@ -53,6 +55,8 @@ public class ChunkRenderManager {
      * Config で変えれるようにしてもいいかも
      * */
     private static ChunkRendererBase<ChunkRender> getGLChunkRenderer() {
+        if(GLOptifine.OPTIFINE_INSIDE)
+            return GLOptifine.createChunkRenderer(ChunkRender);
         ContextCapabilities context = GLUtils.CAPS;
         if(context.OpenGL43) {
             return new ChunkRendererGL43();
@@ -63,8 +67,22 @@ public class ChunkRenderManager {
         } else if(context.OpenGL15) {
             return new ChunkRendererGL15();
         }
-
         throw new UnsupportedOperationException("Your PC Don`t Supported OpenGL");
+    }
+
+    public static RenderEngineType getBestRenderEngineType() {
+        ContextCapabilities context = GLUtils.CAPS;
+        if(context.OpenGL43) {
+            return RenderEngineType.GL43;
+        } else if(context.OpenGL42) {
+            return RenderEngineType.GL42;
+        } else if(context.OpenGL20) {
+            return RenderEngineType.GL20;
+        } else if(context.OpenGL15) {
+            return RenderEngineType.GL15;
+        }
+
+        throw new UnsupportedOperationException("????? Your PC Don`t Supported OpenGL ?????");
     }
 
     public static void Render(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn) {

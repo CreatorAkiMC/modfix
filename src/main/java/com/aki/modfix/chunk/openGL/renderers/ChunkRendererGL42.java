@@ -100,7 +100,6 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
             Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.getSelect().get(pass).begin());
 
             this.RenderChunks.forEach((pass, list) -> {
-                this.OffsetBuffers.getSelect().get(pass).ResetWriter();
                 ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
                     this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
                 });

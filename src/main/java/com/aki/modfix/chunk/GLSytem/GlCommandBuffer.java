@@ -68,7 +68,7 @@ public class GlCommandBuffer extends GlObject {
      * */
     public void begin() {
         this.count = 0;
-        this.ResetWriter();
+        this.MainWriter = this.BaseWriter;
 
         /**
          * GL44をサポートしているので使わない
@@ -77,10 +77,6 @@ public class GlCommandBuffer extends GlObject {
         this.map(GL30.GL_MAP_WRITE_BIT, GL15.GL_WRITE_ONLY);
         //this.buffer.clear();
 
-    }
-
-    public void ResetWriter() {
-        this.MainWriter = this.BaseWriter;
     }
 
     /**
@@ -148,7 +144,6 @@ public class GlCommandBuffer extends GlObject {
     }
 
     public int getCount() {
-        System.out.println("Count: " + count);
         return count;
     }
 

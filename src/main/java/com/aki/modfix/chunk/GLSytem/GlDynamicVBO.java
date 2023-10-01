@@ -1,6 +1,13 @@
 package com.aki.modfix.chunk.GLSytem;
 
+/*
+* Thank you Meldexum
+* */
+
 import com.aki.modfix.chunk.openGL.ChunkRender;
+import com.aki.modfix.util.gl.GLHelper;
+import com.aki.modfix.util.gl.MathUtil;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL15;
 
 import java.nio.ByteBuffer;
@@ -8,19 +15,40 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class GlDynamicVBO extends GlObject {
-    private ChainSectors BaseSector = null;
+    //private ChainSectors BaseSector = null;
+    private final int vertexSize = DefaultVertexFormats.BLOCK.getSize();
+    private final int vertexCountPerSector = 128;
+    private final int sectorSize = vertexCountPerSector * vertexSize;
+    private final SectorizedList sectors;
 
     private final Queue<Runnable> Listeners = new ArrayDeque<>();//IniVBOS を実行 -> レンダーを更新
 
     public GlDynamicVBO() {
         this.setHandle(GL15.glGenBuffers());
+        this.sectors = new SectorizedList(4096) {
+            @Override
+            protected void grow(int minContinousSector) {
+                int oldSectorCount = this.getSectorCount();
+                super.grow(minContinousSector);
 
-        BaseSector = new ChainSectors(integer -> {
+                int newVbo = GLHelper.growBuffer(handle(), (long) sectorSize * oldSectorCount,
+                        (long) sectorSize * getSectorCount());
+                if (newVbo != handle()) {
+                    setHandle(newVbo);
+                    Listeners.forEach(Runnable::run);
+                }
+            }
+        };
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.handle());
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, (long) sectorSize * 4096, GL15.GL_STREAM_DRAW);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+
+        /*BaseSector = new ChainSectors(integer -> {
             if(integer != this.handle()) {
                 this.setHandle(integer);
                 this.Listeners.forEach(Runnable::run);
             }
-        });
+        });*/
     }
 
     public void AddListener(Runnable runnable) {
@@ -36,19 +64,29 @@ public class GlDynamicVBO extends GlObject {
      * */
 
     public VBOPart Buf_Upload(ChunkRender render, ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
-        /*
-         * getChainSectorFromIndex にすると重複する可能性あり
-         * */
-        //ChainSectors sector = BaseSector.getChainSector(render.getID());
-        ChainSectors sector = BaseSector.getChainSectorFromIndex(render.getID());
+        /*int SectionCheck = render.getID();
+        ChainSectors sector = BaseSector.getChainSector(SectionCheck);
         sector.setUsed(true);
         sector.BufferUpload(this.handle(), buffer);
 
-        return new VBOPart(sector);
+        return new VBOPart(sector);*/
+        int size = buffer.limit();
+        int requiredSectors = MathUtil.ceilDiv(size, this.sectorSize);
+
+        System.out.println("ID: " + render.getID() + ", X: " + render.getX() + ", Y: " + render.getY() + ", Z: " + render.getZ() + ", Size: " + size + ", Requires: " + requiredSectors);
+
+        if (requiredSectors <= 0) {
+            throw new IllegalArgumentException();
+        }
+        SectorizedList.Sector sector = this.sectors.claim(requiredSectors);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, handle());
+        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, (long) sectorSize * sector.getFirstSector(), buffer);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+        return new VBOPart(sector, size / this.vertexSize);
     }
 
-    public void FreeSector(ChainSectors sector) {
-        sector.Free(this.handle());
+    public void FreeSector(SectorizedList.Sector sector) {
+        sectors.free(sector);
     }
 
 
@@ -67,10 +105,13 @@ public class GlDynamicVBO extends GlObject {
 
     public class VBOPart {
         private boolean valid = true;//free = false
-        private final ChainSectors sector;
+        private final SectorizedList.Sector sector;
 
-        public VBOPart(ChainSectors sector) {
+        private final int VertexCount;
+
+        public VBOPart(SectorizedList.Sector sector, int vertexCount) {
             this.sector = sector;
+            this.VertexCount = vertexCount;
         }
 
         public int getVBO() {
@@ -79,24 +120,12 @@ public class GlDynamicVBO extends GlObject {
 
         //return =  dataLim / DefaultVertexFormats.BLOCK.getSize()
         public int getVertexCount() {
-            return this.sector.GetVertexCount();
+            return this.VertexCount;
         }
 
         //バグってる？
         public int getVBOFirst() {
-            return (int)sector.GetRenderFirst();
-        }
-
-        public int getSectorIndex() {
-            return sector.getIndex();
-        }
-
-        public ChainSectors getSector() {
-            return this.sector;
-        }
-
-        public long getSectorByteBufferOffset() {
-            return sector.GetIndexBufferOffset();
+            return sector.getFirstSector() * vertexCountPerSector;
         }
 
         public void free() {
