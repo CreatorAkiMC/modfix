@@ -25,6 +25,7 @@ vec4 linear_fog(vec4 inColor, float vertexDistance) {
         return inColor;
     }
 
+
     float fogValue = vertexDistance < u_FogEnd ? smoothstep(u_FogStart, u_FogEnd, vertexDistance) : 1.0;
     return vec4(mix(inColor.rgb, u_FogColor.rgb, fogValue * u_FogColor.a), inColor.a);
 }

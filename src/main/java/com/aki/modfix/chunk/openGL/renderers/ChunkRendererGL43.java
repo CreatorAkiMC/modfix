@@ -135,22 +135,9 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
             this.RenderChunks.forEach((pass, list) -> {
                 ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) -> {
-
-                    //this.OffsetBuffers.get(pass).addIndirectDrawOffsetCall((float) (0 - cameraX), (float) (0 - cameraY), (float) (0 - cameraZ));
                     this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
-
-                    //first (初期) 0, 頂点(四角 = 4 or 三角形 * 2 = 6？ 立方体は 3 * 2 * 6 -> 36 ?) 4, BaseInstance i, instanceCount 1
-                    //first オフセット スキップする頂点の数を入れる <- renderBlock で取得した Buffer を DefaultVertexFormats.BLOCK.getSize() で割るとよさそう (合計)。
-                    //だから、連続する見えないブロックではそれぞれのブロックのBuffer を合計して割るとよさそう。
-                    //(ただし、連続しないブロックの場合、addIndirectDrawCall を分割して実行するとよさそう (配列で))
-
-                    //DefaultVertexFormats.BLOCK.getSize() は 11
-                    //...スキップするブロックの数は引いておいたほうが軽くなる
                     GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
 
-                    //if(pass == ChunkRenderPass.SOLID)
-                      //  System.out.println("Sector ID: " + part.getSector().getIndex() + ", First: " + part.getVBOFirst() + ", Vertex: " + part.getVertexCount() + ", X: " + chunkRender.getX() + ", Y: " + chunkRender.getY() + ", Z: " + chunkRender.getZ() + ", index: " + index);
-                    //428400など、初め(0)のセクター以外データが入っていない？
                     this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
                 });
             });

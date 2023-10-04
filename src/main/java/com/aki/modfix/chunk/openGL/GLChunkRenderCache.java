@@ -1,5 +1,6 @@
 package com.aki.modfix.chunk.openGL;
 
+import com.aki.modfix.chunk.openGL.integreate.optifine.GLOptifine;
 import com.aki.modfix.util.cache.*;
 import com.aki.modfix.util.gl.LightUtil;
 import com.aki.modfix.util.gl.SectionPos;
@@ -109,9 +110,9 @@ public class GLChunkRenderCache implements IBlockAccess {
             light = this.getLight(pos, light);
         }
 
-        /*if (Optifine.OPTIFINE_DETECTED && Optifine.IS_DYNAMIC_LIGHTS.invoke(null) && !state.isOpaqueCube()) {
-            light = Optifine.GET_COMBINED_LIGHT.invoke(null, pos, light);
-        }*/
+        if (GLOptifine.OPTIFINE_INSIDE && GLOptifine.IS_DYNAMIC_LIGHTS.invoke(null) && !state.isOpaqueCube()) {
+            light = GLOptifine.GET_COMBINED_LIGHT.invoke(null, pos, light);
+        }
 
         return light;
     }

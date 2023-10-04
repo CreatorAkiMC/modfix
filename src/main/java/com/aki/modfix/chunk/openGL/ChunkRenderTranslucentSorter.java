@@ -37,7 +37,7 @@ public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRe
         dispatcher.runOnRenderThread(() -> {
             if (!this.getCancel() && vboPart.isValid()) {
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboPart.getVBO());
-                GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, vboPart.getVBOFirst(),//Target, Offset, Data
+                GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, (long) vboPart.getVBOFirst() * DefaultVertexFormats.BLOCK.getSize(),//Target, Offset, Data
                         vertexData.getBuffer());
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
             }

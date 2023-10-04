@@ -31,7 +31,7 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
 
         //this.CommandBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
         this.OffsetBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
-
+        this.DynamicBuffers.forEach((pass, vbo) -> vbo.AddListener(() -> this.InitVAOs(pass)));
         Arrays.stream(ChunkRenderPass.ALL).forEach(this::InitVAOs);
     }
 
