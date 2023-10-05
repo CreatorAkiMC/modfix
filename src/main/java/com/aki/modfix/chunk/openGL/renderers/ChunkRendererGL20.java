@@ -2,7 +2,7 @@ package com.aki.modfix.chunk.openGL.renderers;
 
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
-import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GlDynamicVBO;
 import com.aki.modfix.chunk.openGL.ChunkRender;
 import com.aki.modfix.chunk.openGL.RenderEngineType;
 import com.aki.modfix.util.gl.ChunkRenderPass;

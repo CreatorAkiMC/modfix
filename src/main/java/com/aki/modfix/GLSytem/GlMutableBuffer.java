@@ -1,8 +1,6 @@
-package com.aki.modfix.chunk.GLSytem;
+package com.aki.modfix.GLSytem;
 
-import org.lwjgl.MemoryUtil;
 import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;

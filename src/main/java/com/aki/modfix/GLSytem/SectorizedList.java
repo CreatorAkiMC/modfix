@@ -1,4 +1,4 @@
-package com.aki.modfix.chunk.GLSytem;
+package com.aki.modfix.GLSytem;
 
 public class SectorizedList {
 

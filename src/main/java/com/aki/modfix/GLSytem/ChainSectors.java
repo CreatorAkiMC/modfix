@@ -1,4 +1,4 @@
-package com.aki.modfix.chunk.GLSytem;
+package com.aki.modfix.GLSytem;
 
 import com.aki.modfix.util.gl.GLHelper;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;

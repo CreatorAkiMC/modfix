@@ -1,4 +1,4 @@
-package com.aki.modfix.chunk.GLSytem;
+package com.aki.modfix.GLSytem;
 
 import com.aki.mcutils.APICore.Utils.matrixutil.MemoryUtil;
 import com.aki.mcutils.APICore.Utils.matrixutil.UnsafeUtil;

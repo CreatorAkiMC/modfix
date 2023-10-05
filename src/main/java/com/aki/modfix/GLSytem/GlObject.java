@@ -1,4 +1,4 @@
-package com.aki.modfix.chunk.GLSytem;
+package com.aki.modfix.GLSytem;
 
 public class GlObject {
     private static final int INVALID_HANDLE = Integer.MIN_VALUE;

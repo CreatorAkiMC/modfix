@@ -3,7 +3,7 @@ package com.aki.modfix.chunk.openGL;
 import com.aki.mcutils.APICore.Utils.memory.UnsafeByteBuffer;
 import com.aki.mcutils.APICore.Utils.render.Frustum;
 import com.aki.modfix.Modfix;
-import com.aki.modfix.chunk.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GlDynamicVBO;
 import com.aki.modfix.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.*;
