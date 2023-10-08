@@ -4,10 +4,10 @@
 package com.aki.modfix.mixin.vanilla.rendering;
 
 import com.aki.mcutils.APICore.Utils.math.MathHelper;
-import com.aki.modfix.chunk.ChunkRenderManager;
-import com.aki.modfix.chunk.openGL.ChunkRender;
-import com.aki.modfix.chunk.openGL.ChunkRenderProvider;
-import com.aki.modfix.chunk.openGL.integreate.optifine.GLOptifine;
+import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
+import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
+import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderProvider;
+import com.aki.modfix.WorldRender.chunk.openGL.integreate.optifine.GLOptifine;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;

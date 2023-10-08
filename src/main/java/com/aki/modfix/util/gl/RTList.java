@@ -1,6 +1,6 @@
 package com.aki.modfix.util.gl;
 
-import com.aki.modfix.util.cache.IntObjConsumer;
+import com.aki.mcutils.APICore.Utils.cache.IntObjConsumer;
 
 import java.util.ArrayList;
 import java.util.List;

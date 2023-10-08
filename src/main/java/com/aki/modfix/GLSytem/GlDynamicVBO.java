@@ -4,9 +4,10 @@ package com.aki.modfix.GLSytem;
 * Thank you Meldexum
 * */
 
-import com.aki.modfix.chunk.openGL.ChunkRender;
-import com.aki.modfix.util.gl.GLHelper;
-import com.aki.modfix.util.gl.MathUtil;
+import com.aki.mcutils.APICore.Utils.render.GLHelper;
+import com.aki.mcutils.APICore.Utils.render.GlObject;
+import com.aki.mcutils.APICore.Utils.render.MathUtil;
+import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL15;
 

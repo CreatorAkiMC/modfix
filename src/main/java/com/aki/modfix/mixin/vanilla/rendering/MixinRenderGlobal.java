@@ -1,10 +1,10 @@
 package com.aki.modfix.mixin.vanilla.rendering;
 
 import com.aki.mcutils.APICore.Utils.GuiDebugHelper;
+import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import com.aki.modfix.Modfix;
-import com.aki.modfix.chunk.ChunkRenderManager;
-import com.aki.modfix.util.gl.ChunkRenderPass;
+import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;

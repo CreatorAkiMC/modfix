@@ -1,7 +1,7 @@
 package com.aki.modfix.util.gl;
 
 import com.aki.modfix.Modfix;
-import com.aki.modfix.chunk.openGL.integreate.CubicChunks;
+import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;

@@ -1,6 +1,6 @@
 package com.aki.modfix.GLSytem;
 
-import com.aki.modfix.util.gl.GLHelper;
+import com.aki.mcutils.APICore.Utils.render.GLHelper;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL15;
 

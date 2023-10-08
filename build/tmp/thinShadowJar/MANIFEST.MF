@@ -3,7 +3,7 @@ Implementation-Title: modfix
 Implementation-Version: task ':jar' property 'archiveVersion'
 FMLAT: modfix_at.cfg
 Specification-Title: modsfix
-Implementation-Timestamp: 2023-10-04T22:54:34+0900
+Implementation-Timestamp: 2023-10-09T02:30:56+0900
 TweakClass: org.spongepowered.asm.launch.MixinTweaker
 TweakOrder: 0
 ModSide: CLIENT

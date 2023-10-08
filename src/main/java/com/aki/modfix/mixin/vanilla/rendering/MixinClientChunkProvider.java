@@ -1,6 +1,6 @@
 package com.aki.modfix.mixin.vanilla.rendering;
 
-import com.aki.modfix.chunk.ChunkRenderManager;
+import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;

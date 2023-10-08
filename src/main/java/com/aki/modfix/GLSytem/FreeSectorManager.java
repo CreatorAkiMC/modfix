@@ -1,7 +1,7 @@
 package com.aki.modfix.GLSytem;
 
-import com.aki.modfix.util.reflectors.ReflectionField;
-import com.aki.modfix.util.reflectors.ReflectionMethod;
+import com.aki.mcutils.APICore.Utils.reflectors.ReflectionField;
+import com.aki.mcutils.APICore.Utils.reflectors.ReflectionMethod;
 import it.unimi.dsi.fastutil.objects.Object2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMap;

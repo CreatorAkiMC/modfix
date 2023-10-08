@@ -1,8 +1,8 @@
 package com.aki.modfix.util.gl;
 
 import com.aki.modfix.Modfix;
-import com.aki.modfix.chunk.openGL.ChunkRender;
-import com.aki.modfix.chunk.openGL.integreate.CubicChunks;
+import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
+import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import net.minecraft.util.EnumFacing;
 
 public class EnumFacingCulledHelper {

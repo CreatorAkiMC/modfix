@@ -1,9 +1,9 @@
 package com.aki.modfix.mixin.vanilla.rendering.vertex;
 
 import com.aki.mcutils.APICore.Utils.matrixutil.MemoryUtil;
+import com.aki.mcutils.APICore.Utils.render.vertex.ExtendedBufferBuilder;
+import com.aki.mcutils.APICore.Utils.render.vertex.ExtendedVertexFormatElement;
 import com.aki.modfix.Modfix;
-import com.aki.modfix.util.gl.vertex.ExtendedBufferBuilder;
-import com.aki.modfix.util.gl.vertex.ExtendedVertexFormatElement;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
