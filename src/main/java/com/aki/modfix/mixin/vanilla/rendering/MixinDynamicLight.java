@@ -54,8 +54,6 @@ public class MixinDynamicLight {
 
     @Inject(method = "update", remap = false, require = 1, cancellable = true, at = @At("HEAD"))
     private void on_getWorldFromBlockAccess(RenderGlobal renderGlobal, CallbackInfo info) {
-        info.cancel();
-
         if (GLOptifine.IS_DYNAMIC_LIGHTS_FAST.invoke(null)) {
             long timeNowMs = System.currentTimeMillis();
             if (timeNowMs < this.timeCheckMs + 500L) {
@@ -67,6 +65,9 @@ public class MixinDynamicLight {
         double posY = this.entity.posY - 0.5 + this.offsetY;
         double posZ = this.entity.posZ - 0.5;
         int lightLevel = GLOptifine.GET_LIGHT_LEVEL.invoke(null, this.entity);
+
+        System.out.println("LightLevel: " + lightLevel);
+
         double dx = posX - this.lastPosX;
         double dy = posY - this.lastPosY;
         double dz = posZ - this.lastPosZ;
@@ -110,6 +111,7 @@ public class MixinDynamicLight {
         }
         this.updateLitChunks(renderGlobal);
         this.setLitChunkPos = setNewPos;
+        info.cancel();
     }
 
     @Unique
@@ -138,9 +140,8 @@ public class MixinDynamicLight {
 
     @Inject(method = "updateLitChunks", remap = false, require = 1, cancellable = true, at = @At("HEAD"))
     private void on_updateLitChunks(RenderGlobal renderGlobal, CallbackInfo info) {
-        info.cancel();
-
         this.updateLitChunks(renderGlobal);
+        info.cancel();
     }
 
 }

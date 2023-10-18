@@ -29,6 +29,7 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
             "mixins.immersiveengineering.json",
             "mixins.astralsorcery.json",
             "mixins.gvc.json",
+            "mixins.phosphor.json",
             "mixins.vanillafix.json");
 
     /**

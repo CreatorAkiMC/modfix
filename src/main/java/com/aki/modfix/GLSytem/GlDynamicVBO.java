@@ -65,17 +65,8 @@ public class GlDynamicVBO extends GlObject {
      * */
 
     public VBOPart Buf_Upload(ChunkRender render, ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
-        /*int SectionCheck = render.getID();
-        ChainSectors sector = BaseSector.getChainSector(SectionCheck);
-        sector.setUsed(true);
-        sector.BufferUpload(this.handle(), buffer);
-
-        return new VBOPart(sector);*/
         int size = buffer.limit();
         int requiredSectors = MathUtil.ceilDiv(size, this.sectorSize);
-
-        System.out.println("ID: " + render.getID() + ", X: " + render.getX() + ", Y: " + render.getY() + ", Z: " + render.getZ() + ", Size: " + size + ", Requires: " + requiredSectors);
-
         if (requiredSectors <= 0) {
             throw new IllegalArgumentException();
         }

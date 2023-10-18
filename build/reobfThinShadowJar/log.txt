@@ -14,6 +14,7 @@ Classpath:
  - F:\desktops\aegissystem\modfix\modsrc\ImmersiveEngineering-0.12-98.jar
  - F:\desktops\aegissystem\modfix\modsrc\MCUtils-v3.8-1.12.2.jar
  - F:\desktops\aegissystem\modfix\modsrc\OptiFine_1.12.2_HD_U_F5.jar
+ - F:\desktops\aegissystem\modfix\modsrc\phosphor-forge-mc1.12.2-0.2.7-universal.jar
  - F:\desktops\aegissystem\modfix\modsrc\ProjectE-1.12.2-PE1.4.1.jar
  - F:\desktops\aegissystem\modfix\modsrc\StorageDrawers-1.12.2-5.4.2.jar
  - C:\Users\Owner\.gradle\caches\modules-2\files-2.1\org.spongepowered\mixin\0.8.3\5b08b203d5c601e2393be5cf9b4d39c26d12eb5f\mixin-0.8.3.jar
@@ -105,12 +106,12 @@ Loading mappings... 100%
 Remapping final jar
 Remapping jar...  1%
 Remapping jar... 10%
-Remapping jar... 21%
-Remapping jar... 30%
+Remapping jar... 20%
+Remapping jar... 31%
 Remapping jar... 40%
 Remapping jar... 50%
 Remapping jar... 60%
-Remapping jar... 71%
-Remapping jar... 80%
+Remapping jar... 70%
+Remapping jar... 81%
 Remapping jar... 90%
 Remapping jar... 100%
