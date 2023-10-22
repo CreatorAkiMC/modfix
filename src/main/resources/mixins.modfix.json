@@ -16,6 +16,8 @@
     "vanilla.rendering.MixinBlock",
     "vanilla.rendering.MixinDynamicLight",
     "vanilla.rendering.MixinEntityRenderer",
+    "vanilla.rendering.MixinMinecraft",
+    "vanilla.rendering.MixinWorld",
     "vanilla.rendering.vertex.MixinBufferBuilder_FA",
     "vanilla.rendering.vertex.MixinVertexFormat",
     "vanilla.rendering.vertex.MixinVertexFormatElement"

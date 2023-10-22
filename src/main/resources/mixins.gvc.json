@@ -10,7 +10,8 @@
     "gvc.MixinGvcDecoFacing",
     "gvc.MixinGvcGunCrafterFix",
     "gvc.MixinGvcGunRack",
-    "gvc.MixinGVCTileEntityBulletCraftFix"
+    "gvc.MixinGVCTileEntityBulletCraftFix",
+    "gvc.MixinGVCR2LoadGunStatus"
   ],
   "server": [
 

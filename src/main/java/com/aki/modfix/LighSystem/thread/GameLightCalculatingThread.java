@@ -20,22 +20,17 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 
-import java.util.ArrayDeque;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GameLightCalculatingThread extends Thread {
     private double sleepOverhead = 0.0D;
-    private ConcurrentHashMap<BlockPos, LightingData> LightBlockPosMap = new ConcurrentHashMap<>();
+    private HashMap<BlockPos, LightingData> LightBlockPosMap = new HashMap<>();
+    private HashMap<BlockPos, LightingData> AddBlockPosMap = new HashMap<>();
 
     public GameLightCalculatingThread() {
         super();
@@ -55,8 +50,38 @@ public class GameLightCalculatingThread extends Thread {
                 if(player != null && world != null) {
                     List<Entity> CheckEntities = world.loadedEntityList;
                     //BlockPosLight Selection
-                    LightBlockPosMap = new ConcurrentHashMap<>(LightBlockPosMap.entrySet().stream().filter(entry -> Math.sqrt(Math.pow(entry.getKey().getX() - player.posX, 2.0) + Math.pow(entry.getKey().getY() - player.posY, 2.0) + Math.pow(entry.getKey().getZ() - player.posZ, 2.0)) <= RenderDist && entry.getValue().getLightLevel() > 0.0d && entry.getKey() == entry.getValue().getLightSourcePos()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-                    Minecraft.getMinecraft().addScheduledTask(() -> this.LightBlockPosMap.forEach((key, value) -> world.checkLightFor(EnumSkyBlock.BLOCK, key)));
+                    List<BlockPos> ChangePos = new ArrayList<>();
+                    LightBlockPosMap = new HashMap<>(LightBlockPosMap.entrySet().stream().filter(entry -> Math.sqrt(Math.pow(entry.getKey().getX() - player.posX, 2.0) + Math.pow(entry.getKey().getY() - player.posY, 2.0) + Math.pow(entry.getKey().getZ() - player.posZ, 2.0)) <= RenderDist && entry.getValue().getLightLevel() >= 0.0d)
+                            .map((entry) -> {
+                                BlockPos pos = entry.getKey();
+                                LightingData data = entry.getValue();
+                                LightingData AddData = AddBlockPosMap.get(pos);
+                                if(AddData != null) {
+                                    if(AddData != data) {
+                                        ChangePos.add(pos);
+                                        entry.setValue(AddData);
+                                        return entry;
+                                    }
+                                } else {
+                                    if(data.getLightLevel() != 0) {
+                                        ChangePos.add(pos);
+                                        entry.setValue(new LightingData(data.getLightSourcePos(), 0));
+                                        return entry;
+                                    }
+                                }
+
+                                return entry;
+                            })
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+
+                    LightBlockPosMap.putAll(AddBlockPosMap);
+                    AddBlockPosMap.clear();
+
+                    Minecraft.getMinecraft().addScheduledTask(() -> {
+                        ChangePos.forEach(world::notifyLightSet);
+                        ChangePos.clear();
+                    });
+
                     for(Entity entity : CheckEntities) {
                         double dist = Math.sqrt(Math.pow(entity.posX - player.posX, 2.0) + Math.pow(entity.posY - player.posY, 2.0) + Math.pow(entity.posZ - player.posZ, 2.0));
                         if(dist > RenderDist)
@@ -147,7 +172,7 @@ public class GameLightCalculatingThread extends Thread {
     public void PutUpdateLightData(BlockPos pos, double light, World world) {
         Queue<Pair<BlockPos, LightingData>> UpdateQueue = new ArrayDeque<>();
         UpdateQueue.add(new Pair<>(pos, new LightingData(pos, light)));
-        this.LightBlockPosMap.put(pos, new LightingData(pos, light));
+        this.AddBlockPosMap.put(pos, new LightingData(pos, light));
         while (UpdateQueue.size() > 0) {
             Pair<BlockPos, LightingData> dataPair = UpdateQueue.poll();
             BlockPos blockPos = dataPair.getKey();
@@ -155,10 +180,10 @@ public class GameLightCalculatingThread extends Thread {
 
             for (EnumFacing facing : EnumFacing.values()) {
                 BlockPos NextPos = blockPos.add(facing.getDirectionVec());
-                LightingData NextData = this.LightBlockPosMap.get(NextPos);
+                LightingData NextData = this.AddBlockPosMap.get(NextPos);
                 LightingData NextDataLight = data.addLightLevel(-1.0);
                 if((NextData == null || NextData.getLightLevel() < NextDataLight.getLightLevel()) && NextDataLight.getLightLevel() > 0.0 && IsLightTransport(NextPos, world)) {
-                    this.LightBlockPosMap.put(NextPos, NextDataLight);
+                    this.AddBlockPosMap.put(NextPos, NextDataLight);
                     UpdateQueue.add(new Pair<>(NextPos, NextDataLight));
                 }
             }
@@ -167,10 +192,14 @@ public class GameLightCalculatingThread extends Thread {
 
     private boolean IsLightTransport(BlockPos NextPos, World world) {
         IBlockState state = world.getBlockState(NextPos);
-        return state.getRenderType() == EnumBlockRenderType.INVISIBLE || !state.isOpaqueCube();
+        return !state.isOpaqueCube();
     }
 
     public synchronized LightingData getPosToLightLevel(BlockPos pos) {
         return this.LightBlockPosMap.getOrDefault(new BlockPos(pos.getX(), pos.getY(), pos.getZ()), new LightingData(pos, 0.0));
+    }
+
+    public HashMap<BlockPos, LightingData> getLightBlockPosMap() {
+        return this.LightBlockPosMap;
     }
 }

@@ -20,10 +20,9 @@ public class RTList<T> {
         this.Select = this.Obj.get(this.Index);
     }
 
-    public T ToNext() {
+    public void ToNext() {
         this.Index = this.Index >= (this.Obj.size() - 1) ? 0 : this.Index + 1;
         this.Select = Obj.get(Index);
-        return this.Select;
     }
 
     public List<T> getList() {

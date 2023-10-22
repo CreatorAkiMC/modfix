@@ -118,16 +118,16 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
             this.CommandBuffers.ToNext();
             this.VaoBuffers.ToNext();
 
+            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> {
+                this.OffsetBuffers.getSelect().get(pass).begin();
+                this.CommandBuffers.getSelect().get(pass).begin();
+            });
+
             if (this.SyncList.getSelect() != -1) {
                 GL33.glGetQueryObjecti64(this.SyncList.getSelect(), GL15.GL_QUERY_RESULT);
                 GL15.glDeleteQueries(this.SyncList.getSelect());
                 this.SyncList.setSelect(-1);
             }
-
-            Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> {
-                this.OffsetBuffers.getSelect().get(pass).begin();
-                this.CommandBuffers.getSelect().get(pass).begin();
-            });
 
             this.RenderChunks.forEach((pass, list) -> {
                 ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) -> {
