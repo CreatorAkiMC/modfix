@@ -17,8 +17,7 @@
 
   ],
   "client": [
-    "modsupport.MixinLoader",
-    "vanilla.rendering.MixinRenderGlobal"
+    "modsupport.MixinLoader"
   ],
   "injectors": {
     "defaultRequire": 1

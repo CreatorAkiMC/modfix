@@ -29,6 +29,7 @@ public class ChunkRendererGL15Optifine extends ChunkRendererGL15 {
         if (GLOptifine.IS_FOG_OFF.invoke(null) && GLOptifine.FOG_STANDARD.getBoolean(Minecraft.getMinecraft().entityRenderer)) {
             GlStateManager.disableFog();
         }
+
         super.RenderChunks(pass);
     }
 

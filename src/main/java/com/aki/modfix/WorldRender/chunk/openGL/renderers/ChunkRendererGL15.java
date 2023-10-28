@@ -64,6 +64,7 @@ public class ChunkRendererGL15 extends ChunkRendererBase<ChunkRender> {
         GlDynamicVBO.VBOPart vboPart = renderChunk.getVBO(pass);
         GL11.glPushMatrix();
         GL11.glTranslated(renderChunk.getX() - cameraX, renderChunk.getY() - cameraY, renderChunk.getZ() - cameraZ);
+        //System.out.println(" GLVBOFist: " + vboPart.getVBOFirst() + ", Count: " + vboPart.getVertexCount());
         GL11.glDrawArrays(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount());
         GL11.glPopMatrix();
     }

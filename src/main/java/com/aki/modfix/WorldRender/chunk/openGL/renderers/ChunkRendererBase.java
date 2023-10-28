@@ -56,7 +56,8 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     public RTList<Integer> SyncList;
 
     public ChunkRendererBase() {
-        program = getProgram();
+        if(this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
+            program = getProgram();
 
         //SyncListのように実装
         this.VaoBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GLMutableArrayBuffer()));
@@ -84,15 +85,15 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         try {
             RenderHelper.disableStandardItemLighting();
             Minecraft.getMinecraft().entityRenderer.enableLightmap();
-
-            program.useShader(cache -> {
-                //マッピング用
-                cache.glUniform1I("u_BlockTex", 0);
-                cache.glUniform1I("u_LightTex", 1);
-            });
+            if(this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
+                program.useShader(cache -> {
+                    //マッピング用
+                    cache.glUniform1I("u_BlockTex", 0);
+                    cache.glUniform1I("u_LightTex", 1);
+                });
             this.RenderChunks(pass);
-
-            program.releaseShader();
+            if(this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
+                program.releaseShader();
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -101,6 +101,9 @@ public abstract class MixinRenderGlobal {
         info.cancel();
     }
 
+    /**
+     * remap = false をつけると Optifine を抜いた時に動かない？
+     * */
     @Inject(method = "getRenderChunkOffset", remap = false, cancellable = true, at = @At("HEAD"))
     public void getRenderChunkOffset(CallbackInfoReturnable<RenderChunk> info) {
         info.setReturnValue(null);
