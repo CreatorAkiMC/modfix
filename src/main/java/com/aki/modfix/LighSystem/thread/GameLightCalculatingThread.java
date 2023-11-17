@@ -2,6 +2,7 @@ package com.aki.modfix.LighSystem.thread;
 
 import com.aki.mcutils.APICore.Utils.list.Pair;
 import com.aki.modfix.LighSystem.LightingData;
+import com.aki.modfix.WorldRender.chunk.openGL.integreate.optifine.GLOptifine;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -47,7 +48,7 @@ public class GameLightCalculatingThread extends Thread {
                 int RenderDist = mc.gameSettings.renderDistanceChunks * 16 + 16;
                 EntityPlayer player = mc.player;
                 World world = mc.world;
-                if(player != null && world != null) {
+                if(player != null && world != null && GLOptifine.IS_DYNAMIC_LIGHTS.invoke(null)) {
                     List<Entity> CheckEntities = world.loadedEntityList;
                     //BlockPosLight Selection
                     List<BlockPos> ChangePos = new ArrayList<>();

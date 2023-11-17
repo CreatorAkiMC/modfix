@@ -129,7 +129,7 @@ public class GLChunkRenderCache implements IBlockAccess {
             if (this.world.provider.hasSkyLight() && sky < 15) {
                 sky = Math.max(sky, LightUtil.getSkyLight(section, pos));
             }
-            if (block < 15) {
+            if (block < 15 && GLOptifine.IS_DYNAMIC_LIGHTS.invoke(null)) {
                 block = Math.max(block, Math.max(LightUtil.getBlockLight(section, pos), (int)Modfix.thread.getPosToLightLevel(pos).getLightLevel()));
             }
         } else if (this.world.provider.hasSkyLight() && sky < EnumSkyBlock.SKY.defaultLightValue) {
