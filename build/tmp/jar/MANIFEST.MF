@@ -3,7 +3,7 @@ Implementation-Title: modfix
 Implementation-Version: 1.0.0-SNAPSHOT
 FMLAT: modfix_at.cfg
 Specification-Title: modsfix
-Implementation-Timestamp: 2023-10-28T11:25:14+0900
+Implementation-Timestamp: 2023-12-28T22:28:36+0900
 TweakClass: org.spongepowered.asm.launch.MixinTweaker
 TweakOrder: 0
 ModSide: CLIENT

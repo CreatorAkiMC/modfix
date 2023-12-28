@@ -1,5 +1,6 @@
 package com.aki.modfix.mixin.vanilla.keybind;
 
+import com.aki.modfix.Modfix;
 import com.aki.modfix.util.fix.GuiNewChatExtended;
 import net.minecraft.client.gui.ChatLine;
 import net.minecraft.client.gui.GuiNewChat;
@@ -10,7 +11,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.List;
 
-@Mixin(GuiNewChat.class)
+@Mixin(value = GuiNewChat.class, priority = Modfix.ModPriority)
 public class MixinGuiNewChat implements GuiNewChatExtended {
     @Mutable
     @Shadow @Final private List<ChatLine> drawnChatLines;

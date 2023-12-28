@@ -1,5 +1,6 @@
 package com.aki.modfix.mixin.vanilla.keybind;
 
+import com.aki.modfix.Modfix;
 import com.aki.modfix.util.fix.GameSettingsExtended;
 import com.aki.modfix.util.fix.KeyBindingRegister;
 import com.google.common.base.Splitter;
@@ -32,7 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-@Mixin(value = GameSettings.class)
+@Mixin(value = GameSettings.class, priority = Modfix.ModPriority)
 public abstract class MixinKeyBindingGameSettings implements GameSettingsExtended {
 
     @Shadow @Final private static Logger LOGGER;
@@ -609,6 +610,7 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
 
             Path path = Paths.get(this.ModsKeySettingFile.getPath());
             try {
+
                 //ファイルがある場合に読み込む
                 if (Files.exists(path) || !(Files.exists(path) && Files.size(path) < 1)) {
                     list = IOUtils.readLines(fileInputStream = new FileInputStream(this.ModsKeySettingFile), StandardCharsets.UTF_8); // Forge: fix MC-117449, MC-151173
@@ -678,6 +680,77 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
         finally { IOUtils.closeQuietly(fileInputStream); } // Forge: fix MC-151173
     }
 
+    @Override
+    public void ReloadKeyBindingSettings() {
+        /**
+         *
+         * 保存した設定の読み込み
+         *
+         * */
+
+        Path path = Paths.get(this.ModsKeySettingFile.getPath());
+        try {
+            //ファイルがある場合に読み込む
+            if (Files.exists(path) || !(Files.exists(path) && Files.size(path) < 1)) {
+                List<String> list = IOUtils.readLines(Files.newInputStream(this.ModsKeySettingFile.toPath()), StandardCharsets.UTF_8); // Forge: fix MC-117449, MC-151173
+                NBTTagCompound nbttagcompound = new NBTTagCompound();
+
+                for (String s : list)
+                {
+                    try
+                    {
+                        Iterator<String> iterator = COLON_SPLITTER.omitEmptyStrings().limit(2).split(s).iterator();
+                        nbttagcompound.setString(iterator.next(), iterator.next());
+                    }
+                    catch (Exception var10)
+                    {
+                        LOGGER.warn("Skipping bad option: {}", (Object)s);
+                    }
+                }
+
+                nbttagcompound = this.dataFix(nbttagcompound);
+
+                Set<String> stringSet = nbttagcompound.getKeySet();
+
+                String old = "";
+
+                for (int c = 0; c < stringSet.size(); c++) {
+                    String s1 = stringSet.iterator().next();
+                    String s2 = nbttagcompound.getString(s1);
+
+                    //"[idx : 1 ]"
+
+                    if (old.equals("[idx : ")) {
+                        int idx = Integer.parseInt(old.toLowerCase(Locale.ROOT).replace("[idx : ", "").replace(" ]", "")) - 1;
+                        KeyBinding[] keyBindings = this.ModKeyBinding[idx];
+                        KeyBindingRegister[] registers = this.ModKeyBindingRegister[idx];
+
+                        for(int i = 0; i < keyBindings.length; i++) {
+                            KeyBinding keybinding = keyBindings[i];
+                            KeyBindingRegister register = registers[i];
+                            if (s1.equals("key_" + keybinding.getKeyDescription())) {
+                                if (s2.indexOf(':') != -1) {
+                                    String[] t = s2.split(":");
+                                    keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]), Integer.parseInt(t[0]));
+                                    register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]));
+                                } else {
+                                    keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.NONE, Integer.parseInt(s2));
+                                    register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), KeyModifier.NONE);
+                                }
+                            }
+                        }
+
+                        this.ModKeyBinding[idx] = keyBindings;
+                        this.ModKeyBindingRegister[idx] = registers;
+                    }
+
+                    old = s1;
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.error("Failed to File Check KeyBinds by (ModFix mod) ", (Throwable)e);
+        }
+    }
 
     /**
      * @author Aki

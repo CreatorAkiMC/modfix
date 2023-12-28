@@ -25,4 +25,6 @@ public interface GameSettingsExtended {
     void SetKeyBindingRegister(KeyBindingRegister register, int index);
 
     void ChangeKeyPatternEvent();
+
+    void ReloadKeyBindingSettings();
 }

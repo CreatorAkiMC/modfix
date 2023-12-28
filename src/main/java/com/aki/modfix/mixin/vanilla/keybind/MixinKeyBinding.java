@@ -1,5 +1,6 @@
 package com.aki.modfix.mixin.vanilla.keybind;
 
+import com.aki.modfix.Modfix;
 import com.aki.modfix.util.fix.GameSettingsExtended;
 import com.aki.modfix.util.fix.GuiNewChatExtended;
 import net.minecraft.client.Minecraft;
@@ -12,20 +13,18 @@ import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.settings.IKeyConflictContext;
-import net.minecraftforge.client.settings.KeyBindingMap;
 import net.minecraftforge.client.settings.KeyModifier;
 import org.lwjgl.input.Keyboard;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mixin(value = KeyBinding.class)
+@Mixin(value = KeyBinding.class, priority = Modfix.ModPriority)
 public class MixinKeyBinding {
     @Shadow
     private int keyCode;

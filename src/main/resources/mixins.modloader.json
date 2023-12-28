@@ -10,6 +10,7 @@
     "vanilla.keybind.MixinClientRegistryKeyBind",
     "vanilla.keybind.MixinGuiControls",
     "vanilla.keybind.MixinGuiNewChat",
+    "vanilla.keybind.MixinGuiOptions",
     "vanilla.keybind.MixinKeyBinding",
     "vanilla.keybind.MixinKeyBindingGameSettings"
   ],

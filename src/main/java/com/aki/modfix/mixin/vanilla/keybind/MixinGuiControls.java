@@ -1,5 +1,6 @@
 package com.aki.modfix.mixin.vanilla.keybind;
 
+import com.aki.modfix.Modfix;
 import com.aki.modfix.util.fix.GameSettingsExtended;
 import com.aki.modfix.util.fix.GuiControlsGetter;
 import com.aki.modfix.util.fix.GuiKeyBindingListAltSet;
@@ -22,7 +23,7 @@ import java.util.List;
  * keyBindingList を独自のものに置き換える
  * KeyBindingList.drawScreen を置き換える
  * */
-@Mixin(GuiControls.class)
+@Mixin(value = GuiControls.class, priority = Modfix.ModPriority)
 public class MixinGuiControls extends GuiScreen implements GuiControlsGetter {
     @Shadow private GuiButton buttonReset;
 
