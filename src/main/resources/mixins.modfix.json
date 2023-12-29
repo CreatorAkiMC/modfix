@@ -19,6 +19,7 @@
     "vanilla.rendering.MixinMinecraft",
     "vanilla.rendering.MixinRenderGlobal",
     "vanilla.rendering.MixinWorld",
+    "vanilla.rendering.fast.MixinVertexBuffer",
     "vanilla.rendering.vertex.MixinBufferBuilder_FA",
     "vanilla.rendering.vertex.MixinVertexFormat",
     "vanilla.rendering.vertex.MixinVertexFormatElement"

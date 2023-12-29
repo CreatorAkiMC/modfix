@@ -3,7 +3,6 @@ package com.aki.modfix.WorldRender.chunk.openGL;
 import com.aki.mcutils.APICore.Utils.cache.*;
 import com.aki.mcutils.APICore.Utils.render.LightUtil;
 import com.aki.mcutils.APICore.Utils.render.SectionPos;
-import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.optifine.GLOptifine;
 import com.aki.modfix.util.gl.WorldUtil;
 import net.minecraft.block.state.IBlockState;
@@ -130,7 +129,8 @@ public class GLChunkRenderCache implements IBlockAccess {
                 sky = Math.max(sky, LightUtil.getSkyLight(section, pos));
             }
             if (block < 15) {
-                block = Math.max(block, Math.max(LightUtil.getBlockLight(section, pos), GLOptifine.IS_DYNAMIC_LIGHTS.invoke(null) ? (int)Modfix.thread.getPosToLightLevel(pos).getLightLevel() : 0));
+                //block = Math.max(block, Math.max(LightUtil.getBlockLight(section, pos), GLOptifine.IS_DYNAMIC_LIGHTS.invoke(null) ? (int)Modfix.thread.getPosToLightLevel(pos).getLightLevel() : 0));
+                block = Math.max(block, LightUtil.getBlockLight(section, pos));
             }
         } else if (this.world.provider.hasSkyLight() && sky < EnumSkyBlock.SKY.defaultLightValue) {
             Chunk chunk = this.getChunk(pos);

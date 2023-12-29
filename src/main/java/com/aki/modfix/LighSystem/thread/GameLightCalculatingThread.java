@@ -28,6 +28,7 @@ import net.minecraft.world.World;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class GameLightCalculatingThread extends Thread {
     private double sleepOverhead = 0.0D;
     private HashMap<BlockPos, LightingData> LightBlockPosMap = new HashMap<>();

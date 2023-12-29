@@ -2,6 +2,7 @@ package com.aki.modfix.LighSystem;
 
 import net.minecraft.util.math.BlockPos;
 
+@Deprecated
 public class LightingData {
     private final BlockPos LightSourcePos;
     private double LightLevel;

@@ -702,9 +702,9 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
                         Iterator<String> iterator = COLON_SPLITTER.omitEmptyStrings().limit(2).split(s).iterator();
                         nbttagcompound.setString(iterator.next(), iterator.next());
                     }
-                    catch (Exception var10)
+                    catch (Exception ignored)
                     {
-                        LOGGER.warn("Skipping bad option: {}", (Object)s);
+
                     }
                 }
 

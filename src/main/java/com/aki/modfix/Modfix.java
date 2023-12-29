@@ -1,6 +1,5 @@
 package com.aki.modfix;
 
-import com.aki.modfix.LighSystem.thread.GameLightCalculatingThread;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -37,9 +36,8 @@ public class Modfix {
     public static boolean isFluidloggedAPIInstalled;
     public static boolean isCubicChunksInstalled;
 
-    public static GameLightCalculatingThread thread;
-
     public static final int ModPriority = 2339;
+
 
     /**
      * This is the instance of your mod as created by Forge. It will never be null.
@@ -65,8 +63,6 @@ public class Modfix {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         MinecraftForge.EVENT_BUS.register(this);
-        thread = new GameLightCalculatingThread();
-        thread.start();
     }
 
     /**

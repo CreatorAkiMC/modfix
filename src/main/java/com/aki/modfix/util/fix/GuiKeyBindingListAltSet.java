@@ -1,9 +1,7 @@
 package com.aki.modfix.util.fix;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiControls;
-import net.minecraft.client.gui.GuiKeyBindingList;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -11,16 +9,13 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  *   [
@@ -194,9 +189,7 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
          **/
 
         this.VanillaListEntries = Arrays.stream(this.VanillaListEntries).filter(Objects::nonNull).toArray(IGuiListEntry[]::new);
-        IntStream.range(0, this.ModListEntries.length).forEach((x) -> {
-            this.ModListEntries[x] = (IGuiListEntry[]) Arrays.stream(this.ModListEntries[x]).filter(Objects::nonNull).toArray(IGuiListEntry[]::new);
-        });
+        IntStream.range(0, this.ModListEntries.length).forEach((x) -> this.ModListEntries[x] = (IGuiListEntry[]) Arrays.stream(this.ModListEntries[x]).filter(Objects::nonNull).toArray(IGuiListEntry[]::new));
     }
 
     //true == Vanilla Key Bindings
