@@ -1,5 +1,9 @@
 package com.aki.modfix.mixin.vanilla.tick;
 
+import com.aki.modfix.Modfix;
+import com.aki.modfix.util.fix.tick.TickBalanceStorage;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
@@ -14,73 +18,57 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.chunk.Chunk;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Mixin(World.class)
 public abstract class MixinWorld implements IBlockAccess {
 
     @Shadow @Final public Profiler profiler;
-
     @Shadow @Final public List<Entity> weatherEffects;
-
     @Shadow public abstract void removeEntity(Entity entityIn);
-
     @Shadow @Final public List<Entity> loadedEntityList;
-
     @Shadow @Final protected List<Entity> unloadedEntityList;
-
     @Shadow protected abstract boolean isChunkLoaded(int x, int z, boolean allowEmpty);
-
     @Shadow public abstract Chunk getChunk(int chunkX, int chunkZ);
-
     @Shadow public abstract void onEntityRemoved(Entity entityIn);
-
     @Shadow protected abstract void tickPlayers();
-
     @Shadow public abstract void updateEntity(Entity ent);
-
     @Shadow private boolean processingLoadedTiles;
+    @Shadow public abstract boolean isBlockLoaded(BlockPos pos);
+    @Shadow public abstract boolean isBlockLoaded(BlockPos pos, boolean allowEmpty);
+    @Shadow @Final private WorldBorder worldBorder;
+    @Shadow public abstract boolean tickUpdates(boolean runAllPending);
+    @Shadow @Nullable public abstract TileEntity getTileEntity(BlockPos pos);
+    @Shadow public abstract Chunk getChunk(BlockPos pos);
+    @Shadow @Final private List<TileEntity> addedTileEntityList;
+    @Shadow public abstract void notifyBlockUpdate(BlockPos pos, IBlockState oldState, IBlockState newState, int flags);
+    @Shadow public abstract World init();
+    @Shadow public abstract boolean spawnEntity(Entity entityIn);
+    @Shadow public abstract boolean setBlockToAir(BlockPos pos);
+    @Shadow @Final public boolean isRemote;
 
     @Shadow @Final private List<TileEntity> tileEntitiesToBeRemoved;
-
     @Shadow @Final public List<TileEntity> tickableTileEntities;
-
     @Shadow @Final public List<TileEntity> loadedTileEntityList;
 
-    @Shadow public abstract boolean isBlockLoaded(BlockPos pos);
+    @Shadow public abstract void updateComparatorOutputLevel(BlockPos pos, Block blockIn);
 
-    @Shadow public abstract boolean isBlockLoaded(BlockPos pos, boolean allowEmpty);
+    @Shadow public abstract void tick();
 
-    @Shadow @Final private WorldBorder worldBorder;
+    @Unique
+    public Object2ObjectOpenHashMap<BlockPos, TickBalanceStorage> TickTimeHash = new Object2ObjectOpenHashMap<>();
 
-    @Shadow public abstract boolean tickUpdates(boolean runAllPending);
-
-    @Shadow @Nullable public abstract TileEntity getTileEntity(BlockPos pos);
-
-    @Shadow public abstract Chunk getChunk(BlockPos pos);
-
-    @Shadow @Final private List<TileEntity> addedTileEntityList;
-
-    @Shadow public abstract boolean addTileEntity(TileEntity tile);
-
-    @Shadow public abstract void notifyBlockUpdate(BlockPos pos, IBlockState oldState, IBlockState newState, int flags);
-
-    @Shadow public abstract void removeTileEntity(BlockPos pos);
-
-    @Shadow public abstract World init();
-
-    @Shadow public abstract boolean spawnEntity(Entity entityIn);
-
-    @Shadow public abstract boolean setBlockToAir(BlockPos pos);
+    @Unique
+    public long TimeSum = 0L;
+    @Unique
+    public int RunCount = 0;
 
     /**
      * @author Aki
@@ -220,95 +208,124 @@ public abstract class MixinWorld implements IBlockAccess {
 
         if (!this.tileEntitiesToBeRemoved.isEmpty())
         {
-            for (Object tile : tileEntitiesToBeRemoved)
+            for (TileEntity tile : tileEntitiesToBeRemoved)
             {
-                ((TileEntity)tile).onChunkUnload();
+                tile.onChunkUnload();
             }
 
             // forge: faster "contains" makes this removal much more efficient
             java.util.Set<TileEntity> remove = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
             remove.addAll(tileEntitiesToBeRemoved);
             this.tickableTileEntities.removeAll(remove);
+            remove.forEach(this.TickTimeHash::remove);
             this.loadedTileEntityList.removeAll(remove);
             this.tileEntitiesToBeRemoved.clear();
         }
 
         Iterator<TileEntity> iterator = this.tickableTileEntities.iterator();
+        this.TimeSum = 0L;
+        this.RunCount = 0;
 
-        while (iterator.hasNext())
-        {
+        while (iterator.hasNext()) {
             TileEntity tileentity = iterator.next();
             BlockPos tilePos = tileentity.getPos();
             TileEntity tile = this.getTileEntity(tilePos);
-            if (!tileentity.isInvalid() && tileentity.hasWorld() && tile == tileentity && !tile.isInvalid() && tile.hasWorld())
-            {
-                BlockPos blockpos = tileentity.getPos();
-
-                if (this.isBlockLoaded(blockpos, false) && this.worldBorder.contains(blockpos)) //Forge: Fix TE's getting an extra tick on the client side....
-                {
-                    try
+            TickBalanceStorage tickBalance = this.TickTimeHash.get(tilePos);
+            if (tickBalance.getStopTickCycle() == 0) {
+                long nanoTime = System.nanoTime();
+                if (!tileentity.isInvalid() && tileentity.hasWorld() && tile == tileentity && !tile.isInvalid() && tile.hasWorld()) {
+                    BlockPos blockpos = tileentity.getPos();
+                    if (this.isBlockLoaded(blockpos, false) && this.worldBorder.contains(blockpos)) //Forge: Fix TE's getting an extra tick on the client side....
                     {
-                        this.profiler.func_194340_a(() ->
-                        {
-                            return String.valueOf((Object)TileEntity.getKey(tileentity.getClass()));
-                        });
-                        net.minecraftforge.server.timings.TimeTracker.TILE_ENTITY_UPDATE.trackStart(tileentity);
-                        if(tileentity instanceof ITickable)
-                            ((ITickable)tileentity).update();
-
-                        net.minecraftforge.server.timings.TimeTracker.TILE_ENTITY_UPDATE.trackEnd(tileentity);
-                        this.profiler.endSection();
-                    }
-                    catch (Throwable throwable)
-                    {
-                        CrashReport crashreport2 = CrashReport.makeCrashReport(throwable, "Ticking block entity");
-                        CrashReportCategory crashreportcategory2 = crashreport2.makeCategory("Block entity being ticked");
-                        tileentity.addInfoToCrashReport(crashreportcategory2);
-                        if (net.minecraftforge.common.ForgeModContainer.removeErroringTileEntities)
-                        {
-                            net.minecraftforge.fml.common.FMLLog.log.fatal("{}", crashreport2.getCompleteReport());
-                            tileentity.invalidate();
-                            this.removeTileEntity(tileentity.getPos());
-                        }
-                        else {
-                            try {
-
+                        try {
+                            this.profiler.func_194340_a(() ->
+                                    String.valueOf((Object) TileEntity.getKey(tileentity.getClass())));
+                            net.minecraftforge.server.timings.TimeTracker.TILE_ENTITY_UPDATE.trackStart(tileentity);
+                            if (tileentity instanceof ITickable) {
+                                ((ITickable) tileentity).update();
+                            }
+                            net.minecraftforge.server.timings.TimeTracker.TILE_ENTITY_UPDATE.trackEnd(tileentity);
+                            this.profiler.endSection();
+                        } catch (Throwable throwable) {
+                            CrashReport crashreport2 = CrashReport.makeCrashReport(throwable, "Ticking block entity");
+                            CrashReportCategory crashreportcategory2 = crashreport2.makeCategory("Block entity being ticked");
+                            tileentity.addInfoToCrashReport(crashreportcategory2);
+                            if (net.minecraftforge.common.ForgeModContainer.removeErroringTileEntities) {
+                                net.minecraftforge.fml.common.FMLLog.log.fatal("{}", crashreport2.getCompleteReport());
                                 tileentity.invalidate();
-                                setBlockToAir(tileentity.getPos());
                                 this.removeTileEntity(tileentity.getPos());
-                                System.out.println("-----ERROR-----");
-                                System.out.println(" ERROR BlockPos: " + tileentity.getPos().toString());
-                                System.out.println(" Destroy The Block ");
-                                System.out.println("------END------");
+                            } else {
+                                try {
 
-                                ReportedException RE = new ReportedException(crashreport2);
-                                RE.printStackTrace();
+                                    tileentity.invalidate();
+                                    setBlockToAir(tileentity.getPos());
+                                    this.removeTileEntity(tileentity.getPos());
+                                    System.out.println("-----ERROR-----");
+                                    System.out.println(" ERROR BlockPos: " + tileentity.getPos().toString());
+                                    System.out.println(" Destroy The Block ");
+                                    System.out.println("------END------");
 
-                            } catch(Exception e) {
-                                e.printStackTrace();
+                                    ReportedException RE = new ReportedException(crashreport2);
+                                    RE.printStackTrace();
 
-                                Thread.sleep(100);
-                                throw new ReportedException(crashreport2);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+
+                                    Thread.sleep(100);
+                                    throw new ReportedException(crashreport2);
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            if (tileentity.isInvalid())
-            {
-                iterator.remove();
-                this.loadedTileEntityList.remove(tileentity);
+                if (tileentity.isInvalid()) {
+                    iterator.remove();
+                    this.loadedTileEntityList.remove(tileentity);
 
-                if (this.isBlockLoaded(tileentity.getPos()))
-                {
-                    //Forge: Bugfix: If we set the tile entity it immediately sets it in the chunk, so we could be desyned
-                    Chunk chunk = this.getChunk(tileentity.getPos());
-                    if (chunk.getTileEntity(tileentity.getPos(), net.minecraft.world.chunk.Chunk.EnumCreateEntityType.CHECK) == tileentity)
-                        chunk.removeTileEntity(tileentity.getPos());
+                    if (this.isBlockLoaded(tileentity.getPos())) {
+                        //Forge: Bugfix: If we set the tile entity it immediately sets it in the chunk, so we could be desyned
+                        Chunk chunk = this.getChunk(tileentity.getPos());
+                        if (chunk.getTileEntity(tileentity.getPos(), net.minecraft.world.chunk.Chunk.EnumCreateEntityType.CHECK) == tileentity)
+                            chunk.removeTileEntity(tileentity.getPos());
+                    }
                 }
+                long subtract = System.nanoTime() - nanoTime;
+                tickBalance.setTime(subtract);
+
+                this.TimeSum += subtract;
+                this.RunCount++;
+            } else {
+                tickBalance.setStopTickCycle(tickBalance.getStopTickCycle() - 1);
+            }
+            this.TickTimeHash.replace(tilePos, tickBalance);
+        }
+
+        //標準の1Tickより、どれだけ遅れているかを算出
+        long subtract = this.TimeSum - Modfix.OneTickNanoBase;
+        AtomicLong sum = new AtomicLong(0L);
+        HashMap<BlockPos, TickBalanceStorage> slowlyTickTile = new HashMap<>();
+        this.TickTimeHash.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.comparing(TickBalanceStorage::getStopTickCycle).reversed()))
+                .filter(e -> e.getValue().getStopTickCycle() == 0).forEach(e -> {
+            if(subtract > sum.get()) {
+                sum.addAndGet(e.getValue().getTime());
+                slowlyTickTile.put(e.getKey(), e.getValue());
+            }
+        });
+
+        this.RunCount -= slowlyTickTile.size();
+        if(this.RunCount > 0) {
+            long speed = Modfix.OneTickNanoBase / this.RunCount;
+            int count = (int)(subtract / speed);
+
+            for(Map.Entry<BlockPos, TickBalanceStorage> entry : slowlyTickTile.entrySet()) {
+                TickBalanceStorage balanceStorage = entry.getValue();
+                //重いものほど分配を減らす(減算)
+                balanceStorage.setStopTickCycle((int)((subtract - balanceStorage.getTime()) / subtract * count));
+                this.TickTimeHash.replace(entry.getKey(), balanceStorage);
             }
         }
+        slowlyTickTile.clear();
 
         this.processingLoadedTiles = false;
         this.profiler.endStartSection("pendingBlockEntities");
@@ -344,12 +361,66 @@ public abstract class MixinWorld implements IBlockAccess {
 
         ci.cancel();
     }
-    //@Shadow @Final public Random rand;
 
-    /*public void getRandomPosInChunk(int x, int y, int z, int mask, BlockPos.MutableBlockPos out) {
-        int randValue = this.rand.nextInt();
-        randValue = randValue * 3 + 1013904223;
-        int rand = randValue >> 2;
-        out.setPos(x + (rand & 15), y + (rand >> 16 & mask), z + (rand >> 8 & 15));
-    }*/
+    /**
+     * @author Aki
+     * @reason Fix TickBalance
+     */
+    @Overwrite
+    public boolean addTileEntity(TileEntity tile)
+    {
+        // Forge - set the world early as vanilla doesn't set it until next tick
+        if (tile.getWorld() != (World)(Object)this) tile.setWorld((World)(Object)this);
+        // Forge: wait to add new TE if we're currently processing existing ones
+        if (processingLoadedTiles) return addedTileEntityList.add(tile);
+
+        boolean flag = this.loadedTileEntityList.add(tile);
+
+        if (flag && tile instanceof ITickable)
+        {
+            this.tickableTileEntities.add(tile);
+            this.TickTimeHash.put(tile.getPos(), new TickBalanceStorage());
+        }
+        tile.onLoad();
+
+        if (this.isRemote)
+        {
+            BlockPos blockpos1 = tile.getPos();
+            IBlockState iblockstate1 = this.getBlockState(blockpos1);
+            this.notifyBlockUpdate(blockpos1, iblockstate1, iblockstate1, 2);
+        }
+
+        return flag;
+    }
+
+    /**
+     * @author Aki
+     * @reason FixTickBalance
+     */
+    @Overwrite
+    public void removeTileEntity(BlockPos pos)
+    {
+        TileEntity tileentity2 = this.getTileEntity(pos);
+
+        if (tileentity2 != null && this.processingLoadedTiles)
+        {
+            tileentity2.invalidate();
+            this.addedTileEntityList.remove(tileentity2);
+            if (!(tileentity2 instanceof ITickable)) //Forge: If they are not tickable they wont be removed in the update loop.
+                this.loadedTileEntityList.remove(tileentity2);
+        }
+        else
+        {
+            if (tileentity2 != null)
+            {
+                this.addedTileEntityList.remove(tileentity2);
+                this.loadedTileEntityList.remove(tileentity2);
+                this.tickableTileEntities.remove(tileentity2);
+                this.TickTimeHash.remove(tileentity2.getPos());
+            }
+
+            this.getChunk(pos).removeTileEntity(pos);
+        }
+        this.updateComparatorOutputLevel(pos, getBlockState(pos).getBlock()); //Notify neighbors of changes
+    }
 }
