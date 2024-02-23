@@ -9,12 +9,11 @@ import org.spongepowered.asm.mixin.Overwrite;
 public class MixinBlockPos extends Vec3i {
     public MixinBlockPos(int p_i46007_1_, int p_i46007_2_, int p_i46007_3_) {
         super(p_i46007_1_, p_i46007_2_, p_i46007_3_);
-        throw new AssertionError();
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos up() {
@@ -22,8 +21,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos up(int distance) {
@@ -31,8 +30,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos down() {
@@ -40,8 +39,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos down(int distance) {
@@ -49,8 +48,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos north() {
@@ -58,8 +57,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos north(int distance) {
@@ -67,8 +66,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos south() {
@@ -76,8 +75,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos south(int distance) {
@@ -85,8 +84,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos west() {
@@ -94,8 +93,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos west(int distance) {
@@ -103,8 +102,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos east() {
@@ -112,8 +111,8 @@ public class MixinBlockPos extends Vec3i {
     }
 
     /**
-     * @author
-     * @reason
+     * @author Aki
+     * @reason change for weight reduction
      */
     @Overwrite
     public BlockPos east(int distance) {

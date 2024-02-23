@@ -23,7 +23,6 @@
     "vanilla.misc.network.packet.MixinNetworkManager",
     "vanilla.misc.network.packet.MixinPacketBuf",
     "vanilla.misc.network.packet.MixinPacketBuffer",
-    "vanilla.misc.network.packet.MixinWorldLeakRelease",
     "vanilla.misc.network.pipeline.MixinNettyVarint21FrameDecoderFix",
     "vanilla.misc.network.process_size.MixinCPacketCustomPayload",
     "vanilla.misc.network.process_size.MixinNBTTagCompound",

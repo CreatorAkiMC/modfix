@@ -1,15 +1,14 @@
 package com.aki.modfix.mixin.vanilla.misc.math;
 
 import net.minecraft.util.math.MathHelper;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 
 @Mixin(MathHelper.class)
 public class MixinFixMathHelper {
     @Shadow @Final private static float[] SIN_TABLE;
+    @Unique
     private static final int[] SINE_TABLE_INT = new int[16384 + 1];
+    @Unique
     private static final float SINE_TABLE_MIDPOINT;
 
     static {
@@ -31,6 +30,7 @@ public class MixinFixMathHelper {
         }
     }
 
+    @Unique
     private static float lookup(int index) {
         // A special case... Is there some way to eliminate this?
         if (index == 32768) {
