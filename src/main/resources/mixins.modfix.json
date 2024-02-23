@@ -13,6 +13,30 @@
 
   ],
   "client": [
+    "vanilla.misc.MixinBlockPos",
+    "vanilla.misc.MixinClearChatShadow",
+    "vanilla.misc.MixinEnumFacing",
+    "vanilla.misc.math.MixinFixMathHelper",
+    "vanilla.misc.nbt.MixinNBTTagCompound",
+    "vanilla.misc.network.packet.MixinEntityTeleportPacket",
+    "vanilla.misc.network.packet.MixinEntityVelocityPacket",
+    "vanilla.misc.network.packet.MixinNetworkManager",
+    "vanilla.misc.network.packet.MixinPacketBuf",
+    "vanilla.misc.network.packet.MixinPacketBuffer",
+    "vanilla.misc.network.packet.MixinWorldLeakRelease",
+    "vanilla.misc.network.pipeline.MixinNettyVarint21FrameDecoderFix",
+    "vanilla.misc.network.process_size.MixinCPacketCustomPayload",
+    "vanilla.misc.network.process_size.MixinNBTTagCompound",
+    "vanilla.misc.network.process_size.MixinNettyCompressionDecoder",
+    "vanilla.misc.network.process_size.MixinPacketBuffer",
+    "vanilla.misc.network.process_size.MixinSPacketCustomPayload",
+    "vanilla.misc.network.security.MixinClientConnection",
+    "vanilla.misc.network.security.MixinServerLoginHandler",
+    "vanilla.misc.rand.MixinMinecraftServer",
+    "vanilla.misc.rand.MixinRandomFix",
+    "vanilla.misc.rand.MixinWorld",
+    "vanilla.misc.rand.MixinWorldServer",
+    "vanilla.misc.stack.MixinItemStack",
     "vanilla.rendering.MixinBlock",
     "vanilla.rendering.MixinDynamicLight",
     "vanilla.rendering.MixinEntityRenderer",
@@ -22,7 +46,8 @@
     "vanilla.rendering.fast.MixinVertexBuffer",
     "vanilla.rendering.vertex.MixinBufferBuilder_FA",
     "vanilla.rendering.vertex.MixinVertexFormat",
-    "vanilla.rendering.vertex.MixinVertexFormatElement"
+    "vanilla.rendering.vertex.MixinVertexFormatElement",
+    "vanilla.tick.MixinWorld"
   ],
   "injectors": {
     "defaultRequire": 1

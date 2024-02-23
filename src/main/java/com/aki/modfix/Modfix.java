@@ -1,6 +1,8 @@
 package com.aki.modfix;
 
+import com.aki.modfix.util.fix.GameSettingsExtended;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.util.text.Style;
@@ -80,7 +82,7 @@ public class Modfix {
     public void PlayerLogin(EntityJoinWorldEvent event) {
         if (event.getEntity() instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer) event.getEntity();
-            player.sendMessage(new TextComponentString(player.getDisplayName().getUnformattedText() + " chose the key pattern number 1").setStyle(new Style().setItalic(true).setColor(TextFormatting.AQUA)));
+            player.sendMessage(new TextComponentString(player.getDisplayName().getUnformattedText() + " chose the key pattern number " + ((GameSettingsExtended) Minecraft.getMinecraft().gameSettings).getPatternID()).setStyle(new Style().setItalic(true).setColor(TextFormatting.AQUA)));
         }
     }
 
