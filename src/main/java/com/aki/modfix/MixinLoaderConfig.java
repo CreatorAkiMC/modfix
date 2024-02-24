@@ -24,6 +24,8 @@ public class MixinLoaderConfig implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        System.out.println("S-ModFix TargetClass: " + targetClassName);
+        System.out.println("------ MixinClassName: " + mixinClassName);
         return true;//SettingMixins.getOrDefault(mixinClassName, true);
     }
 
@@ -39,11 +41,13 @@ public class MixinLoaderConfig implements IMixinConfigPlugin {
 
     @Override
     public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-
+        System.out.println("Pre-ModFix TargetClass: " + targetClassName);
+        System.out.println("------ MixinClassName: " + mixinClassName);
     }
 
     @Override
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-
+        System.out.println("Post-ModFix TargetClass: " + targetClassName);
+        System.out.println("------ MixinClassName: " + mixinClassName);
     }
 }
