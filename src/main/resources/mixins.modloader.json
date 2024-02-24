@@ -12,12 +12,7 @@
     "vanilla.keybind.MixinGuiNewChat",
     "vanilla.keybind.MixinGuiOptions",
     "vanilla.keybind.MixinKeyBinding",
-    "vanilla.keybind.MixinKeyBindingGameSettings",
-    "vanilla.misc.network.process_size.MixinCPacketCustomPayload",
-    "vanilla.misc.network.process_size.MixinNBTTagCompound",
-    "vanilla.misc.network.process_size.MixinNettyCompressionDecoder",
-    "vanilla.misc.network.process_size.MixinPacketBuffer",
-    "vanilla.misc.network.process_size.MixinSPacketCustomPayload"
+    "vanilla.keybind.MixinKeyBindingGameSettings"
   ],
   "server": [
 
