@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.function.IntFunction;
 
 public class RTList<T> {
-    private int Index = 0;
+    private int Index;
 
-    private List<T> Obj = new ArrayList<>();
+    private final List<T> Obj = new ArrayList<>();
 
-    private T Select = null;
+    private T Select;
 
     public RTList(int size, int SelectOffset, IntFunction<T> consumer) {
         this.Index = SelectOffset;
-        for(int i = 0; i < size; i++)
+        for (int i = 0; i < size; i++)
             Obj.add(i, consumer.apply(i));
         this.Select = this.Obj.get(this.Index);
     }

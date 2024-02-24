@@ -21,7 +21,7 @@ public class ContainerLocalRenderInformation {
     }
 
     public void setDirection(byte p_189561_1_, EnumFacing p_189561_2_) {
-        this.setFacing = (byte)(this.setFacing | p_189561_1_ | 1 << p_189561_2_.ordinal());
+        this.setFacing = (byte) (this.setFacing | p_189561_1_ | 1 << p_189561_2_.ordinal());
     }
 
     public boolean hasDirection(EnumFacing p_189560_1_) {

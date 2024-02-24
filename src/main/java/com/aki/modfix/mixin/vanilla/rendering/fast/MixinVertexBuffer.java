@@ -21,9 +21,11 @@ public class MixinVertexBuffer {
     @Final
     private VertexFormat vertexFormat;
 
-    @Shadow private int count;
+    @Shadow
+    private int count;
 
-    @Shadow private int glBufferId;
+    @Shadow
+    private int glBufferId;
 
     /*@Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;glGenBuffers()I"), remap = false)
     public int allocateOptimizableBuffer() {

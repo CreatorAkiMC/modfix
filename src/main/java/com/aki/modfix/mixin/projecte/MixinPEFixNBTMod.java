@@ -22,15 +22,22 @@ import java.util.Locale;
 public abstract class MixinPEFixNBTMod {
 
 
-    @Shadow @Final public EntityPlayer player;
+    @Shadow
+    @Final
+    public EntityPlayer player;
 
-    @Shadow @Final public IKnowledgeProvider provider;
+    @Shadow
+    @Final
+    public IKnowledgeProvider provider;
 
-    @Shadow public int learnFlag;
+    @Shadow
+    public int learnFlag;
 
-    @Shadow public int unlearnFlag;
+    @Shadow
+    public int unlearnFlag;
 
-    @Shadow public abstract void updateClientTargets();
+    @Shadow
+    public abstract void updateClientTargets();
 
     /**
      * @author Aki
@@ -50,14 +57,14 @@ public abstract class MixinPEFixNBTMod {
             if (stack.hasTagCompound() && !NBTWhitelist.shouldDupeWithNBT(stack)) {
                 NBTTagCompound tagCompound = new NBTTagCompound();
                 stack.writeToNBT(tagCompound);
-                if(tagCompound.hasKey("Type") && tagCompound.getTag("Type") instanceof NBTTagString && stack.getItem().getRegistryName().getNamespace().toLowerCase(Locale.ROOT).equals("extrautils2")) {
+                if (tagCompound.hasKey("Type") && tagCompound.getTag("Type") instanceof NBTTagString && stack.getItem().getRegistryName().getNamespace().toLowerCase(Locale.ROOT).equals("extrautils2")) {
                     NBTTagString type = (NBTTagString) tagCompound.getTag("Type");
                     tagCompound = new NBTTagCompound();
 
                     tagCompound.setTag("Type", type);
 
                     stack.setTagCompound(tagCompound);
-                } else stack.setTagCompound((NBTTagCompound)null);
+                } else stack.setTagCompound(null);
             }
 
             if (!MinecraftForge.EVENT_BUS.post(new PlayerAttemptLearnEvent(this.player, stack))) {
@@ -67,7 +74,7 @@ public abstract class MixinPEFixNBTMod {
             }
 
             if (!this.player.world.isRemote) {
-                this.provider.sync((EntityPlayerMP)this.player);
+                this.provider.sync((EntityPlayerMP) this.player);
             }
         }
 
@@ -94,19 +101,19 @@ public abstract class MixinPEFixNBTMod {
             if (stack.hasTagCompound() && !NBTWhitelist.shouldDupeWithNBT(stack)) {
                 NBTTagCompound tagCompound = new NBTTagCompound();
                 stack.writeToNBT(tagCompound);
-                if(tagCompound.hasKey("Type") && tagCompound.getTag("Type") instanceof NBTTagString && stack.getItem().getRegistryName().getNamespace().toLowerCase(Locale.ROOT).equals("extrautils2")) {
+                if (tagCompound.hasKey("Type") && tagCompound.getTag("Type") instanceof NBTTagString && stack.getItem().getRegistryName().getNamespace().toLowerCase(Locale.ROOT).equals("extrautils2")) {
                     NBTTagString type = (NBTTagString) tagCompound.getTag("Type");
                     tagCompound = new NBTTagCompound();
 
                     tagCompound.setTag("Type", type);
 
                     stack.setTagCompound(tagCompound);
-                } else stack.setTagCompound((NBTTagCompound)null);
+                } else stack.setTagCompound(null);
             }
 
             this.provider.removeKnowledge(stack);
             if (!this.player.world.isRemote) {
-                this.provider.sync((EntityPlayerMP)this.player);
+                this.provider.sync((EntityPlayerMP) this.player);
             }
         }
 

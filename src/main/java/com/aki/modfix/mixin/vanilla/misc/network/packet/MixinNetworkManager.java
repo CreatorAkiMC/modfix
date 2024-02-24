@@ -23,61 +23,52 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Mixin(NetworkManager.class)
 public abstract class MixinNetworkManager {
 
-    @Shadow private Channel channel;
+    @Shadow
+    private Channel channel;
 
-    @Shadow @Final private ReentrantReadWriteLock readWriteLock;
+    @Shadow
+    @Final
+    private ReentrantReadWriteLock readWriteLock;
 
-    @Shadow protected abstract void dispatchPacket(Packet<?> inPacket, @Nullable GenericFutureListener<? extends Future<? super Void>>[] futureListeners);
+    @Shadow
+    protected abstract void dispatchPacket(Packet<?> inPacket, @Nullable GenericFutureListener<? extends Future<? super Void>>[] futureListeners);
 
-    @Shadow public abstract boolean isChannelOpen();
+    @Shadow
+    public abstract boolean isChannelOpen();
 
     private final Queue<InboundHandlerTuplePacketListener> outboundPacketsQueue1 = Queues.newConcurrentLinkedQueue();
 
     /**
-    * @author Aki
-    * @reason Replace
-    */
+     * @author Aki
+     * @reason Replace
+     */
     @Overwrite
-    public void sendPacket(Packet<?> packetIn)
-    {
-        if (this.isChannelOpen())
-        {
+    public void sendPacket(Packet<?> packetIn) {
+        if (this.isChannelOpen()) {
             this.flushOutboundQueue();
-            this.dispatchPacket(packetIn, (GenericFutureListener[])null);
-        }
-        else
-        {
+            this.dispatchPacket(packetIn, null);
+        } else {
             this.readWriteLock.writeLock().lock();
 
-            try
-            {
-                this.outboundPacketsQueue1.add(new InboundHandlerTuplePacketListener(packetIn, new GenericFutureListener[0]));
-            }
-            finally
-            {
+            try {
+                this.outboundPacketsQueue1.add(new InboundHandlerTuplePacketListener(packetIn));
+            } finally {
                 this.readWriteLock.writeLock().unlock();
             }
         }
     }
 
     @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;Lio/netty/util/concurrent/GenericFutureListener;[Lio/netty/util/concurrent/GenericFutureListener;)V", at = @At("HEAD"), cancellable = true)
-    public void sendPacket(Packet<?> packetIn, GenericFutureListener<? extends Future<? super Void>> listener, GenericFutureListener<? extends Future<? super Void>>[] listeners, CallbackInfo ci)
-    {
-        if (this.isChannelOpen())
-        {
+    public void sendPacket(Packet<?> packetIn, GenericFutureListener<? extends Future<? super Void>> listener, GenericFutureListener<? extends Future<? super Void>>[] listeners, CallbackInfo ci) {
+        if (this.isChannelOpen()) {
             this.flushOutboundQueue();
-            this.dispatchPacket(packetIn, (GenericFutureListener[]) ArrayUtils.add(listeners, 0, listener));
-        }
-        else
-        {
+            this.dispatchPacket(packetIn, ArrayUtils.add(listeners, 0, listener));
+        } else {
             this.readWriteLock.writeLock().lock();
 
-            try
-            {
-                this.outboundPacketsQueue1.add(new InboundHandlerTuplePacketListener(packetIn, (GenericFutureListener[])ArrayUtils.add(listeners, 0, listener)));
-            }
-            finally
-            {
+            try {
+                this.outboundPacketsQueue1.add(new InboundHandlerTuplePacketListener(packetIn, ArrayUtils.add(listeners, 0, listener)));
+            } finally {
                 this.readWriteLock.writeLock().unlock();
             }
         }
@@ -89,22 +80,16 @@ public abstract class MixinNetworkManager {
      * @reason Replace Method and Clean Cache
      */
     @Overwrite
-    private void flushOutboundQueue()
-    {
-        if (this.channel != null && this.channel.isOpen())
-        {
+    private void flushOutboundQueue() {
+        if (this.channel != null && this.channel.isOpen()) {
             this.readWriteLock.readLock().lock();
 
-            try
-            {
-                while (!this.outboundPacketsQueue1.isEmpty())
-                {
+            try {
+                while (!this.outboundPacketsQueue1.isEmpty()) {
                     InboundHandlerTuplePacketListener networkmanager$inboundhandlertuplepacketlistener = this.outboundPacketsQueue1.poll();
                     this.dispatchPacket(networkmanager$inboundhandlertuplepacketlistener.packet, networkmanager$inboundhandlertuplepacketlistener.futureListeners);
                 }
-            }
-            finally
-            {
+            } finally {
                 //RenderCacheManager.BUFFERS_CLEAR.removeIf(this::IsRelease);//.clear();
                 this.readWriteLock.readLock().unlock();
             }
@@ -113,7 +98,7 @@ public abstract class MixinNetworkManager {
 
     @Unique
     public boolean IsRelease(PacketBuffer buf) {
-        if(buf instanceof PacketBufExtends && !(((PacketBufExtends)buf).getParent() instanceof AbstractReferenceCountedByteBuf))
+        if (buf instanceof PacketBufExtends && !(((PacketBufExtends) buf).getParent() instanceof AbstractReferenceCountedByteBuf))
             return buf.refCnt() == 0 && buf.release();
         return true;
     }

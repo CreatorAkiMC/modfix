@@ -53,18 +53,18 @@ public class ChunkRenderManager {
 
     /**
      * Config で変えれるようにしてもいいかも
-     * */
+     */
     private static ChunkRendererBase<ChunkRender> getGLChunkRenderer() {
-        if(GLOptifine.OPTIFINE_INSIDE)
+        if (GLOptifine.OPTIFINE_INSIDE)
             return GLOptifine.createChunkRenderer(ChunkRender);
         ContextCapabilities context = GLUtils.CAPS;
-        if(context.OpenGL43) {
+        if (context.OpenGL43) {
             return new ChunkRendererGL43();
-        } else if(context.OpenGL42) {
+        } else if (context.OpenGL42) {
             return new ChunkRendererGL42();
-        } else if(context.OpenGL20) {
+        } else if (context.OpenGL20) {
             return new ChunkRendererGL20();
-        } else if(context.OpenGL15) {
+        } else if (context.OpenGL15) {
             return new ChunkRendererGL15();
         }
         throw new UnsupportedOperationException("Your PC Don`t Supported OpenGL");
@@ -72,13 +72,13 @@ public class ChunkRenderManager {
 
     public static RenderEngineType getBestRenderEngineType() {
         ContextCapabilities context = GLUtils.CAPS;
-        if(context.OpenGL43) {
+        if (context.OpenGL43) {
             return RenderEngineType.GL43;
-        } else if(context.OpenGL42) {
+        } else if (context.OpenGL42) {
             return RenderEngineType.GL42;
-        } else if(context.OpenGL20) {
+        } else if (context.OpenGL20) {
             return RenderEngineType.GL20;
-        } else if(context.OpenGL15) {
+        } else if (context.OpenGL15) {
             return RenderEngineType.GL15;
         }
 
@@ -86,16 +86,16 @@ public class ChunkRenderManager {
     }
 
     public static void Render(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn) {
-        if(ChunkRender != null)
+        if (ChunkRender != null)
             ChunkRender.Render(ChunkRenderPass.ConvVanillaRenderPass(blockLayerIn));
     }
 
     public static void dispose() {
-        if(renderProvider != null)
+        if (renderProvider != null)
             renderProvider.Delete();
-        if(ChunkRender != null)
+        if (ChunkRender != null)
             ChunkRender.deleteDatas();
-        if(RenderDispatcher != null)
+        if (RenderDispatcher != null)
             RenderDispatcher.Remove_ShutDown();
 
         ChunkRender = null;

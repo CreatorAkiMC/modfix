@@ -17,7 +17,9 @@ public class MixinClientChunkProvider {
         ChunkRenderManager.LoadChunk(chunkX, chunkZ);
     }
 
-    /** {@link ChunkProviderClient#unloadChunk(int, int)} */
+    /**
+     * {@link ChunkProviderClient#unloadChunk(int, int)}
+     */
     @Inject(method = "unloadChunk", at = @At("RETURN"))
     public void unloadChunk(int chunkX, int chunkZ, CallbackInfo info) {
         ChunkRenderManager.UnLoadChunk(chunkX, chunkZ);

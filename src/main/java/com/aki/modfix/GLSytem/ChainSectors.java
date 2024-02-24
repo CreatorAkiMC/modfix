@@ -50,18 +50,18 @@ public class ChainSectors {
     }
 
     private synchronized ChainSectors CallAndCreate(int ID) {
-        if(ID < 0)
+        if (ID < 0)
             throw new IllegalArgumentException("ChainSectors Under 0 Error, ID: " + ID);
-        if(this.ID_Index == ID)
+        if (this.ID_Index == ID)
             return this;
 
-        if(ID > this.ID_Index) {//next
-            if(this.NextChain == null)
+        if (ID > this.ID_Index) {//next
+            if (this.NextChain == null)
                 this.NextChain = new ChainSectors(this.VBOUpdate, this, null, this.BufferOffset + this.FromOffset, ID_Index + 1);
             this.NextChainCounts = Math.max((ID - this.ID_Index), this.NextChainCounts);
             return this.NextChain.CallAndCreate(ID);
         } else {//Prev
-            if(this.PrevChain == null)
+            if (this.PrevChain == null)
                 this.PrevChain = new ChainSectors(this.VBOUpdate, null, this, 0, ID_Index - 1);
             this.PrevChainCounts = Math.max((this.ID_Index - ID), this.PrevChainCounts);
             return this.PrevChain.CallAndCreate(ID);
@@ -69,37 +69,36 @@ public class ChainSectors {
     }
 
     private int GetToIDBufferSize(int TargetIndex) {
-        if(TargetIndex < 0)
+        if (TargetIndex < 0)
             throw new IllegalArgumentException("ChainSectors Under 0 Error, ID: " + TargetIndex);
 
         int Sizes = this.buffer != null ? this.buffer.limit() : 0;
 
-        if(this.ID_Index == TargetIndex)
+        if (this.ID_Index == TargetIndex)
             return Sizes;
 
 
-
-        if(TargetIndex > this.ID_Index) {//next
-            if(this.NextChain != null) {
+        if (TargetIndex > this.ID_Index) {//next
+            if (this.NextChain != null) {
                 return Sizes + this.CallAndCreate(this.ID_Index + 1).GetToIDBufferSize(TargetIndex);
             } else return Sizes;
         } else {//Prev
-            if(this.PrevChain != null) {
+            if (this.PrevChain != null) {
                 return Sizes + this.CallAndCreate(this.ID_Index - 1).GetToIDBufferSize(TargetIndex);
             } else return Sizes;
         }
     }
 
     public ChainSectors getChainSector(int RequireSectorIndex) {
-        if(RequireSectorIndex == this.ID_Index && !this.IsUsed)
+        if (RequireSectorIndex == this.ID_Index && !this.IsUsed)
             return this;
         ChainSectors chainSectors = null;
         boolean MinusError = false;
         while (chainSectors == null || chainSectors.IsUsed) {
             int Index = (chainSectors == null) ? RequireSectorIndex : (this.getIndex() < RequireSectorIndex ? chainSectors.ID_Index + 1 : chainSectors.ID_Index - 1);
-            if(Index < 0)
+            if (Index < 0)
                 MinusError = true;
-            if(chainSectors != null && MinusError)
+            if (chainSectors != null && MinusError)
                 Index = chainSectors.ID_Index + 1;
             chainSectors = CallAndCreate(Index);
         }
@@ -108,27 +107,27 @@ public class ChainSectors {
     }
 
     public void ExecuteToIndexChainSector(Consumer<ChainSectors> consumer, int TargetIndex) {
-        if(TargetIndex < 0)
+        if (TargetIndex < 0)
             throw new IllegalArgumentException("ChainSectors Under 0 Error, ID: " + TargetIndex);
-        if(this.ID_Index == TargetIndex) {
+        if (this.ID_Index == TargetIndex) {
             consumer.accept(this);
             return;
         }
-        if(TargetIndex > this.ID_Index) {
+        if (TargetIndex > this.ID_Index) {
             ChainSectors NextSector = this.CallAndCreate(this.ID_Index + 1);
             consumer.accept(NextSector);
-            if(TargetIndex != (this.ID_Index + 1))
+            if (TargetIndex != (this.ID_Index + 1))
                 NextSector.ExecuteToIndexChainSector(consumer, TargetIndex);
         } else {
             ChainSectors PrevSector = this.CallAndCreate(this.ID_Index - 1);
             consumer.accept(PrevSector);
-            if(TargetIndex != (this.ID_Index - 1))
+            if (TargetIndex != (this.ID_Index - 1))
                 PrevSector.ExecuteToIndexChainSector(consumer, TargetIndex);
         }
     }
 
     public ChainSectors getChainSector() {
-        if(!this.IsUsed)
+        if (!this.IsUsed)
             return this;
         ChainSectors chainSectors = null;
         while (chainSectors == null || chainSectors.IsUsed) {
@@ -138,7 +137,7 @@ public class ChainSectors {
     }
 
     public ChainSectors getChainSectorFromIndex(int RequireSectorIndex) {
-        if(RequireSectorIndex == this.ID_Index)
+        if (RequireSectorIndex == this.ID_Index)
             return this;
         return CallAndCreate(RequireSectorIndex);
     }
@@ -156,14 +155,14 @@ public class ChainSectors {
         this.FromOffset += UpdateOffset;
 
         int NewVBO = VBOID;
-        if(UpdateOffset != 0)
+        if (UpdateOffset != 0)
             this.VBOUpdate.accept((NewVBO = GLHelper.CopyMoveBuffer(VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize + UpdateOffset)));
-        if(this.NextChainCounts > 0) {
+        if (this.NextChainCounts > 0) {
             int finalNewVBO = NewVBO;
             this.ExecuteToIndexChainSector(chainSectors -> {
                 chainSectors.BufferOffset += UpdateOffset;
                 chainSectors.BufferFirst = chainSectors.BufferOffset;
-                if(chainSectors.isUsed()) {
+                if (chainSectors.isUsed()) {
                     chainSectors.UpdateBuffers(finalNewVBO);
                 }
             }, this.ID_Index + this.NextChainCounts);
@@ -177,7 +176,7 @@ public class ChainSectors {
     public void Free(int VBOID) {
         this.setUsed(false);
         boolean OldAtBuffer = this.buffer != null;//Bufferが元から存在したか。
-        if(OldAtBuffer) {
+        if (OldAtBuffer) {
             int NextByteSize = this.GetToIDBufferSize(this.ID_Index + this.NextChainCounts) - (this.buffer.limit());
             int PrevByteSize = this.GetToIDBufferSize(0);//自分自身を含めた
             if (this.NextChainCounts > 0)
@@ -219,7 +218,10 @@ public class ChainSectors {
     }
 
     //(ID_Index)(Prev) * 4096(16^3)
-    /**0 ~ Index * 4096 */
+
+    /**
+     * 0 ~ Index * 4096
+     */
     public int GetVertexCount() {
         return this.buffer != null ? (this.buffer.limit() / DefaultVertexFormats.BLOCK.getSize()) : 0;//this.getIndex() * 4096;
     }
@@ -230,7 +232,7 @@ public class ChainSectors {
 
     /**
      * IsUsed = false の時は Return 0
-     * */
+     */
     public int GetRenderFirst() {
         return this.BufferFirst;//this.GetPMBlocks() * DefaultVertexFormats.BLOCK.getSize();
     }

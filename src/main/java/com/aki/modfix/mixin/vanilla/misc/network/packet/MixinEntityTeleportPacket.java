@@ -10,11 +10,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(SPacketEntityTeleport.class)
 public class MixinEntityTeleportPacket {
-    @Shadow private double posX;
+    @Shadow
+    private double posX;
 
-    @Shadow private double posY;
+    @Shadow
+    private double posY;
 
-    @Shadow private double posZ;
+    @Shadow
+    private double posZ;
 
     @Inject(method = "<init>(Lnet/minecraft/entity/Entity;)V", at = @At("RETURN"))
     public void FixPosInit(Entity p_i46893_1_, CallbackInfo ci) {

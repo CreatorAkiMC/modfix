@@ -15,17 +15,19 @@ import java.nio.charset.StandardCharsets;
 
 @Mixin(PacketBuffer.class)
 public abstract class MixinPacketBuffer extends ByteBuf {
-    @Shadow @Final private ByteBuf buf;
+    @Shadow
+    @Final
+    private ByteBuf buf;
 
-    @Shadow public abstract int writeCharSequence(CharSequence p_writeCharSequence_1_, Charset p_writeCharSequence_2_);
+    @Shadow
+    public abstract int writeCharSequence(CharSequence p_writeCharSequence_1_, Charset p_writeCharSequence_2_);
 
     /**
      * @author Aki
      * @reason Replace getVarIntSize
      */
     @Overwrite
-    public static int getVarIntSize(int input)
-    {
+    public static int getVarIntSize(int input) {
         return VarIntUtil.getVarIntLength(input);
     }
 
@@ -34,17 +36,13 @@ public abstract class MixinPacketBuffer extends ByteBuf {
      * @reason Replace WriteString
      */
     @Overwrite
-    public PacketBuffer writeString(String string)
-    {
+    public PacketBuffer writeString(String string) {
         //byte[] abyte = string.getBytes(StandardCharsets.UTF_8);
         int utf8bytes = NetworkUtils.utf8Bytes(string);
 
-        if (utf8bytes > 32767)
-        {
+        if (utf8bytes > 32767) {
             throw new EncoderException("String too big (was " + utf8bytes + " bytes encoded, max " + 32767 + ")");
-        }
-        else
-        {
+        } else {
             this.writeVarInt(utf8bytes);
             this.writeCharSequence(string, StandardCharsets.UTF_8);
             return new PacketBuffer(this.buf);

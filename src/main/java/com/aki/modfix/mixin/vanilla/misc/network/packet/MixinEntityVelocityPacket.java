@@ -10,20 +10,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(SPacketEntityVelocity.class)
 public class MixinEntityVelocityPacket {
-    @Shadow private int entityID;
+    @Shadow
+    private int entityID;
 
-    @Shadow private int motionX;
+    @Shadow
+    private int motionX;
 
-    @Shadow private int motionY;
+    @Shadow
+    private int motionY;
 
-    @Shadow private int motionZ;
+    @Shadow
+    private int motionZ;
 
     @Inject(method = "<init>(IDDD)V", at = @At("RETURN"))
     public void InitFix(int id, double mx, double my, double mz, CallbackInfo ci) {
         this.entityID = id;
-        this.motionX = (int)(mx * 8000.0D);
-        this.motionY = (int)(my * 8000.0D);
-        this.motionZ = (int)(mz * 8000.0D);
+        this.motionX = (int) (mx * 8000.0D);
+        this.motionY = (int) (my * 8000.0D);
+        this.motionZ = (int) (mz * 8000.0D);
     }
 
     @Inject(method = "writePacketData", at = @At("HEAD"), cancellable = true)

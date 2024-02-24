@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class GameLightCalculatingThread extends Thread {
     private double sleepOverhead = 0.0D;
     private HashMap<BlockPos, LightingData> LightBlockPosMap = new HashMap<>();
-    private HashMap<BlockPos, LightingData> AddBlockPosMap = new HashMap<>();
+    private final HashMap<BlockPos, LightingData> AddBlockPosMap = new HashMap<>();
 
     public GameLightCalculatingThread() {
         super();
@@ -49,7 +49,7 @@ public class GameLightCalculatingThread extends Thread {
                 int RenderDist = mc.gameSettings.renderDistanceChunks * 16 + 16;
                 EntityPlayer player = mc.player;
                 World world = mc.world;
-                if(player != null && world != null && GLOptifine.IS_DYNAMIC_LIGHTS.invoke(null)) {
+                if (player != null && world != null && GLOptifine.IS_DYNAMIC_LIGHTS.invoke(null)) {
                     List<Entity> CheckEntities = world.loadedEntityList;
                     //BlockPosLight Selection
                     List<BlockPos> ChangePos = new ArrayList<>();
@@ -58,14 +58,14 @@ public class GameLightCalculatingThread extends Thread {
                                 BlockPos pos = entry.getKey();
                                 LightingData data = entry.getValue();
                                 LightingData AddData = AddBlockPosMap.get(pos);
-                                if(AddData != null) {
-                                    if(AddData != data) {
+                                if (AddData != null) {
+                                    if (AddData != data) {
                                         ChangePos.add(pos);
                                         entry.setValue(AddData);
                                         return entry;
                                     }
                                 } else {
-                                    if(data.getLightLevel() != 0) {
+                                    if (data.getLightLevel() != 0) {
                                         ChangePos.add(pos);
                                         entry.setValue(new LightingData(data.getLightSourcePos(), 0));
                                         return entry;
@@ -84,41 +84,41 @@ public class GameLightCalculatingThread extends Thread {
                         ChangePos.clear();
                     });
 
-                    for(Entity entity : CheckEntities) {
+                    for (Entity entity : CheckEntities) {
                         double dist = Math.sqrt(Math.pow(entity.posX - player.posX, 2.0) + Math.pow(entity.posY - player.posY, 2.0) + Math.pow(entity.posZ - player.posZ, 2.0));
-                        if(dist > RenderDist)
+                        if (dist > RenderDist)
                             continue;
-                        if(entity.isBurning()) {
+                        if (entity.isBurning()) {
                             PutUpdateLightData(entity.getPosition(), 15.0, world);
                         } else {
-                            if(entity instanceof EntityPlayer && ((EntityPlayer) entity).isSpectator()) {
+                            if (entity instanceof EntityPlayer && ((EntityPlayer) entity).isSpectator()) {
                                 continue;
-                            } else if(entity instanceof EntityBlaze && ((EntityBlaze)entity).isCharged()) {
+                            } else if (entity instanceof EntityBlaze && ((EntityBlaze) entity).isCharged()) {
                                 PutUpdateLightData(entity.getPosition(), 15.0, world);
-                            } else if(entity instanceof EntityFireball || entity instanceof EntityTNTPrimed) {
+                            } else if (entity instanceof EntityFireball || entity instanceof EntityTNTPrimed) {
                                 PutUpdateLightData(entity.getPosition(), 15.0, world);
-                            } else if(entity instanceof EntityMagmaCube) {
-                                PutUpdateLightData(entity.getPosition(), ((EntityMagmaCube)entity).squishFactor > 0.6 ? 13.0 : 8.0, world);
+                            } else if (entity instanceof EntityMagmaCube) {
+                                PutUpdateLightData(entity.getPosition(), ((EntityMagmaCube) entity).squishFactor > 0.6 ? 13.0 : 8.0, world);
                             } else {
-                                if(entity instanceof EntityCreeper) {
-                                    if(((EntityCreeper)entity).getCreeperFlashIntensity(0.0F) > 0.0001) {
+                                if (entity instanceof EntityCreeper) {
+                                    if (((EntityCreeper) entity).getCreeperFlashIntensity(0.0F) > 0.0001) {
                                         PutUpdateLightData(entity.getPosition(), 15.0, world);
                                     }
                                 }
-                                if(entity instanceof EntityLivingBase) {
+                                if (entity instanceof EntityLivingBase) {
                                     EntityLivingBase livingBase = (EntityLivingBase) entity;
                                     double LightValue = 0.0d;
-                                    for(EntityEquipmentSlot equipmentSlot : EntityEquipmentSlot.values()) {
+                                    for (EntityEquipmentSlot equipmentSlot : EntityEquipmentSlot.values()) {
                                         ItemStack EquipmentStack = livingBase.getItemStackFromSlot(equipmentSlot);
                                         LightValue = Math.max(LightValue, this.GetItemStackLight(EquipmentStack));
                                     }
-                                    if(LightValue > 0.0d) {
+                                    if (LightValue > 0.0d) {
                                         PutUpdateLightData(entity.getPosition(), LightValue, world);
                                     }
                                 } else if (entity instanceof EntityItem) {
-                                    ItemStack stack = ((EntityItem)entity).getItem().copy();
+                                    ItemStack stack = ((EntityItem) entity).getItem().copy();
                                     double LightLevel = this.GetItemStackLight(stack);
-                                    if(LightLevel > 0.0d)
+                                    if (LightLevel > 0.0d)
                                         PutUpdateLightData(entity.getPosition(), LightLevel, world);
                                 }
                             }
@@ -143,22 +143,22 @@ public class GameLightCalculatingThread extends Thread {
     }
 
     private double GetItemStackLight(ItemStack stack) {
-        if(stack != null) {
+        if (stack != null) {
             Item item = stack.getItem();
-            if(item instanceof ItemBlock) {
+            if (item instanceof ItemBlock) {
                 ItemBlock itemBlock = (ItemBlock) item;
                 Block block = itemBlock.getBlock();
-                if(block != null) {
+                if (block != null) {
                     return block.getLightValue(block.getDefaultState());
                 }
             }
 
-            if(item == Items.LAVA_BUCKET) {
+            if (item == Items.LAVA_BUCKET) {
                 return Blocks.LAVA.getLightValue(Blocks.LAVA.getDefaultState());
-            } else if(item != Items.BLAZE_ROD && item != Items.BLAZE_POWDER) {
-                if(item == Items.GLOWSTONE_DUST || item == Items.PRISMARINE_CRYSTALS || item == Items.MAGMA_CREAM) {
+            } else if (item != Items.BLAZE_ROD && item != Items.BLAZE_POWDER) {
+                if (item == Items.GLOWSTONE_DUST || item == Items.PRISMARINE_CRYSTALS || item == Items.MAGMA_CREAM) {
                     return 8.0;
-                } else if(item == Items.NETHER_STAR) {
+                } else if (item == Items.NETHER_STAR) {
                     return Blocks.BEACON.getLightValue(Blocks.BEACON.getDefaultState()) / 2.0;
                 } else {
                     return 0.0D;
@@ -184,7 +184,7 @@ public class GameLightCalculatingThread extends Thread {
                 BlockPos NextPos = blockPos.add(facing.getDirectionVec());
                 LightingData NextData = this.AddBlockPosMap.get(NextPos);
                 LightingData NextDataLight = data.addLightLevel(-1.0);
-                if((NextData == null || NextData.getLightLevel() < NextDataLight.getLightLevel()) && NextDataLight.getLightLevel() > 0.0 && IsLightTransport(NextPos, world)) {
+                if ((NextData == null || NextData.getLightLevel() < NextDataLight.getLightLevel()) && NextDataLight.getLightLevel() > 0.0 && IsLightTransport(NextPos, world)) {
                     this.AddBlockPosMap.put(NextPos, NextDataLight);
                     UpdateQueue.add(new Pair<>(NextPos, NextDataLight));
                 }

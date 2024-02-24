@@ -19,7 +19,9 @@ import java.util.Random;
 @Mixin(World.class)
 public class MixinWorld {
     @Mutable
-    @Shadow @Final public Random rand;
+    @Shadow
+    @Final
+    public Random rand;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void ChangeRandom(ISaveHandler p_i45749_1_, WorldInfo p_i45749_2_, WorldProvider p_i45749_3_, Profiler p_i45749_4_, boolean p_i45749_5_, CallbackInfo ci) {

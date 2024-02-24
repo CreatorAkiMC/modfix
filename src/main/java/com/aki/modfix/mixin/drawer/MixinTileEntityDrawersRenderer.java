@@ -13,13 +13,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(TileEntityDrawersRenderer.class)
 public class MixinTileEntityDrawersRenderer {
     @Inject(method = "render", at = @At(value = "HEAD"), cancellable = true, remap = false)
-    public void render(TileEntityDrawers tile, double x, double y, double z, float partialTickTime, int destroyStage, float par7, CallbackInfo ci)
-    {
+    public void render(TileEntityDrawers tile, double x, double y, double z, float partialTickTime, int destroyStage, float par7, CallbackInfo ci) {
         EntityPlayer player = Minecraft.getMinecraft().player;
         BlockPos blockPos = tile.getPos();
 
-        if (player != null && player.getPosition().distanceSq(blockPos) > 15 * 15)
-        {
+        if (player != null && player.getPosition().distanceSq(blockPos) > 15 * 15) {
             ci.cancel();
         }
     }

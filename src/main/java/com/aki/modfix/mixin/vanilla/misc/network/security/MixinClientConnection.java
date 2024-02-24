@@ -15,9 +15,11 @@ import java.security.GeneralSecurityException;
 @Mixin(NetworkManager.class)
 public class MixinClientConnection implements IClientConnectionEncryptionExtension {
 
-    @Shadow private Channel channel;
+    @Shadow
+    private Channel channel;
 
-    @Shadow private boolean isEncrypted;
+    @Shadow
+    private boolean isEncrypted;
 
     @Override
     public void setupEncryption(SecretKey key) throws GeneralSecurityException {

@@ -10,7 +10,9 @@ import org.spongepowered.asm.mixin.Shadow;
 @Mixin(PacketBuffer.class)
 public class MixinPacketBuf implements PacketBufExtends {
 
-    @Shadow @Final private ByteBuf buf;
+    @Shadow
+    @Final
+    private ByteBuf buf;
 
     @Override
     public ByteBuf getParent() {

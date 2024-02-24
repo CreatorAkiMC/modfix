@@ -16,12 +16,15 @@ import java.security.GeneralSecurityException;
 
 @Mixin(NetHandlerLoginServer.class)
 public class MixinServerLoginHandler {
-    @Shadow @Final public NetworkManager networkManager;
+    @Shadow
+    @Final
+    public NetworkManager networkManager;
 
-    @Shadow private SecretKey secretKey;
+    @Shadow
+    private SecretKey secretKey;
 
     @Inject(method = "processEncryptionResponse", at = @At("RETURN"))
     public void GetSecretKey(CPacketEncryptionResponse p_147315_1_, CallbackInfo ci) throws GeneralSecurityException {
-        ((IClientConnectionEncryptionExtension)this.networkManager).setupEncryption(this.secretKey);
+        ((IClientConnectionEncryptionExtension) this.networkManager).setupEncryption(this.secretKey);
     }
 }

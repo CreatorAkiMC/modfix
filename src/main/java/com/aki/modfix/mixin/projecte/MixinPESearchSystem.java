@@ -8,21 +8,20 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 @Mixin(value = TransmutationInventory.class, remap = false)
 public class MixinPESearchSystem {
 
-    @Shadow(remap = false) public String filter;
+    @Shadow(remap = false)
+    public String filter;
 
-    @Shadow(remap = false) @Final public EntityPlayer player;
+    @Shadow(remap = false)
+    @Final
+    public EntityPlayer player;
 
     /**
      * @author Aki
@@ -39,12 +38,12 @@ public class MixinPESearchSystem {
             ModId = stack.getItem().getRegistryName().getNamespace().toLowerCase(Locale.ROOT);
             List<String> tooltips = new ArrayList<>(stack.getTooltip(this.player, ITooltipFlag.TooltipFlags.ADVANCED));
 
-            if(displayName != null && registryName != null && ModId != null) {
+            if (displayName != null && registryName != null && ModId != null) {
                 String low = this.filter.toLowerCase(Locale.ROOT);
                 if (low.contains("@")) {
                     return ModId.contains(low.replace("@", ""));
                 } else {
-                    if((this.filter.length() <= 0 || displayName.contains(low) || registryName.contains(low)))
+                    if ((this.filter.length() <= 0 || displayName.contains(low) || registryName.contains(low)))
                         return true;
 
                     for (String s : tooltips) {

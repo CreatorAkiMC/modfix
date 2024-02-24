@@ -17,18 +17,23 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 @Pseudo
 @Mixin(value = GVCR2LoadGunStatus.class, remap = false)
 public class MixinGVCR2LoadGunStatus {
 
-    @Shadow(remap = false) private static int sell_eme;
+    @Shadow(remap = false)
+    private static int sell_eme;
 
-    @Shadow(remap = false) private static int sell_iron;
+    @Shadow(remap = false)
+    private static int sell_iron;
 
-    @Shadow(remap = false) private static int sell_red;
+    @Shadow(remap = false)
+    private static int sell_red;
 
-    @Shadow(remap = false) private static int sell_tier;
+    @Shadow(remap = false)
+    private static int sell_tier;
 
     /**
      * @author Aki
@@ -53,7 +58,7 @@ public class MixinGVCR2LoadGunStatus {
                 InputStream inputStream = GVCR2LoadGunStatus.class.getResourceAsStream("/assets/gvcr2/textures/gun/status/" + text);
                 //FileChannel channel = ((FileInputStream)inputStream).getChannel();
                 {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                     //ByteBuffer bb = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size()).order(ByteOrder.LITTLE_ENDIAN);
                     //BufferedReader br = bb.
                     String str;
@@ -64,7 +69,7 @@ public class MixinGVCR2LoadGunStatus {
                         int guntype = 0;
 
                         if (type.length != 0) {// 1
-                            if (mod.proxy.getClient()) {
+                            if (mod_GVCR2.proxy.getClient()) {
                                 gun.canobj = true;
                                 gun.obj_true = true;
                                 if (type[0].equals("ObjModel")) {
@@ -148,7 +153,7 @@ public class MixinGVCR2LoadGunStatus {
 
                             LoadGunStatusBase.load(gun, event, text, type, "gvcr2:textures/misc/", "gvcr2:textures/entity/");
 
-                            if (!mod.cfg_exprotion_player) {
+                            if (!mod_GVCR2.cfg_exprotion_player) {
                                 gun.ex = false;
                             }
                         }

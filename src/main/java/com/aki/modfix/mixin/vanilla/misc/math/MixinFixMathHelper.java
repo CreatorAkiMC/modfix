@@ -5,7 +5,9 @@ import org.spongepowered.asm.mixin.*;
 
 @Mixin(MathHelper.class)
 public class MixinFixMathHelper {
-    @Shadow @Final private static float[] SIN_TABLE;
+    @Shadow
+    @Final
+    private static float[] SIN_TABLE;
     @Unique
     private static final int[] SINE_TABLE_INT = new int[16384 + 1];
     @Unique
@@ -63,8 +65,7 @@ public class MixinFixMathHelper {
      * @reason Replace sin
      */
     @Overwrite
-    public static float sin(float value)
-    {
+    public static float sin(float value) {
         return lookup((int) (value * 10430.378f) & 0xFFFF);
     }
 
@@ -73,8 +74,7 @@ public class MixinFixMathHelper {
      * @reason Replace cos
      */
     @Overwrite
-    public static float cos(float value)
-    {
+    public static float cos(float value) {
         return lookup((int) (value * 10430.378f + 16384.0f) & 0xFFFF);
     }
 }

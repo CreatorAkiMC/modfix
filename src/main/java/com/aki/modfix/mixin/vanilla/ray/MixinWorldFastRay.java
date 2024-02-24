@@ -21,20 +21,24 @@ import javax.annotation.Nullable;
 /**
  * 不安定
  * Vanillaのほうが早いかも
- *
+ * <p>
  * modelLoader の mixinsに入れる。 (使うときは)
- * */
+ */
 @Deprecated
 @Mixin(World.class)
 public abstract class MixinWorldFastRay implements IBlockAccess {
 
-    @Shadow public abstract IBlockState getBlockState(BlockPos pos);
+    @Shadow
+    public abstract IBlockState getBlockState(BlockPos pos);
 
-    @Shadow public abstract void spawnParticle(EnumParticleTypes particleType, double xCoord, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters);
+    @Shadow
+    public abstract void spawnParticle(EnumParticleTypes particleType, double xCoord, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters);
 
-    @Shadow public abstract void spawnParticle(EnumParticleTypes particleType, boolean ignoreRange, double xCoord, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters);
+    @Shadow
+    public abstract void spawnParticle(EnumParticleTypes particleType, boolean ignoreRange, double xCoord, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters);
 
-    @Shadow protected abstract void spawnParticle(int particleID, boolean ignoreRange, double xCood, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters);
+    @Shadow
+    protected abstract void spawnParticle(int particleID, boolean ignoreRange, double xCood, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters);
 
     /**
      * @author Aki
@@ -42,10 +46,8 @@ public abstract class MixinWorldFastRay implements IBlockAccess {
      */
     @Overwrite
     @Nullable
-    public RayTraceResult rayTraceBlocks(Vec3d vec31, Vec3d vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock)
-    {
-        if (!Double.isNaN(vec31.x) && !Double.isNaN(vec31.y) && !Double.isNaN(vec31.z) && !Double.isNaN(vec32.x) && !Double.isNaN(vec32.y) && !Double.isNaN(vec32.z))
-        {
+    public RayTraceResult rayTraceBlocks(Vec3d vec31, Vec3d vec32, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock) {
+        if (!Double.isNaN(vec31.x) && !Double.isNaN(vec31.y) && !Double.isNaN(vec31.z) && !Double.isNaN(vec32.x) && !Double.isNaN(vec32.y) && !Double.isNaN(vec32.z)) {
 
             /**
              * 運動方向の計算
@@ -68,17 +70,17 @@ public abstract class MixinWorldFastRay implements IBlockAccess {
             int ZY = MathHelper.floor(AY);
             int ZZ = MathHelper.floor(AZ);*/
 
-            if(AX > AY && AX > AZ) {
+            if (AX > AY && AX > AZ) {
                 enumfacing = EnumFacing.WEST;
-            } else if(AX < AY && AX < AZ) {
+            } else if (AX < AY && AX < AZ) {
                 enumfacing = EnumFacing.EAST;
-            } else if(AY > AX && AY > AZ) {
+            } else if (AY > AX && AY > AZ) {
                 enumfacing = EnumFacing.DOWN;
-            } else if(AY < AX && AY < AZ) {
+            } else if (AY < AX && AY < AZ) {
                 enumfacing = EnumFacing.UP;
-            } else if(AZ > AY && AZ > AX) {
+            } else if (AZ > AY && AZ > AX) {
                 enumfacing = EnumFacing.NORTH;
-            } else if(AZ < AY && AZ < AX) {
+            } else if (AZ < AY && AZ < AX) {
                 enumfacing = EnumFacing.SOUTH;
             }
 
@@ -95,12 +97,10 @@ public abstract class MixinWorldFastRay implements IBlockAccess {
             IBlockState iblockstate = this.getBlockState(blockpos);
             Block block = iblockstate.getBlock();
 
-            if ((!ignoreBlockWithoutBoundingBox || iblockstate.getCollisionBoundingBox((World)(Object)this, blockpos) != Block.NULL_AABB) && block.canCollideCheck(iblockstate, stopOnLiquid))
-            {
-                RayTraceResult raytraceresult = iblockstate.collisionRayTrace((World)(Object)this, blockpos, PVec, vec32);
+            if ((!ignoreBlockWithoutBoundingBox || iblockstate.getCollisionBoundingBox((World) (Object) this, blockpos) != Block.NULL_AABB) && block.canCollideCheck(iblockstate, stopOnLiquid)) {
+                RayTraceResult raytraceresult = iblockstate.collisionRayTrace((World) (Object) this, blockpos, PVec, vec32);
 
-                if (raytraceresult != null)
-                {
+                if (raytraceresult != null) {
                     return raytraceresult;
                 }
             }

@@ -31,30 +31,29 @@ public class MixinKeyBinding {
 
     @Inject(method = "<init>(Ljava/lang/String;Lnet/minecraftforge/client/settings/IKeyConflictContext;Lnet/minecraftforge/client/settings/KeyModifier;ILjava/lang/String;)V", at = @At("RETURN"))
     public void InitDisableToAlt(String description, IKeyConflictContext keyConflictContext, KeyModifier keyModifier, int keyCode, String category, CallbackInfo ci) {
-        if(keyModifier != KeyModifier.ALT && (keyCode == Keyboard.KEY_LMENU || keyCode == Keyboard.KEY_RMENU)) {
+        if (keyModifier != KeyModifier.ALT && (keyCode == Keyboard.KEY_LMENU || keyCode == Keyboard.KEY_RMENU)) {
             this.keyCode = 0;
         }
     }
 
     @Inject(method = "onTick", at = @At("HEAD"), cancellable = true)
-    private static void onTickInject(int keyCode, CallbackInfo ci)
-    {
+    private static void onTickInject(int keyCode, CallbackInfo ci) {
         Minecraft instance = Minecraft.getMinecraft();
-        if(Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU)) {
-            for(int key = 2; key <= 10; key++) {
-                if(Keyboard.isKeyDown(key)) {
-                    ((GameSettingsExtended)instance.gameSettings).setPatternID(key - 2);//差が、番号になる。
-                    ((GameSettingsExtended)instance.gameSettings).ChangeKeyPatternEvent();
+        if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU)) {
+            for (int key = 2; key <= 10; key++) {
+                if (Keyboard.isKeyDown(key)) {
+                    ((GameSettingsExtended) instance.gameSettings).setPatternID(key - 2);//差が、番号になる。
+                    ((GameSettingsExtended) instance.gameSettings).ChangeKeyPatternEvent();
                     instance.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.2F));
                     GuiNewChat chat = instance.ingameGUI.getChatGUI();
 
-                    List<ChatLine> lineList = ((GuiNewChatExtended)chat).getChatLines();
+                    List<ChatLine> lineList = ((GuiNewChatExtended) chat).getChatLines();
 
-                    ((GuiNewChatExtended)chat).SetChatLines(lineList.stream().filter(o -> !o.getChatComponent().getUnformattedText().contains("You chose the key pattern number ")).collect(Collectors.toList()));
+                    ((GuiNewChatExtended) chat).SetChatLines(lineList.stream().filter(o -> !o.getChatComponent().getUnformattedText().contains("You chose the key pattern number ")).collect(Collectors.toList()));
 
-                    lineList = ((GuiNewChatExtended)chat).getDrawnChatLines();
+                    lineList = ((GuiNewChatExtended) chat).getDrawnChatLines();
 
-                    ((GuiNewChatExtended)chat).SetDrawnChatLines(lineList.stream().filter(o -> !o.getChatComponent().getUnformattedText().contains("You chose the key pattern number ")).collect(Collectors.toList()));
+                    ((GuiNewChatExtended) chat).SetDrawnChatLines(lineList.stream().filter(o -> !o.getChatComponent().getUnformattedText().contains("You chose the key pattern number ")).collect(Collectors.toList()));
 
                     //System.out.println("LS: " + lineList.size());
 

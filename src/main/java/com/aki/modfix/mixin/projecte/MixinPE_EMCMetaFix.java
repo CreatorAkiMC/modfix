@@ -1,7 +1,6 @@
 package com.aki.modfix.mixin.projecte;
 
 import com.aki.modfix.util.fix.FixDefaultImpl;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -19,17 +18,17 @@ public class MixinPE_EMCMetaFix {
     private static void init1(CallbackInfo ci) {
         CapabilityManager.INSTANCE.register(moze_intel.projecte.api.capabilities.IKnowledgeProvider.class, new Capability.IStorage<moze_intel.projecte.api.capabilities.IKnowledgeProvider>() {
             public NBTTagCompound writeNBT(Capability<moze_intel.projecte.api.capabilities.IKnowledgeProvider> capability, moze_intel.projecte.api.capabilities.IKnowledgeProvider instance, EnumFacing side) {
-                return (NBTTagCompound)instance.serializeNBT();
+                return instance.serializeNBT();
             }
 
             public void readNBT(Capability<moze_intel.projecte.api.capabilities.IKnowledgeProvider> capability, moze_intel.projecte.api.capabilities.IKnowledgeProvider instance, EnumFacing side, NBTBase nbt) {
                 if (nbt instanceof NBTTagCompound) {
-                    instance.deserializeNBT((NBTTagCompound)nbt);
+                    instance.deserializeNBT((NBTTagCompound) nbt);
                 }
 
             }
         }, () -> {
-            return new FixDefaultImpl((EntityPlayer)null);
+            return new FixDefaultImpl(null);
         });
         ci.cancel();
     }

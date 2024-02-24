@@ -20,21 +20,32 @@ import javax.annotation.Nullable;
 
 @Mixin(ItemStack.class)
 public abstract class MixinItemStack {
-    @Shadow @Final private Item item;
+    @Shadow
+    @Final
+    private Item item;
 
-    @Shadow @Final public static ItemStack EMPTY;
+    @Shadow
+    @Final
+    public static ItemStack EMPTY;
 
-    @Shadow private int stackSize;
+    @Shadow
+    private int stackSize;
 
-    @Shadow public abstract NBTTagCompound writeToNBT(NBTTagCompound nbt);
+    @Shadow
+    public abstract NBTTagCompound writeToNBT(NBTTagCompound nbt);
 
-    @Shadow private CapabilityDispatcher capabilities;
-    @Shadow private NBTTagCompound stackTagCompound;
+    @Shadow
+    private CapabilityDispatcher capabilities;
+    @Shadow
+    private NBTTagCompound stackTagCompound;
 
-    @Shadow public abstract boolean hasTagCompound();
+    @Shadow
+    public abstract boolean hasTagCompound();
 
-    @Unique private static Cache<ItemStack, EntityItemFrame> itemFrames;
-    @Unique private static Cache<ItemStack, Pair<Block, Boolean>> canPlaceCache;
+    @Unique
+    private static Cache<ItemStack, EntityItemFrame> itemFrames;
+    @Unique
+    private static Cache<ItemStack, Pair<Block, Boolean>> canPlaceCache;
     @Unique
     private static Cache<ItemStack, Pair<Block, Boolean>> canDestroyCache;
 
@@ -46,7 +57,7 @@ public abstract class MixinItemStack {
 
     @Inject(method = "areCapsCompatible", at = @At("HEAD"), cancellable = true, remap = false)
     public void AreCapsCompatibleFix(ItemStack p_areCapsCompatible_1_, CallbackInfoReturnable<Boolean> cir) {
-        if(this.oldStackTagCompound != this.stackTagCompound || first) {
+        if (this.oldStackTagCompound != this.stackTagCompound || first) {
             this.oldStackTagCompound = this.stackTagCompound;
             this.oldCache = areCapsCompatible2(p_areCapsCompatible_1_);
             this.first = false;
@@ -55,21 +66,14 @@ public abstract class MixinItemStack {
         cir.setReturnValue(oldCache);
     }
 
-    public boolean areCapsCompatible2(ItemStack other)
-    {
-        if (this.capabilities == null)
-        {
-            if (other.capabilities == null)
-            {
+    public boolean areCapsCompatible2(ItemStack other) {
+        if (this.capabilities == null) {
+            if (other.capabilities == null) {
                 return true;
-            }
-            else
-            {
+            } else {
                 return other.capabilities.areCompatible(null);
             }
-        }
-        else
-        {
+        } else {
             return this.capabilities.areCompatible(other.capabilities);
         }
     }
@@ -79,8 +83,7 @@ public abstract class MixinItemStack {
      * @reason Replace
      */
     @Overwrite
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return (this.item == null || this.item == Items.AIR || this.stackSize <= 0);
     }
 

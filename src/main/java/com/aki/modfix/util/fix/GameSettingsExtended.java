@@ -5,7 +5,7 @@ import net.minecraft.client.settings.KeyBinding;
 public interface GameSettingsExtended {
     /**
      * 右クリックやジャンプなど、パターンに含まないもの
-     * */
+     */
     KeyBinding[] MCKeyBinding();
 
     KeyBinding[] ModRegisteredBinding();
@@ -17,7 +17,7 @@ public interface GameSettingsExtended {
 
     /**
      * 1 ~ 9 まで
-     * */
+     */
     int getPatternID();
 
     void setPatternID(int Id);

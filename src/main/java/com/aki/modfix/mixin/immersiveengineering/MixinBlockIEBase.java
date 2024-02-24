@@ -12,7 +12,8 @@ public abstract class MixinBlockIEBase {
     @Shadow
     public abstract int getMetaFromState(IBlockState state);
 
-    @Shadow(remap = false) protected EnumPushReaction[] metaMobilityFlags;
+    @Shadow(remap = false)
+    protected EnumPushReaction[] metaMobilityFlags;
 
     /**
      * @author Aki

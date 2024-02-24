@@ -21,8 +21,10 @@ import java.util.List;
 
 @Mixin(value = Loader.class, priority = Modfix.ModPriority)
 public class MixinLoader {
-    @Shadow(remap = false) private List<ModContainer> mods;
-    @Shadow(remap = false) private ModClassLoader modClassLoader;
+    @Shadow(remap = false)
+    private List<ModContainer> mods;
+    @Shadow(remap = false)
+    private ModClassLoader modClassLoader;
 
     /**
      * @reason Load all mods now and load mod support mixin configs. This can't be done later
@@ -38,7 +40,7 @@ public class MixinLoader {
             }
         }
 
-        for(String config : MixinModLoadConfig.LateMixinMods) {
+        for (String config : MixinModLoadConfig.LateMixinMods) {
             Mixins.addConfiguration(config);
         }
 

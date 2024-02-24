@@ -36,7 +36,7 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
      * Vanillaの変更
      * [modeloader] など、初期に実行するものは、jsonの[ "target" ]を [ "@env(INIT)" ]にしないといけない
      * GameSetting や RayTracing など、
-     * */
+     */
     public List<String> MixinFiles = Arrays.asList(
             "mixins.modfix.json",
             "mixins.modloader.json"
@@ -46,7 +46,7 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
         fixMixinClasspathOrder();
 
         MixinBootstrap.init();
-        for(String fileName : MixinFiles) {
+        for (String fileName : MixinFiles) {
             Mixins.addConfiguration(fileName);
         }
         //.addConfiguration("mixins." +  + ".json");
@@ -80,7 +80,7 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
 
     @Override
     public String[] getASMTransformerClass() {
-        return new String[] {"com.aki.modfix.asm.ModFixClassTransformer"};
+        return new String[]{"com.aki.modfix.asm.ModFixClassTransformer"};
     }
 
     @Override

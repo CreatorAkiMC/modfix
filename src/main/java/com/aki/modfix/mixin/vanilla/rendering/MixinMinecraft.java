@@ -13,13 +13,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = Minecraft.class, priority = Modfix.ModPriority)
 public abstract class MixinMinecraft {
-    @Shadow public abstract boolean isGamePaused();
+    @Shadow
+    public abstract boolean isGamePaused();
 
-    @Shadow private boolean isGamePaused;
+    @Shadow
+    private boolean isGamePaused;
 
-    @Shadow private float renderPartialTicksPaused;
+    @Shadow
+    private float renderPartialTicksPaused;
 
-    @Shadow @Final private Timer timer;
+    @Shadow
+    @Final
+    private Timer timer;
 
     @Inject(method = "runGameLoop", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/profiler/Profiler;endStartSection(Ljava/lang/String;)V", args = "ldc=gameRenderer"))
     public void runGameLoop(CallbackInfo info) {

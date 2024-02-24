@@ -1,6 +1,6 @@
 /**
  * Thankyou Nothirium
- * */
+ */
 
 package com.aki.modfix.WorldRender.chunk.openGL;
 
@@ -37,6 +37,7 @@ import java.util.stream.IntStream;
 
 public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderTaskBase<T> {
     private static final BlockingQueue<RegionRenderCacheBuilder> BUFFERBUILDER_QUEUE = new LinkedBlockingQueue<>();
+
     static {
         IntStream.range(0, (Runtime.getRuntime().availableProcessors() - 2) * 2).mapToObj(i -> new RegionRenderCacheBuilder()).forEach(BUFFERBUILDER_QUEUE::add);
     }
@@ -158,7 +159,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         } else {
                             GlDynamicVBO.VBOPart vboPart = this.chunkRender.getVBO(pass);
                             //VBO のずれを減らす
-                            if(vboPart != null)
+                            if (vboPart != null)
                                 vboPart.free();
                             vboPart = this.renderer.buffer(pass, this.chunkRender, bufferBuilder.getByteBuffer());
                             this.chunkRender.setVBO(pass, vboPart);
@@ -183,7 +184,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
             return;
         }
 
-        for(EnumFacing dir : EnumFacing.VALUES) {
+        for (EnumFacing dir : EnumFacing.VALUES) {
             if (blockState.doesSideBlockRendering(access, pos, dir)) {
                 visibilityGraph.setOpaque(pos.getX(), pos.getY(), pos.getZ(), dir);
             }

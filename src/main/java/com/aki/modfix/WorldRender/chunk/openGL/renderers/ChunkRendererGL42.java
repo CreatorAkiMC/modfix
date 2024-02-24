@@ -24,7 +24,7 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
     @Override
     public void Init(int renderDist) {
         int PD = renderDist * 2 + 1;
-        int dist3 = (int)Math.pow(PD, 3);
+        int dist3 = (int) Math.pow(PD, 3);
 
         //this.CommandBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
         this.OffsetBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
@@ -97,9 +97,7 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
             }
 
             this.RenderChunks.forEach((pass, list) -> {
-                ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) ->{
-                    this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
-                });
+                ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT, (chunkRender, index) -> this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ)));
             });
 
             Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.OffsetBuffers.getSelect().get(pass).end());
@@ -120,7 +118,8 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
         //this.CommandBuffers.get(pass).getCount() == this.RenderChunks.get(pass).size()
         ListUtil.forEach(RenderChunks.get(pass), pass == ChunkRenderPass.TRANSLUCENT, (renderChunk, i) -> {
             GlDynamicVBO.VBOPart vboPart = renderChunk.getVBO(pass);
-            GL42.glDrawArraysInstancedBaseInstance(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount(), 1, i);
+            if(vboPart != null)
+                GL42.glDrawArraysInstancedBaseInstance(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount(), 1, i);
         });
         //GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.CommandBuffers.get(pass).getCount(), 0);
 

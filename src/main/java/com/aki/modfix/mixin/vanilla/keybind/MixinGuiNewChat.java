@@ -14,10 +14,14 @@ import java.util.List;
 @Mixin(value = GuiNewChat.class, priority = Modfix.ModPriority)
 public class MixinGuiNewChat implements GuiNewChatExtended {
     @Mutable
-    @Shadow @Final private List<ChatLine> drawnChatLines;
+    @Shadow
+    @Final
+    private List<ChatLine> drawnChatLines;
 
     @Mutable
-    @Shadow @Final private List<ChatLine> chatLines;
+    @Shadow
+    @Final
+    private List<ChatLine> chatLines;
 
     @Override
     public List<ChatLine> getChatLines() {

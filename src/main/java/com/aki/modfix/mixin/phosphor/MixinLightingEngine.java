@@ -14,9 +14,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Mixin(value = LightingEngine.class, priority = Modfix.ModPriority)
 public class MixinLightingEngine {
-    @Shadow @Final private ReentrantLock lock;
+    @Shadow
+    @Final
+    private ReentrantLock lock;
 
-    @Shadow @Final private Thread ownedThread;
+    @Shadow
+    @Final
+    private Thread ownedThread;
 
     /**
      * @author Aki

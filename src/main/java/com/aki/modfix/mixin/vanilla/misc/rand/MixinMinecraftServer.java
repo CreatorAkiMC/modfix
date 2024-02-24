@@ -22,7 +22,9 @@ import java.util.Random;
 @Mixin(MinecraftServer.class)
 public class MixinMinecraftServer {
     @Mutable
-    @Shadow @Final private Random random;
+    @Shadow
+    @Final
+    private Random random;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void ChangeRandomSystem(File p_i47054_1_, Proxy p_i47054_2_, DataFixer p_i47054_3_, YggdrasilAuthenticationService p_i47054_4_, MinecraftSessionService p_i47054_5_, GameProfileRepository p_i47054_6_, PlayerProfileCache p_i47054_7_, CallbackInfo ci) {

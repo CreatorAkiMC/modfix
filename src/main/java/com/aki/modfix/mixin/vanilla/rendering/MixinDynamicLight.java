@@ -1,6 +1,6 @@
 /**
  * Thankyou Nothirium && Meldexum
- * */
+ */
 package com.aki.modfix.mixin.vanilla.rendering;
 
 import com.aki.mcutils.APICore.Utils.math.MathHelper;

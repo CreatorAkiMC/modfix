@@ -3,6 +3,7 @@ package com.aki.modfix.mixin.vanilla.rendering;
 import com.aki.mcutils.APICore.Utils.GuiDebugHelper;
 import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
+import com.aki.modfix.InformationCollector;
 import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import net.minecraft.client.Minecraft;
@@ -27,13 +28,17 @@ import java.util.List;
 
 /**
  * Remap = false にしない
- * */
+ */
 @Mixin(value = RenderGlobal.class, priority = Modfix.ModPriority)
 public abstract class MixinRenderGlobal {
-    @Shadow @Final private Minecraft mc;
-    @Shadow private int renderDistanceChunks;
+    @Shadow
+    @Final
+    private Minecraft mc;
+    @Shadow
+    private int renderDistanceChunks;
 
-    @Shadow public abstract void loadRenderers();
+    @Shadow
+    public abstract void loadRenderers();
 
     @Unique
     public int modFix$StringListIndex = -1;
@@ -51,15 +56,9 @@ public abstract class MixinRenderGlobal {
         info.cancel();
     }
 
-    /**
-     * renderEntitiesはChunkRendererが完成してから,
-     * --renderInfos だったり、world.getChunk など使っているから。<- 置き換える
-     * */
-
     @Inject(method = "setupTerrain", at = @At("HEAD"), cancellable = true)
     public void SetUP(Entity p_174970_1_, double p_174970_2_, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_, CallbackInfo ci) {
-        if (this.mc.gameSettings.renderDistanceChunks != this.renderDistanceChunks)
-        {
+        if (this.mc.gameSettings.renderDistanceChunks != this.renderDistanceChunks) {
             this.loadRenderers();
         }
         GLUtils.updateCamera();
@@ -76,6 +75,9 @@ public abstract class MixinRenderGlobal {
         strings.add("  CutOut_Mipped: " + ChunkRenderManager.RenderSections(ChunkRenderPass.CUTOUT_MIPPED) + ", Translucent: " + ChunkRenderManager.RenderSections(ChunkRenderPass.TRANSLUCENT));
         strings.add("  Total: " + ChunkRenderManager.AllPassRenderSize());
         strings.add("  RenderChunks: " + ChunkRenderManager.totalRenderedSections());
+        strings.add("ModFix TileEntity Tick Info (Update every second): ");
+        strings.add("  TickBase: " + Modfix.OneTickNanoBase + "ns, " + "OneTickTime: " + InformationCollector.getOneTickTime() + ", LateTickTime: " + InformationCollector.getLateTime());
+        strings.add("  LateTileEntities: " + InformationCollector.getLateTileEntities() + ", MaxLateCycle: " + InformationCollector.getMaxLateCycle());
         this.modFix$StringListIndex = GuiDebugHelper.ReplaceDebugStringList(this.modFix$StringListIndex >= 0 ? modfix$OldstringList : strings, strings);
         modfix$OldstringList = new LinkedList<>(strings);
         info.setReturnValue("C: 0/0 (s) D: 0, L: 0, pC: 0, pU: 0, aB: 0");
@@ -103,7 +105,7 @@ public abstract class MixinRenderGlobal {
 
     /**
      * remap = false をつけると Optifine を抜いた時に動かない？
-     * */
+     */
     @Inject(method = "getRenderChunkOffset", remap = false, cancellable = true, at = @At("HEAD"))
     public void getRenderChunkOffset(CallbackInfoReturnable<RenderChunk> info) {
         info.setReturnValue(null);

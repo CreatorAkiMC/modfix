@@ -15,41 +15,36 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
-import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 @Mixin(NettyCompressionDecoder.class)
 public class MixinNettyCompressionDecoder {
 
-    @Shadow private int threshold;
+    @Shadow
+    private int threshold;
 
-    @Shadow @Final private Inflater inflater;
+    @Shadow
+    @Final
+    private Inflater inflater;
 
     /**
      * @author Aki
      * @reason Change Size
      */
     @Inject(method = "decode", at = @At("HEAD"), cancellable = true, remap = false)
-    public void ChangeSizeDecode(ChannelHandlerContext p_decode_1_, ByteBuf p_decode_2_, List<Object> p_decode_3_, CallbackInfo ci) throws DataFormatException, Exception
-    {
-        if (p_decode_2_.readableBytes() != 0)
-        {
+    public void ChangeSizeDecode(ChannelHandlerContext p_decode_1_, ByteBuf p_decode_2_, List<Object> p_decode_3_, CallbackInfo ci) throws Exception {
+        if (p_decode_2_.readableBytes() != 0) {
             PacketBuffer packetbuffer = new PacketBuffer(p_decode_2_);
             int i = packetbuffer.readVarInt();
 
-            if (i == 0)
-            {
+            if (i == 0) {
                 p_decode_3_.add(packetbuffer.readBytes(packetbuffer.readableBytes()));
-            }
-            else
-            {
-                if (i < this.threshold)
-                {
+            } else {
+                if (i < this.threshold) {
                     throw new DecoderException("Badly compressed packet - size of " + i + " is below server threshold of " + this.threshold);
                 }
 
-                if (i > PacketSizeUtil.CompressionSize)
-                {
+                if (i > PacketSizeUtil.CompressionSize) {
                     throw new DecoderException("Badly compressed packet - size of " + i + " is larger than protocol maximum of " + PacketSizeUtil.CompressionSize);
                 }
 

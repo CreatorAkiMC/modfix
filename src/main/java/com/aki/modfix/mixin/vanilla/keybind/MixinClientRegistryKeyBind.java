@@ -17,8 +17,7 @@ public class MixinClientRegistryKeyBind {
      * @reason Replace KeyBinding System
      */
     @Overwrite(remap = false)
-    public static void registerKeyBinding(KeyBinding key)
-    {
-        ((GameSettingsExtended) (Object)Minecraft.getMinecraft().gameSettings).SetModRegisteredBinding(ArrayUtils.add(((GameSettingsExtended) (Object)Minecraft.getMinecraft().gameSettings).ModRegisteredBinding(), key));
+    public static void registerKeyBinding(KeyBinding key) {
+        ((GameSettingsExtended) Minecraft.getMinecraft().gameSettings).SetModRegisteredBinding(ArrayUtils.add(((GameSettingsExtended) Minecraft.getMinecraft().gameSettings).ModRegisteredBinding(), key));
     }
 }

@@ -18,20 +18,18 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 /**
- *   [
- *      minecraftのパターンに入れない操作
- *
- *      GameSettingsの 120 ~ 144 まで
- *   ]
- *
+ * [
+ * minecraftのパターンに入れない操作
+ * <p>
+ * GameSettingsの 120 ~ 144 まで
+ * ]
+ * <p>
  * 1 2 3 4 5 6 7 8 9 <- (パターン)
- *   [Alt + num] で変更 (と表示)
- *
- *  [Done]の周りがよさそう
- *
- * */
-public class GuiKeyBindingListAltSet extends GuiListExtended
-{
+ * [Alt + num] で変更 (と表示)
+ * <p>
+ * [Done]の周りがよさそう
+ */
+public class GuiKeyBindingListAltSet extends GuiListExtended {
     private final GuiControls controlsScreen;
     private final Minecraft mc;
     private GuiListExtended.IGuiListEntry[] VanillaListEntries;
@@ -67,27 +65,24 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
 
     /**
      * ModKeyの場合は、setPatternで設定してから使用
-     * */
+     */
 
-    public GuiKeyBindingListAltSet(GuiControls controls, Minecraft mcIn)
-    {
+    public GuiKeyBindingListAltSet(GuiControls controls, Minecraft mcIn) {
         super(mcIn, controls.width + 45, controls.height, 63, controls.height - 32, 20);
         this.controlsScreen = controls;
         this.mc = mcIn;
-        KeyBinding[] VanillaKeybinding = (KeyBinding[])((GameSettingsExtended)mcIn.gameSettings).MCKeyBinding();
+        KeyBinding[] VanillaKeybinding = ((GameSettingsExtended) mcIn.gameSettings).MCKeyBinding();
         this.VanillaListEntries = new GuiListExtended.IGuiListEntry[VanillaKeybinding.length];
-        Arrays.sort((Object[])VanillaKeybinding);
+        Arrays.sort(VanillaKeybinding);
         int i = 0;
         String s = null;
 
-        for (KeyBinding keybinding : VanillaKeybinding)
-        {
+        for (KeyBinding keybinding : VanillaKeybinding) {
             String s1 = keybinding.getKeyCategory();
 
-            if (!s1.equals(s))
-            {
+            if (!s1.equals(s)) {
                 s = s1;
-                if((int)Arrays.stream(this.VanillaListEntries).filter(Objects::nonNull).count() >= this.VanillaListEntries.length) {
+                if ((int) Arrays.stream(this.VanillaListEntries).filter(Objects::nonNull).count() >= this.VanillaListEntries.length) {
                     this.VanillaListEntries = ArrayUtils.add(this.VanillaListEntries, new GuiKeyBindingListAltSet.CategoryEntry(s1));
                 } else {
                     this.VanillaListEntries[i] = new GuiKeyBindingListAltSet.CategoryEntry(s1);
@@ -97,12 +92,11 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
 
             int j = mcIn.fontRenderer.getStringWidth(I18n.format(keybinding.getKeyDescription()));
 
-            if (j > this.maxListLabelWidth)
-            {
+            if (j > this.maxListLabelWidth) {
                 this.maxListLabelWidth = j;
             }
 
-            if((int)Arrays.stream(this.VanillaListEntries).filter(Objects::nonNull).count() >= this.VanillaListEntries.length) {
+            if ((int) Arrays.stream(this.VanillaListEntries).filter(Objects::nonNull).count() >= this.VanillaListEntries.length) {
                 this.VanillaListEntries = ArrayUtils.add(this.VanillaListEntries, new GuiKeyBindingListAltSet.KeyEntry(keybinding, 0, false));
             } else {
                 this.VanillaListEntries[i] = new GuiKeyBindingListAltSet.KeyEntry(keybinding, 0, false);
@@ -110,14 +104,14 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
             i++;
         }
 
-        GameSettingsExtended extended = ((GameSettingsExtended)mcIn.gameSettings);
+        GameSettingsExtended extended = ((GameSettingsExtended) mcIn.gameSettings);
 
         /**
          *
          * */
         int idx = extended.getPatternID();
 
-        for(int pattern1 = 0; pattern1 < 9; pattern1++) {
+        for (int pattern1 = 0; pattern1 < 9; pattern1++) {
 
             //ボタン生成
             SelectButton[pattern1] = new GuiButtonAltSet(pattern1, 0, 0, 20, 20, String.valueOf(pattern1 + 1));
@@ -155,7 +149,7 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
 
                 if (!s1.equals(s)) {
                     s = s1;
-                    if((int)Arrays.stream(this.ModListEntries[pattern1]).filter(Objects::nonNull).count() >= this.ModListEntries[pattern1].length) {
+                    if ((int) Arrays.stream(this.ModListEntries[pattern1]).filter(Objects::nonNull).count() >= this.ModListEntries[pattern1].length) {
                         this.ModListEntries[pattern1] = ArrayUtils.add(this.ModListEntries[pattern1], new GuiKeyBindingListAltSet.CategoryEntry(s1));
                     } else {
                         this.ModListEntries[pattern1][i] = new GuiKeyBindingListAltSet.CategoryEntry(s1);
@@ -169,7 +163,7 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
                     this.maxListLabelWidth = j;
                 }
 
-                if((int)Arrays.stream(this.ModListEntries[pattern1]).filter(Objects::nonNull).count() >= this.ModListEntries[pattern1].length) {
+                if ((int) Arrays.stream(this.ModListEntries[pattern1]).filter(Objects::nonNull).count() >= this.ModListEntries[pattern1].length) {
                     this.ModListEntries[pattern1] = ArrayUtils.add(this.ModListEntries[pattern1], new GuiKeyBindingListAltSet.KeyEntry(keybinding, entry.getValue(), true));
                 } else {
                     this.ModListEntries[pattern1][i] = new GuiKeyBindingListAltSet.KeyEntry(keybinding, entry.getValue(), true);
@@ -189,38 +183,34 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
          **/
 
         this.VanillaListEntries = Arrays.stream(this.VanillaListEntries).filter(Objects::nonNull).toArray(IGuiListEntry[]::new);
-        IntStream.range(0, this.ModListEntries.length).forEach((x) -> this.ModListEntries[x] = (IGuiListEntry[]) Arrays.stream(this.ModListEntries[x]).filter(Objects::nonNull).toArray(IGuiListEntry[]::new));
+        IntStream.range(0, this.ModListEntries.length).forEach((x) -> this.ModListEntries[x] = Arrays.stream(this.ModListEntries[x]).filter(Objects::nonNull).toArray(IGuiListEntry[]::new));
     }
 
     //true == Vanilla Key Bindings
     @Override
-    protected int getSize()
-    {
-        return this.IsVanilla ? (int)Arrays.stream(this.VanillaListEntries).filter(Objects::nonNull).count() : (int)Arrays.stream(this.ModListEntries[Pattern]).filter(Objects::nonNull).count();
+    protected int getSize() {
+        return this.IsVanilla ? (int) Arrays.stream(this.VanillaListEntries).filter(Objects::nonNull).count() : (int) Arrays.stream(this.ModListEntries[Pattern]).filter(Objects::nonNull).count();
     }
 
     /**
      * Scroll Bar 用
-     * */
+     */
     @Override
-    protected int getContentHeight()
-    {
+    protected int getContentHeight() {
         //this.getSize を置き換えて、正しく動作するようにした。
         return (this.VanillaListEntries.length + this.ModListEntries[0].length + 2) * this.slotHeight + this.headerPadding;
     }
 
     /**
      * index 注意が必要
-     * */
+     */
     @Override
-    public GuiListExtended.IGuiListEntry getListEntry(int index)
-    {
+    public GuiListExtended.IGuiListEntry getListEntry(int index) {
         return this.IsVanilla ? this.VanillaListEntries[index] : this.ModListEntries[Pattern][index];
     }
 
     @Override
-    protected void drawSelectionBox(int insideLeft, int insideTop, int mouseXIn, int mouseYIn, float partialTicks)
-    {
+    protected void drawSelectionBox(int insideLeft, int insideTop, int mouseXIn, int mouseYIn, float partialTicks) {
         this.setIsVanilla(true);
         int i = this.getSize();
         Tessellator tessellator = Tessellator.getInstance();
@@ -231,31 +221,28 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
          * */
         int i2 = i + 1;
 
-        for (int j = 0; j < i; ++j)
-        {
+        for (int j = 0; j < i; ++j) {
             int k = insideTop + j * this.slotHeight + this.headerPadding;
             int l = this.slotHeight - 4;
 
-            if (k > this.bottom || k + l < this.top)
-            {
+            if (k > this.bottom || k + l < this.top) {
                 this.updateItemPos(j, insideLeft, k, partialTicks);
             }
 
-            if (this.showSelectionBox && this.isSelected(j))
-            {
+            if (this.showSelectionBox && this.isSelected(j)) {
                 int i1 = this.left + (this.width / 2 - this.getListWidth() / 2);
                 int j1 = this.left + this.width / 2 + this.getListWidth() / 2;
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.disableTexture2D();
                 bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-                bufferbuilder.pos((double)i1, (double)(k + l + 2), 0.0D).tex(0.0D, 1.0D).color(128, 128, 128, 255).endVertex();
-                bufferbuilder.pos((double)j1, (double)(k + l + 2), 0.0D).tex(1.0D, 1.0D).color(128, 128, 128, 255).endVertex();
-                bufferbuilder.pos((double)j1, (double)(k - 2), 0.0D).tex(1.0D, 0.0D).color(128, 128, 128, 255).endVertex();
-                bufferbuilder.pos((double)i1, (double)(k - 2), 0.0D).tex(0.0D, 0.0D).color(128, 128, 128, 255).endVertex();
-                bufferbuilder.pos((double)(i1 + 1), (double)(k + l + 1), 0.0D).tex(0.0D, 1.0D).color(0, 0, 0, 255).endVertex();
-                bufferbuilder.pos((double)(j1 - 1), (double)(k + l + 1), 0.0D).tex(1.0D, 1.0D).color(0, 0, 0, 255).endVertex();
-                bufferbuilder.pos((double)(j1 - 1), (double)(k - 1), 0.0D).tex(1.0D, 0.0D).color(0, 0, 0, 255).endVertex();
-                bufferbuilder.pos((double)(i1 + 1), (double)(k - 1), 0.0D).tex(0.0D, 0.0D).color(0, 0, 0, 255).endVertex();
+                bufferbuilder.pos(i1, k + l + 2, 0.0D).tex(0.0D, 1.0D).color(128, 128, 128, 255).endVertex();
+                bufferbuilder.pos(j1, k + l + 2, 0.0D).tex(1.0D, 1.0D).color(128, 128, 128, 255).endVertex();
+                bufferbuilder.pos(j1, k - 2, 0.0D).tex(1.0D, 0.0D).color(128, 128, 128, 255).endVertex();
+                bufferbuilder.pos(i1, k - 2, 0.0D).tex(0.0D, 0.0D).color(128, 128, 128, 255).endVertex();
+                bufferbuilder.pos(i1 + 1, k + l + 1, 0.0D).tex(0.0D, 1.0D).color(0, 0, 0, 255).endVertex();
+                bufferbuilder.pos(j1 - 1, k + l + 1, 0.0D).tex(1.0D, 1.0D).color(0, 0, 0, 255).endVertex();
+                bufferbuilder.pos(j1 - 1, k - 1, 0.0D).tex(1.0D, 0.0D).color(0, 0, 0, 255).endVertex();
+                bufferbuilder.pos(i1 + 1, k - 1, 0.0D).tex(0.0D, 0.0D).color(0, 0, 0, 255).endVertex();
                 tessellator.draw();
                 GlStateManager.enableTexture2D();
             }
@@ -273,31 +260,28 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
         tessellator = Tessellator.getInstance();
         bufferbuilder = tessellator.getBuffer();
 
-        for (int j = 0; j < i; ++j)
-        {
+        for (int j = 0; j < i; ++j) {
             int k = insideTop + (j + i2) * this.slotHeight + this.headerPadding;
             int l = this.slotHeight - 4;
 
-            if (k > this.bottom || k + l < this.top)
-            {
+            if (k > this.bottom || k + l < this.top) {
                 this.updateItemPos(j, insideLeft, k, partialTicks);
             }
 
-            if (this.showSelectionBox && this.isSelected(j))
-            {
+            if (this.showSelectionBox && this.isSelected(j)) {
                 int i1 = this.left + (this.width / 2 - this.getListWidth() / 2);
                 int j1 = this.left + this.width / 2 + this.getListWidth() / 2;
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.disableTexture2D();
                 bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-                bufferbuilder.pos((double)i1, (double)(k + l + 2), 0.0D).tex(0.0D, 1.0D).color(128, 128, 128, 255).endVertex();
-                bufferbuilder.pos((double)j1, (double)(k + l + 2), 0.0D).tex(1.0D, 1.0D).color(128, 128, 128, 255).endVertex();
-                bufferbuilder.pos((double)j1, (double)(k - 2), 0.0D).tex(1.0D, 0.0D).color(128, 128, 128, 255).endVertex();
-                bufferbuilder.pos((double)i1, (double)(k - 2), 0.0D).tex(0.0D, 0.0D).color(128, 128, 128, 255).endVertex();
-                bufferbuilder.pos((double)(i1 + 1), (double)(k + l + 1), 0.0D).tex(0.0D, 1.0D).color(0, 0, 0, 255).endVertex();
-                bufferbuilder.pos((double)(j1 - 1), (double)(k + l + 1), 0.0D).tex(1.0D, 1.0D).color(0, 0, 0, 255).endVertex();
-                bufferbuilder.pos((double)(j1 - 1), (double)(k - 1), 0.0D).tex(1.0D, 0.0D).color(0, 0, 0, 255).endVertex();
-                bufferbuilder.pos((double)(i1 + 1), (double)(k - 1), 0.0D).tex(0.0D, 0.0D).color(0, 0, 0, 255).endVertex();
+                bufferbuilder.pos(i1, k + l + 2, 0.0D).tex(0.0D, 1.0D).color(128, 128, 128, 255).endVertex();
+                bufferbuilder.pos(j1, k + l + 2, 0.0D).tex(1.0D, 1.0D).color(128, 128, 128, 255).endVertex();
+                bufferbuilder.pos(j1, k - 2, 0.0D).tex(1.0D, 0.0D).color(128, 128, 128, 255).endVertex();
+                bufferbuilder.pos(i1, k - 2, 0.0D).tex(0.0D, 0.0D).color(128, 128, 128, 255).endVertex();
+                bufferbuilder.pos(i1 + 1, k + l + 1, 0.0D).tex(0.0D, 1.0D).color(0, 0, 0, 255).endVertex();
+                bufferbuilder.pos(j1 - 1, k + l + 1, 0.0D).tex(1.0D, 1.0D).color(0, 0, 0, 255).endVertex();
+                bufferbuilder.pos(j1 - 1, k - 1, 0.0D).tex(1.0D, 0.0D).color(0, 0, 0, 255).endVertex();
+                bufferbuilder.pos(i1 + 1, k - 1, 0.0D).tex(0.0D, 0.0D).color(0, 0, 0, 255).endVertex();
                 tessellator.draw();
                 GlStateManager.enableTexture2D();
             }
@@ -308,29 +292,25 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
 
     /**
      * Index修正
-     * */
+     */
 
     //Slot 420から参照
     @Override
-    protected void drawSlot(int slotIndex, int xPos, int yPos, int heightIn, int mouseXIn, int mouseYIn, float partialTicks)
-    {
-        ButtonGuiControlIn = ((GuiControlsGetter)this.controlsScreen).getButton().stream().anyMatch((i) -> mouseXIn >= i.x && mouseYIn >= i.y && mouseXIn < i.x + i.width && mouseYIn < i.y + i.height);
+    protected void drawSlot(int slotIndex, int xPos, int yPos, int heightIn, int mouseXIn, int mouseYIn, float partialTicks) {
+        ButtonGuiControlIn = ((GuiControlsGetter) this.controlsScreen).getButton().stream().anyMatch((i) -> mouseXIn >= i.x && mouseYIn >= i.y && mouseXIn < i.x + i.width && mouseYIn < i.y + i.height);
         this.getListEntry(slotIndex).drawEntry(slotIndex, xPos, yPos, this.getListWidth(), heightIn, mouseXIn, mouseYIn, this.isMouseYWithinSlotBounds(mouseYIn) && this.getSlotIndexFromScreenCoords(mouseXIn, mouseYIn) == slotIndex, partialTicks);
     }
 
     @Override
-    protected void updateItemPos(int entryID, int insideLeft, int yPos, float partialTicks)
-    {
+    protected void updateItemPos(int entryID, int insideLeft, int yPos, float partialTicks) {
         this.getListEntry(entryID).updatePosition(entryID, insideLeft, yPos, partialTicks);
     }
 
     @Override
-    public boolean mouseClicked(int mouseX, int mouseY, int mouseEvent)
-    {
+    public boolean mouseClicked(int mouseX, int mouseY, int mouseEvent) {
 
-        ButtonGuiControlIn = ((GuiControlsGetter)this.controlsScreen).getButton().stream().anyMatch((i) -> mouseX >= i.x && mouseY >= i.y && mouseX < i.x + i.width && mouseY < i.y + i.height);
-        if (this.isMouseYWithinSlotBounds(mouseY) && !ButtonGuiControlIn)
-        {
+        ButtonGuiControlIn = ((GuiControlsGetter) this.controlsScreen).getButton().stream().anyMatch((i) -> mouseX >= i.x && mouseY >= i.y && mouseX < i.x + i.width && mouseY < i.y + i.height);
+        if (this.isMouseYWithinSlotBounds(mouseY) && !ButtonGuiControlIn) {
             boolean isV = this.IsVanilla;
 
             this.setIsVanilla(true);
@@ -368,13 +348,11 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
     }
 
     @Override
-    public boolean mouseReleased(int x, int y, int mouseEvent)
-    {
+    public boolean mouseReleased(int x, int y, int mouseEvent) {
         boolean isV = this.IsVanilla;
 
         this.setIsVanilla(true);
-        for (int i = 0; i < this.getSize(); ++i)
-        {
+        for (int i = 0; i < this.getSize(); ++i) {
             int j = this.left + this.width / 2 - this.getListWidth() / 2 + 2;
             int k = this.top + 4 - this.getAmountScrolled() + i * this.slotHeight + this.headerPadding;
             int l = x - j;
@@ -384,8 +362,7 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
         }
 
         this.setIsVanilla(false);
-        for (int i = 0; i < this.getSize(); ++i)
-        {
+        for (int i = 0; i < this.getSize(); ++i) {
             int j = this.left + this.width / 2 - this.getListWidth() / 2 + 2;
             int k = this.top + 4 - this.getAmountScrolled() + i * this.slotHeight + this.headerPadding;
             int l = x - j;
@@ -418,7 +395,7 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
          * */
         KeyBindingRegister[] registers = ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).KeyBindingRegister();
         KeyBinding[] keyBinding = ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).ModRegisteredBinding();
-        for(int i = 0; i < registers.length; i++) {
+        for (int i = 0; i < registers.length; i++) {
             keyBinding[i].setKeyModifierAndCode(registers[i].modifier, registers[i].keycode);
         }
     }
@@ -427,73 +404,62 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
         return this.Pattern;
     }
 
-    protected int getScrollBarX()
-    {
+    protected int getScrollBarX() {
         return super.getScrollBarX() + 35;
     }
 
-    public int getListWidth()
-    {
+    public int getListWidth() {
         return super.getListWidth() + 32;
     }
 
     @SideOnly(Side.CLIENT)
-    public class CategoryEntry implements GuiListExtended.IGuiListEntry
-    {
+    public class CategoryEntry implements GuiListExtended.IGuiListEntry {
         private final String labelText;
         private final int labelWidth;
 
-        public CategoryEntry(String name)
-        {
+        public CategoryEntry(String name) {
             this.labelText = I18n.format(name);
             this.labelWidth = GuiKeyBindingListAltSet.this.mc.fontRenderer.getStringWidth(this.labelText);
         }
 
-        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks)
-        {
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks) {
             GuiKeyBindingListAltSet.this.mc.fontRenderer.drawString(this.labelText, GuiKeyBindingListAltSet.this.mc.currentScreen.width / 2 - this.labelWidth / 2, y + slotHeight - GuiKeyBindingListAltSet.this.mc.fontRenderer.FONT_HEIGHT - 1, 16777215);
         }
 
-        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY)
-        {
+        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
             return false;
         }
 
-        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY)
-        {
+        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) {
         }
 
-        public void updatePosition(int slotIndex, int x, int y, float partialTicks)
-        {
+        public void updatePosition(int slotIndex, int x, int y, float partialTicks) {
         }
     }
 
     /**
      * このままだと Pattern ごとに入れないといけない -> 複雑化
-     * */
+     */
     @SideOnly(Side.CLIENT)
-    public class SelectedButtonEntry implements GuiListExtended.IGuiListEntry
-    {
+    public class SelectedButtonEntry implements GuiListExtended.IGuiListEntry {
         public int labelWidth = 0;
         public String Text = "";
 
-        public SelectedButtonEntry()
-        {
+        public SelectedButtonEntry() {
             this.Text = "Choose Pattern(Alt + Number 1 ~ 9)";
             this.labelWidth = GuiKeyBindingListAltSet.this.mc.fontRenderer.getStringWidth(Text);
         }
 
-        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks)
-        {
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks) {
             GuiKeyBindingListAltSet.this.mc.fontRenderer.drawString(this.Text, GuiKeyBindingListAltSet.this.mc.currentScreen.width / 2 - this.labelWidth / 2, y + slotHeight - GuiKeyBindingListAltSet.this.mc.fontRenderer.FONT_HEIGHT - 20, 16777215);
 
             //
-            if(GuiKeyBindingListAltSet.this.Pattern != ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).getPatternID()) {
+            if (GuiKeyBindingListAltSet.this.Pattern != ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).getPatternID()) {
                 ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).setPatternID(GuiKeyBindingListAltSet.this.Pattern);
             }
 
             int i = 0;
-            for(GuiButtonAltSet button : GuiKeyBindingListAltSet.this.SelectButton) {
+            for (GuiButtonAltSet button : GuiKeyBindingListAltSet.this.SelectButton) {
                 button.x = x + (30 * i);//調整が必要
                 button.y = y;
 
@@ -504,11 +470,10 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
             }
         }
 
-        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY)
-        {
+        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
             boolean b = Arrays.stream(GuiKeyBindingListAltSet.this.SelectButton).anyMatch((i) -> i.mousePressed(GuiKeyBindingListAltSet.this.mc, mouseX, mouseY));
 
-            if(b) {
+            if (b) {
                 for (GuiButtonAltSet button : GuiKeyBindingListAltSet.this.SelectButton)
                     button.enabled = true;
 
@@ -529,19 +494,16 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
             return false;
         }
 
-        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY)
-        {
+        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) {
 
         }
 
-        public void updatePosition(int slotIndex, int x, int y, float partialTicks)
-        {
+        public void updatePosition(int slotIndex, int x, int y, float partialTicks) {
         }
     }
 
     @SideOnly(Side.CLIENT)
-    public class KeyEntry implements GuiListExtended.IGuiListEntry
-    {
+    public class KeyEntry implements GuiListExtended.IGuiListEntry {
         private final KeyBinding keybinding;
         private final String keyDesc;
         private final GuiButtonAltSet btnChangeKeyBinding;
@@ -549,8 +511,7 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
         public boolean IsModKeyBind = false;
         public int Index = 0;
 
-        private KeyEntry(KeyBinding name, int index, boolean IsKeyModBind)
-        {
+        private KeyEntry(KeyBinding name, int index, boolean IsKeyModBind) {
             this.keybinding = name;
             this.Index = index;
             this.keyDesc = I18n.format(name.getKeyDescription());
@@ -559,8 +520,7 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
             this.IsModKeyBind = IsKeyModBind;
         }
 
-        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks)
-        {
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks) {
             boolean flag = GuiKeyBindingListAltSet.this.controlsScreen.buttonId == this.keybinding;
             GuiKeyBindingListAltSet.this.mc.fontRenderer.drawString(this.keyDesc, x + 90 - GuiKeyBindingListAltSet.this.maxListLabelWidth, y + slotHeight / 2 - GuiKeyBindingListAltSet.this.mc.fontRenderer.FONT_HEIGHT / 2, 16777215);
             this.btnReset.x = x + 210;
@@ -573,9 +533,8 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
             boolean flag1 = false;
             boolean keyCodeModifierConflict = true; // less severe form of conflict, like SHIFT conflicting with SHIFT+G
 
-            if (this.keybinding.getKeyCode() != 0)
-            {
-                if(IsModKeyBind) {
+            if (this.keybinding.getKeyCode() != 0) {
+                if (IsModKeyBind) {
                     for (KeyBinding keybinding : ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).ModRegisteredBinding()) {
                         if (keybinding != this.keybinding && keybinding.conflicts(this.keybinding)) {
                             flag1 = true;
@@ -592,35 +551,28 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
                 }
             }
 
-            if (flag)
-            {
+            if (flag) {
                 this.btnChangeKeyBinding.displayString = TextFormatting.WHITE + "> " + TextFormatting.YELLOW + this.btnChangeKeyBinding.displayString + TextFormatting.WHITE + " <";
-            }
-            else if (flag1)
-            {
+            } else if (flag1) {
                 this.btnChangeKeyBinding.displayString = (keyCodeModifierConflict ? TextFormatting.GOLD : TextFormatting.RED) + this.btnChangeKeyBinding.displayString;
             }
 
             this.btnChangeKeyBinding.drawButtonFix(GuiKeyBindingListAltSet.this.mc, mouseX, mouseY, partialTicks, ButtonGuiControlIn);
         }
 
-        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY)
-        {
-            if (this.btnChangeKeyBinding.mousePressed(GuiKeyBindingListAltSet.this.mc, mouseX, mouseY))
-            {
+        public boolean mousePressed(int slotIndex, int mouseX, int mouseY, int mouseEvent, int relativeX, int relativeY) {
+            if (this.btnChangeKeyBinding.mousePressed(GuiKeyBindingListAltSet.this.mc, mouseX, mouseY)) {
                 this.btnChangeKeyBinding.playPressSound(mc.getSoundHandler());
-                if(this.IsModKeyBind)
-                    ((GuiControlsGetter)GuiKeyBindingListAltSet.this.controlsScreen).SetIndex(this.Index);
+                if (this.IsModKeyBind)
+                    ((GuiControlsGetter) GuiKeyBindingListAltSet.this.controlsScreen).SetIndex(this.Index);
                 GuiKeyBindingListAltSet.this.controlsScreen.buttonId = this.keybinding;
                 return true;
-            }
-            else if (this.btnReset.mousePressed(GuiKeyBindingListAltSet.this.mc, mouseX, mouseY))
-            {
+            } else if (this.btnReset.mousePressed(GuiKeyBindingListAltSet.this.mc, mouseX, mouseY)) {
                 this.btnReset.playPressSound(mc.getSoundHandler());
                 this.keybinding.setToDefault();
                 GuiKeyBindingListAltSet.this.mc.gameSettings.setOptionKeyBinding(this.keybinding, this.keybinding.getKeyCodeDefault());
 
-                if(!GuiKeyBindingListAltSet.this.getIsVanilla()) {
+                if (!GuiKeyBindingListAltSet.this.getIsVanilla()) {
                     int D = ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).getPatternID();
                     ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).setPatternID(GuiKeyBindingListAltSet.this.Pattern);
                     ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).SetKeyBindingRegister(new KeyBindingRegister(this.keybinding.getKeyDescription(), this.keybinding.getKeyCode(), this.keybinding.getKeyCategory(), this.keybinding.getKeyModifier()), this.Index);
@@ -629,21 +581,17 @@ public class GuiKeyBindingListAltSet extends GuiListExtended
 
                 KeyBinding.resetKeyBindingArrayAndHash();
                 return true;
-            }
-            else
-            {
+            } else {
                 return false;
             }
         }
 
-        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY)
-        {
+        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY) {
             this.btnChangeKeyBinding.mouseReleased(x, y);
             this.btnReset.mouseReleased(x, y);
         }
 
-        public void updatePosition(int slotIndex, int x, int y, float partialTicks)
-        {
+        public void updatePosition(int slotIndex, int x, int y, float partialTicks) {
         }
     }
 }

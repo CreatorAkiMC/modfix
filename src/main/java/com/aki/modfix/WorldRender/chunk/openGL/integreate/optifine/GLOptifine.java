@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 
 public class GLOptifine {
     public static final boolean OPTIFINE_INSIDE;
+
     static {
         boolean flag = false;
         try {

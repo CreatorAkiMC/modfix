@@ -1,6 +1,6 @@
 /**
  * Thank you Meldexun.
- * */
+ */
 package com.aki.modfix.WorldRender.chunk.openGL.renderers;
 
 import com.aki.mcutils.APICore.Utils.math.MathHelper;
@@ -56,7 +56,7 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     public RTList<Integer> SyncList;
 
     public ChunkRendererBase() {
-        if(this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
+        if (this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
             program = getProgram();
 
         //SyncListのように実装
@@ -67,12 +67,10 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
 
     public ShaderProgram getProgram() {
         ShaderProgram Cprogram = new ShaderProgram();
-        try
-        {
+        try {
             Cprogram.attachShader(new ShaderObject(ShaderObject.ShaderType.VERTEX, ShaderHelper.readShader(ShaderHelper.getStream("/assets/modfix/shaders/ChunkGL_v.glsl"))));
             Cprogram.attachShader(new ShaderObject(ShaderObject.ShaderType.FRAGMENT, ShaderHelper.readShader(ShaderHelper.getStream("/assets/modfix/shaders/ChunkGL_f.glsl"))));
-        } catch(IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -85,14 +83,14 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         try {
             RenderHelper.disableStandardItemLighting();
             Minecraft.getMinecraft().entityRenderer.enableLightmap();
-            if(this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
+            if (this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
                 program.useShader(cache -> {
                     //マッピング用
                     cache.glUniform1I("u_BlockTex", 0);
                     cache.glUniform1I("u_LightTex", 1);
                 });
             this.RenderChunks(pass);
-            if(this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
+            if (this.getRenderEngine() != RenderEngineType.GL15 && this.getRenderEngine() != RenderEngineType.O_GL15)
                 program.releaseShader();
 
         } catch (Exception e) {
@@ -224,12 +222,12 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         this.VaoBuffers.forEach((index, map) -> map.values().forEach(GLMutableArrayBuffer::delete));
         this.DynamicBuffers.values().forEach(GlDynamicVBO::Delete);
 
-        if(program != null)
+        if (program != null)
             program.Delete();
 
-        if(this.CommandBuffers != null)
+        if (this.CommandBuffers != null)
             this.CommandBuffers.forEach((index, map) -> map.values().forEach(GlCommandBuffer::delete));
-        if(this.OffsetBuffers != null)
+        if (this.OffsetBuffers != null)
             this.OffsetBuffers.forEach((index, map) -> map.values().forEach(GlVertexOffsetBuffer::delete));
 
         this.SyncList.getList().stream().filter(i -> i != -1).forEach(GL15::glDeleteQueries);

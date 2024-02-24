@@ -6,16 +6,12 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 
 public class GuiButtonAltSet extends GuiButton {
-    public GuiButtonAltSet(int buttonId, int x, int y, String buttonText)
-    {
+    public GuiButtonAltSet(int buttonId, int x, int y, String buttonText) {
         this(buttonId, x, y, 200, 20, buttonText);
     }
 
-    public GuiButtonAltSet(int buttonId, int x, int y, int widthIn, int heightIn, String buttonText)
-    {
+    public GuiButtonAltSet(int buttonId, int x, int y, int widthIn, int heightIn, String buttonText) {
         super(buttonId, x, y, widthIn, heightIn, buttonText);
-        this.width = 200;
-        this.height = 20;
         this.enabled = true;
         this.visible = true;
         this.id = buttonId;
@@ -26,10 +22,8 @@ public class GuiButtonAltSet extends GuiButton {
         this.displayString = buttonText;
     }
 
-    public void drawButtonFix(Minecraft mc, int mouseX, int mouseY, float partialTicksm, boolean NoTouch)
-    {
-        if (this.visible)
-        {
+    public void drawButtonFix(Minecraft mc, int mouseX, int mouseY, float partialTicksm, boolean NoTouch) {
+        if (this.visible) {
             FontRenderer fontrenderer = mc.fontRenderer;
             mc.getTextureManager().bindTexture(BUTTON_TEXTURES);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -44,17 +38,11 @@ public class GuiButtonAltSet extends GuiButton {
             this.mouseDragged(mc, mouseX, mouseY);
             int j = 14737632;
 
-            if (packedFGColour != 0)
-            {
+            if (packedFGColour != 0) {
                 j = packedFGColour;
-            }
-            else
-            if (!this.enabled)
-            {
+            } else if (!this.enabled) {
                 j = 10526880;
-            }
-            else if (this.hovered)
-            {
+            } else if (this.hovered) {
                 j = 16777120;
             }
 

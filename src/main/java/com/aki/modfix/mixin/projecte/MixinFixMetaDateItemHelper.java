@@ -17,7 +17,7 @@ public class MixinFixMetaDateItemHelper {
         NonNullList<ItemStack> stacks = NonNullList.create();
         stack1.getItem().getSubItems(CreativeTabs.SEARCH, stacks);
         //cir.setReturnValue(stack1.getItem() == stack2.getItem() && stack1.getItemDamage() == stack2.getItemDamage());
-        if(stack1.getItem() == stack2.getItem() && stack1.getItemDamage() == stack2.getItemDamage() && (stack1.getMetadata() == stack2.getMetadata())) {
+        if (stack1.getItem() == stack2.getItem() && stack1.getItemDamage() == stack2.getItemDamage() && (stack1.getMetadata() == stack2.getMetadata())) {
             cir.setReturnValue(true);
         } else {
             for (ItemStack stack : stacks) {

@@ -9,10 +9,12 @@ import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 @Mixin(CPacketCustomPayload.class)
-public class MixinCPacketCustomPayload{
-    @Shadow private String channel;
+public class MixinCPacketCustomPayload {
+    @Shadow
+    private String channel;
 
-    @Shadow private PacketBuffer data;
+    @Shadow
+    private PacketBuffer data;
 
     @ModifyConstant(method = {"<init>()V", "readPacketData"}, constant = @Constant(intValue = 32767))
     public int ChangeSizeInit(int constant) {

@@ -14,10 +14,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Mixin(Random.class)
 public abstract class MixinRandomFix {
-    @Shadow @Final private AtomicLong seed;
+    @Shadow
+    @Final
+    private AtomicLong seed;
 
-    @Shadow @Final private static long multiplier;
-    @Shadow @Final private static long mask;
+    @Shadow
+    @Final
+    private static long multiplier;
+    @Shadow
+    @Final
+    private static long mask;
     public XoRoShiRoRandom roShiRoRandom = new XoRoShiRoRandom();
 
     @Inject(method = "<init>(J)V", at = @At("RETURN"), remap = false)

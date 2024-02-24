@@ -5,7 +5,7 @@ import net.minecraft.util.math.BlockPos;
 @Deprecated
 public class LightingData {
     private final BlockPos LightSourcePos;
-    private double LightLevel;
+    private final double LightLevel;
 
     public LightingData(BlockPos Source, double lightLevel) {
         this.LightSourcePos = Source;

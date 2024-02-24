@@ -16,7 +16,9 @@ import java.util.Map;
 @Mixin(NBTTagCompound.class)
 public abstract class MixinNBTTagCompound {
     @Mutable
-    @Shadow @Final private Map<String, NBTBase> tagMap;
+    @Shadow
+    @Final
+    private Map<String, NBTBase> tagMap;
 
     @Inject(method = "<init>", at = @At(value = "RETURN"))
     public void UseFastMap(CallbackInfo ci) {

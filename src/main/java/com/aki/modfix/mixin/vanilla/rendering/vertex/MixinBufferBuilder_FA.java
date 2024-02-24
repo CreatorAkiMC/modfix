@@ -20,29 +20,41 @@ import java.nio.IntBuffer;
 
 @Mixin(value = BufferBuilder.class, priority = Modfix.ModPriority)
 public abstract class MixinBufferBuilder_FA implements ExtendedBufferBuilder {
-    @Shadow private VertexFormat vertexFormat;
+    @Shadow
+    private VertexFormat vertexFormat;
 
-    @Shadow private int vertexCount;
+    @Shadow
+    private int vertexCount;
 
-    @Shadow private VertexFormatElement vertexFormatElement;
+    @Shadow
+    private VertexFormatElement vertexFormatElement;
 
-    @Shadow private int vertexFormatIndex;
+    @Shadow
+    private int vertexFormatIndex;
 
-    @Shadow private boolean noColor;
+    @Shadow
+    private boolean noColor;
 
-    @Shadow private IntBuffer rawIntBuffer;
+    @Shadow
+    private IntBuffer rawIntBuffer;
 
-    @Shadow protected abstract int getBufferSize();
+    @Shadow
+    protected abstract int getBufferSize();
 
-    @Shadow private FloatBuffer rawFloatBuffer;
+    @Shadow
+    private FloatBuffer rawFloatBuffer;
 
-    @Shadow private double xOffset;
+    @Shadow
+    private double xOffset;
 
-    @Shadow private double yOffset;
+    @Shadow
+    private double yOffset;
 
-    @Shadow private double zOffset;
+    @Shadow
+    private double zOffset;
 
-    @Shadow private ByteBuffer byteBuffer;
+    @Shadow
+    private ByteBuffer byteBuffer;
     @Unique
     private long address;
 

@@ -17,7 +17,7 @@ import java.util.Objects;
 
 /**
  * BlockRenderDispatcher で取得した BufferBuilder をもとに描画する。
- * */
+ */
 public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
     /**
      * Bufferのデータマッピング
@@ -28,16 +28,17 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
      *         BLOCK.addElement(TEX_2S); -> LIGHTCOORD
      * */
 
-    /**Bufferの構造 (VboRenderList - setupArrayPointers 参照)
-     *          //Index 0 ~ 11 (Vec3 4頂点) までが
-     *          GL20.glVertexAttribPointer(shader.getAttribute(A_POS), 3, GL11.GL_FLOAT, false, 28, 0);
-     *          //Index 12 ~ 15 (Vec4 色 1個)
-     * 			GL20.glVertexAttribPointer(shader.getAttribute(A_COLOR), 4, GL11.GL_UNSIGNED_BYTE, true, 28, 12);
-     * 		    //Index 16 ~ 23 (Vec2 テクスチャの座標 2個)
-     * 			GL20.glVertexAttribPointer(shader.getAttribute(A_TEXCOORD), 2, GL11.GL_FLOAT, false, 28, 16);
-     * 		    //Index 24 ~ 27 (Vec2 光の座標 2個)
-     * 			GL20.glVertexAttribPointer(shader.getAttribute(A_LIGHTCOORD), 2, GL11.GL_SHORT, false, 28, 24);
-     * */
+    /**
+     * Bufferの構造 (VboRenderList - setupArrayPointers 参照)
+     * //Index 0 ~ 11 (Vec3 4頂点) までが
+     * GL20.glVertexAttribPointer(shader.getAttribute(A_POS), 3, GL11.GL_FLOAT, false, 28, 0);
+     * //Index 12 ~ 15 (Vec4 色 1個)
+     * GL20.glVertexAttribPointer(shader.getAttribute(A_COLOR), 4, GL11.GL_UNSIGNED_BYTE, true, 28, 12);
+     * //Index 16 ~ 23 (Vec2 テクスチャの座標 2個)
+     * GL20.glVertexAttribPointer(shader.getAttribute(A_TEXCOORD), 2, GL11.GL_FLOAT, false, 28, 16);
+     * //Index 24 ~ 27 (Vec2 光の座標 2個)
+     * GL20.glVertexAttribPointer(shader.getAttribute(A_LIGHTCOORD), 2, GL11.GL_SHORT, false, 28, 24);
+     */
     public ChunkRendererGL43() {
         super();
     }
@@ -50,7 +51,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
     @Override
     public void Init(int distance) {
         int PD = distance * 2 + 1;
-        int dist3 = (int)Math.pow(PD, 3);
+        int dist3 = (int) Math.pow(PD, 3);
 
         this.CommandBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
         this.OffsetBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
@@ -108,7 +109,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
     /**
      * RenderGlobal SetupTerrain でする
-     * */
+     */
     @Override
     public void SetUP(ChunkRenderProvider<ChunkRender> provider, double cameraX, double cameraY, double cameraZ, Frustum frustum, int Frame) {
         super.SetUP(provider, cameraX, cameraY, cameraZ, frustum, Frame);
@@ -130,7 +131,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
             }
 
             this.RenderChunks.forEach((pass, list) -> {
-                ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT,(chunkRender, index) -> {
+                ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT, (chunkRender, index) -> {
                     this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
                     GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
 

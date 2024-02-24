@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * BufferBuilder など
  * 透過タスクの実行も
- * */
+ */
 public class ChunkRender {
     //private RegionRenderCacheBuilder VBOs = null;
     private final LinkedHashMap<ChunkRenderPass, GlDynamicVBO.VBOPart> VBOs = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> null);
@@ -49,7 +49,7 @@ public class ChunkRender {
     }
 
     public boolean setCoord(int SectionX, int SectionY, int SectionZ) {
-        if(pos.getX() != SectionX || pos.getY() != SectionY || pos.getZ() != SectionZ) {
+        if (pos.getX() != SectionX || pos.getY() != SectionY || pos.getZ() != SectionZ) {
             this.pos = SectionPos.of(SectionX, SectionY, SectionZ);
             this.Delete();
             this.markDirty();
@@ -154,15 +154,15 @@ public class ChunkRender {
 
     public void setVBO(ChunkRenderPass pass, @Nullable GlDynamicVBO.VBOPart SetVBO) {
         GlDynamicVBO.VBOPart vboPart = this.VBOs.get(pass);
-        if(vboPart != null)
+        if (vboPart != null)
             vboPart.free();
         this.VBOs.replace(pass, SetVBO);
 
-        if(SetVBO != null)
+        if (SetVBO != null)
             EmptyCount |= 1 << pass.ordinal();
         else EmptyCount &= ~(1 << pass.ordinal());
 
-        if(pass == ChunkRenderPass.TRANSLUCENT)
+        if (pass == ChunkRenderPass.TRANSLUCENT)
             this.setTranslucentVertexData(null);
     }
 
@@ -203,11 +203,11 @@ public class ChunkRender {
 
     /**
      * タスクの .cancel(); = null; などを実行
-     * */
+     */
     public void Delete() {
         this.deleteTask();
         Arrays.stream(ChunkRenderPass.ALL).forEach(i -> {
-            if(this.VBOs.get(i) != null) {
+            if (this.VBOs.get(i) != null) {
                 this.VBOs.get(i).free();
             }
             this.VBOs.replace(i, null);

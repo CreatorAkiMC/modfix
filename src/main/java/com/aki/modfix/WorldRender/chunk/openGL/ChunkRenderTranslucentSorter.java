@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL15;
 /**
  * Translucent(透過)とSolid(不透過)の順番を入れ替える。
  * (透過が最後に来るように位置で入れ替える)
- * */
+ */
 public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRenderTaskBase<T> {
 
     private final GlDynamicVBO.VBOPart vboPart;
@@ -28,11 +28,11 @@ public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRe
 
     public ChunkRenderTaskResult run() {
         Entity renderViewEntity = Minecraft.getMinecraft().getRenderViewEntity();
-        if(this.getCancel() || !this.vboPart.isValid() || renderViewEntity == null)
+        if (this.getCancel() || !this.vboPart.isValid() || renderViewEntity == null)
             return ChunkRenderTaskResult.CANCELLED;
 
         Vec3d camera = renderViewEntity.getPositionEyes(1.0f);
-        SortVertexUtil.sortVertexData(vertexData, vboPart.getVertexCount(), DefaultVertexFormats.BLOCK.getSize(), 4, (float)(chunkRender.getX() - camera.x), (float)(chunkRender.getY() - camera.y), (float)(chunkRender.getZ() - camera.z));
+        SortVertexUtil.sortVertexData(vertexData, vboPart.getVertexCount(), DefaultVertexFormats.BLOCK.getSize(), 4, (float) (chunkRender.getX() - camera.x), (float) (chunkRender.getY() - camera.y), (float) (chunkRender.getZ() - camera.z));
 
         dispatcher.runOnRenderThread(() -> {
             if (!this.getCancel() && vboPart.isValid()) {

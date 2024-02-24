@@ -12,9 +12,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EnumFacing.class)
 public class MixinEnumFacing {
-    @Shadow @Final public static EnumFacing[] VALUES;
+    @Shadow
+    @Final
+    public static EnumFacing[] VALUES;
 
-    @Shadow @Final private int opposite;
+    @Shadow
+    @Final
+    private int opposite;
 
     private int offsetX, offsetY, offsetZ;
 
@@ -30,8 +34,7 @@ public class MixinEnumFacing {
      * @reason
      */
     @Overwrite
-    public EnumFacing getOpposite()
-    {
+    public EnumFacing getOpposite() {
         return VALUES[this.opposite];
     }
 

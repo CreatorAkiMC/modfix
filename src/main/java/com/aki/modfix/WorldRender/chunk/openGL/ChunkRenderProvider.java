@@ -35,19 +35,19 @@ public class ChunkRenderProvider<T extends ChunkRender> {
                     ChunkRender chunkRender = new ChunkRender(x, y, z);
                     this.chunkRenders[getChunkIndex(x, y, z)] = chunkRender;
 
-                    if(x > 0) {
+                    if (x > 0) {
                         T neighbor = this.getRenderChunkAtUnchecked(x - 1, y, z);
                         chunkRender.setNeighbor(EnumFacing.WEST, neighbor);
                         neighbor.setNeighbor(EnumFacing.EAST, chunkRender);
                     }
 
-                    if(y > 0) {
+                    if (y > 0) {
                         T neighbor = this.getRenderChunkAtUnchecked(x, y - 1, z);
                         chunkRender.setNeighbor(EnumFacing.DOWN, neighbor);
                         neighbor.setNeighbor(EnumFacing.UP, chunkRender);
                     }
 
-                    if(z > 0) {
+                    if (z > 0) {
                         T neighbor = this.getRenderChunkAtUnchecked(x, y, z - 1);
                         chunkRender.setNeighbor(EnumFacing.NORTH, neighbor);
                         neighbor.setNeighbor(EnumFacing.SOUTH, chunkRender);
@@ -250,7 +250,7 @@ public class ChunkRenderProvider<T extends ChunkRender> {
 
     @SuppressWarnings("unchecked")
     private T getRenderChunkAtUnchecked(int chunkX, int chunkY, int chunkZ) {
-        return (T)this.chunkRenders[this.getChunkIndex(chunkX, chunkY, chunkZ)];
+        return (T) this.chunkRenders[this.getChunkIndex(chunkX, chunkY, chunkZ)];
     }
 
     @SuppressWarnings("unchecked")

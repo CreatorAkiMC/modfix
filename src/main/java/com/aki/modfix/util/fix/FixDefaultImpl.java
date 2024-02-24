@@ -14,7 +14,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
@@ -89,7 +88,7 @@ public class FixDefaultImpl implements IKnowledgeProvider {
             //int oldSize = this.knowledge.size();
 
             Stream<ItemStack> stream = this.knowledge.stream().parallel();
-            int CompSize = (int)stream.filter((stack1) -> ItemHelper.basicAreStacksEqual(stack1, stack)).count();
+            int CompSize = (int) stream.filter((stack1) -> ItemHelper.basicAreStacksEqual(stack1, stack)).count();
 
             return CompSize > 0;
         }
@@ -112,7 +111,7 @@ public class FixDefaultImpl implements IKnowledgeProvider {
 
                 long time = System.currentTimeMillis();
 
-                if(Objects.requireNonNull(stack.getItem().getRegistryName()).getNamespace().toLowerCase(Locale.ROOT).equals("extrautils2") && Loader.isModLoaded("extrautils2")) {
+                if (Objects.requireNonNull(stack.getItem().getRegistryName()).getNamespace().toLowerCase(Locale.ROOT).equals("extrautils2") && Loader.isModLoaded("extrautils2")) {
                     (new ExtraUtils2AddKnowledge()).addKnowledge(this, stack);
                 } else {
 
@@ -151,10 +150,10 @@ public class FixDefaultImpl implements IKnowledgeProvider {
         if (this.fullKnowledge) {
             return false;
         } else {
-            Iterator iter = this.knowledge.iterator();
+            Iterator<ItemStack> iter = this.knowledge.iterator();
 
-            while(iter.hasNext()) {
-                if (ItemHelper.basicAreStacksEqual(stack, (ItemStack)iter.next())) {
+            while (iter.hasNext()) {
+                if (ItemHelper.basicAreStacksEqual(stack, iter.next())) {
                     iter.remove();
                     removed = true;
                 }
@@ -194,16 +193,14 @@ public class FixDefaultImpl implements IKnowledgeProvider {
         NBTTagCompound properties = new NBTTagCompound();
         properties.setLong("transmutationEmc", this.emc);
         NBTTagList knowledgeWrite = new NBTTagList();
-        Iterator var3 = this.knowledge.iterator();
 
-        while(var3.hasNext()) {
-            ItemStack i = (ItemStack)var3.next();
+        for (ItemStack i : this.knowledge) {
             NBTTagCompound tag = i.writeToNBT(new NBTTagCompound());
             knowledgeWrite.appendTag(tag);
         }
 
         properties.setTag("knowledge", knowledgeWrite);
-        properties.setTag("inputlock", Objects.requireNonNull(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.writeNBT(this.inputLocks, (EnumFacing) null)));
+        properties.setTag("inputlock", Objects.requireNonNull(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.writeNBT(this.inputLocks, null)));
         properties.setBoolean("fullknowledge", this.fullKnowledge);
         return properties;
     }
@@ -213,7 +210,7 @@ public class FixDefaultImpl implements IKnowledgeProvider {
         NBTTagList list = properties.getTagList("knowledge", 10);
 
         int i;
-        for(i = 0; i < list.tagCount(); ++i) {
+        for (i = 0; i < list.tagCount(); ++i) {
             ItemStack item = new ItemStack(list.getCompoundTagAt(i));
             if (!item.isEmpty()) {
                 this.knowledge.add(item);
@@ -223,21 +220,19 @@ public class FixDefaultImpl implements IKnowledgeProvider {
         this.pruneStaleKnowledge();
         this.pruneDuplicateKnowledge();
 
-        for(i = 0; i < this.inputLocks.getSlots(); ++i) {
+        for (i = 0; i < this.inputLocks.getSlots(); ++i) {
             this.inputLocks.setStackInSlot(i, ItemStack.EMPTY);
         }
 
-        CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.readNBT(this.inputLocks, (EnumFacing)null, properties.getTagList("inputlock", 10));
+        CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.readNBT(this.inputLocks, null, properties.getTagList("inputlock", 10));
         this.fullKnowledge = properties.getBoolean("fullknowledge");
     }
 
     private void pruneDuplicateKnowledge() {
         ItemHelper.removeEmptyTags(this.knowledge);
         ItemHelper.compactItemListNoStacksize(this.knowledge);
-        Iterator var1 = this.knowledge.iterator();
 
-        while(var1.hasNext()) {
-            ItemStack s = (ItemStack)var1.next();
+        for (ItemStack s : this.knowledge) {
             if (s.getCount() > 1) {
                 s.setCount(1);
             }
@@ -246,8 +241,6 @@ public class FixDefaultImpl implements IKnowledgeProvider {
     }
 
     private void pruneStaleKnowledge() {
-        this.knowledge.removeIf((stack) -> {
-            return !EMCHelper.doesItemHaveEmc(stack);
-        });
+        this.knowledge.removeIf((stack) -> !EMCHelper.doesItemHaveEmc(stack));
     }
 }

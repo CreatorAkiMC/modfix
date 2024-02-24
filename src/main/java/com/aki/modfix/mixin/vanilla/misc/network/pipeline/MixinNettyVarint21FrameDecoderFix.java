@@ -23,8 +23,7 @@ public class MixinNettyVarint21FrameDecoderFix {
      * @reason Replace Method Light Cpu Calculate Cycle.
      */
     @Overwrite
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception
-    {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         if (!ctx.channel().isActive()) {
             in.clear();
             return;

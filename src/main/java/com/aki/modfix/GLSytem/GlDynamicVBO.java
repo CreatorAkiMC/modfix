@@ -1,8 +1,8 @@
 package com.aki.modfix.GLSytem;
 
 /*
-* Thank you Meldexum
-* */
+ * Thank you Meldexum
+ * */
 
 import com.aki.mcutils.APICore.Utils.render.GLHelper;
 import com.aki.mcutils.APICore.Utils.render.GlObject;
@@ -62,7 +62,7 @@ public class GlDynamicVBO extends GlObject {
      * (0)0, (2)1, (3)2, (4)3, (5)4.... (消滅)消滅-1 * SectorMax
      * (0)0, (2)1, (4)2, (5)3, (6)4.... (消滅)消滅-1 * SectorMax
      * オリジナル(X)と補完用Index()Xなどで位置を特定
-     * */
+     */
 
     public VBOPart Buf_Upload(ChunkRender render, ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
         int size = buffer.limit();
@@ -121,7 +121,7 @@ public class GlDynamicVBO extends GlObject {
         }
 
         public void free() {
-            if(valid) {
+            if (valid) {
                 GlDynamicVBO.this.FreeSector(this.sector);
                 valid = false;
             }

@@ -4,7 +4,8 @@ public class TickBalanceStorage {
     private long Time = 0L;
     private int StopTickCycle = 0;
 
-    public TickBalanceStorage() {}
+    public TickBalanceStorage() {
+    }
 
     public void setTime(long time) {
         Time = time;

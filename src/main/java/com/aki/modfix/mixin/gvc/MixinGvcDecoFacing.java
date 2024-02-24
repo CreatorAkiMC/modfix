@@ -1,5 +1,6 @@
 package com.aki.modfix.mixin.gvc;
 
+import gvcr2.block.Block_GVC_DecoFacingBlock;
 import gvcr2.block.tile.TileEntity_GVC_DecoFacingBlock;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
@@ -14,9 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @Mixin(value = TileEntity_GVC_DecoFacingBlock.class, remap = false)
 public class MixinGvcDecoFacing extends TileEntity {
-    @Shadow(remap = false) public int facing;
+    @Shadow(remap = false)
+    public int facing;
 
-    @Shadow(remap = false) public int id;
+    @Shadow(remap = false)
+    public int id;
 
     @Inject(method = "update", at = @At("HEAD"), remap = false, cancellable = true, require = 1)
     public void updateFix(CallbackInfo ci) {
@@ -24,18 +27,18 @@ public class MixinGvcDecoFacing extends TileEntity {
             Block block = this.world.getBlockState(this.pos).getBlock();
 
             int x = this.pos.getX();
-            int y= this.pos.getY();
+            int y = this.pos.getY();
             int z = this.pos.getZ();
-            if(this.world.getBlockState(pos).getBlock() instanceof gvcr2.block.Block_GVC_DecoFacingBlock) {
+            if (this.world.getBlockState(pos).getBlock() instanceof gvcr2.block.Block_GVC_DecoFacingBlock) {
                 gvcr2.block.Block_GVC_DecoFacingBlock gubcrafter = (gvcr2.block.Block_GVC_DecoFacingBlock) this.world.getBlockState(pos).getBlock();
-                EnumFacing enumfacing = (EnumFacing)this.world.getBlockState(pos).getValue(gubcrafter.FACING);
-                if(enumfacing == EnumFacing.SOUTH) {
+                EnumFacing enumfacing = this.world.getBlockState(pos).getValue(Block_GVC_DecoFacingBlock.FACING);
+                if (enumfacing == EnumFacing.SOUTH) {
                     facing = 1;
-                }else if(enumfacing == EnumFacing.WEST) {
+                } else if (enumfacing == EnumFacing.WEST) {
                     facing = 2;
-                }else if(enumfacing == EnumFacing.EAST) {
+                } else if (enumfacing == EnumFacing.EAST) {
                     facing = 3;
-                }else {
+                } else {
                     facing = 0;
                 }
                 this.id = gubcrafter.id;
