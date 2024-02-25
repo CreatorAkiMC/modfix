@@ -16,11 +16,15 @@ public interface GameSettingsExtended {
     void SetModRegisteredBinding(KeyBinding[] ModCustomKeyBinding);
 
     /**
-     * 1 ~ 9 まで
+     * 0 ~ 8 まで
      */
     int getPatternID();
 
     void setPatternID(int Id);
+
+    //切り替えはしない。
+    //読み取り専用
+    KeyBinding[] getPatternKeyBindings(int id);
 
     void SetKeyBindingRegister(KeyBindingRegister register, int index);
 

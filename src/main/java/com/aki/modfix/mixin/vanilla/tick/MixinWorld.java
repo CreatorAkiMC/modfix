@@ -353,11 +353,10 @@ public abstract class MixinWorld implements IBlockAccess {
         if (this.RunCount > 0) {
             long speed = Modfix.OneTickNanoBase / this.RunCount;
             int count = (int) (sum.get() / speed);
-
             for (Map.Entry<BlockPos, TickBalanceStorage> entry : slowlyTickTile.entrySet()) {
                 TickBalanceStorage balanceStorage = entry.getValue();
                 //重いものほどTickを遅らせる(遅延させる)
-                int LateCycle = (int) (balanceStorage.getTime() / sum.get() * count);
+                int LateCycle = (int) ((balanceStorage.getTime() / sum.get()) * count * 2);
                 MaxLateCycle = Math.max(MaxLateCycle, LateCycle);
                 balanceStorage.setStopTickCycle(LateCycle);
                 this.TickTimeHash.replace(entry.getKey(), balanceStorage);

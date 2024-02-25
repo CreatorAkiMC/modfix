@@ -200,6 +200,4 @@ public class MixinGuiControls extends GuiScreen implements GuiControlsGetter {
     public void SetIndex(int Index) {
         this.Index = Index;
     }
-
-
 }

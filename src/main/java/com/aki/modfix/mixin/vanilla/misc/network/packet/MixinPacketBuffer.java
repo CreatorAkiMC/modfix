@@ -1,15 +1,24 @@
 package com.aki.modfix.mixin.vanilla.misc.network.packet;
 
 import com.aki.modfix.util.fix.network.NetworkUtils;
+import com.aki.modfix.util.fix.network.PacketSizeUtil;
 import com.aki.modfix.util.math.VarIntUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.EncoderException;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTSizeTracker;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -22,6 +31,8 @@ public abstract class MixinPacketBuffer extends ByteBuf {
     @Shadow
     public abstract int writeCharSequence(CharSequence p_writeCharSequence_1_, Charset p_writeCharSequence_2_);
 
+    @Shadow public abstract String readString(int maxLength);
+
     /**
      * @author Aki
      * @reason Replace getVarIntSize
@@ -33,6 +44,56 @@ public abstract class MixinPacketBuffer extends ByteBuf {
 
     /**
      * @author Aki
+     * @reason Change Max PacketSize
+     */
+    @Overwrite
+    public ITextComponent readTextComponent() throws IOException
+    {
+        return ITextComponent.Serializer.jsonToComponent(this.readString(PacketSizeUtil.PacketSize));
+    }
+
+    /**
+     * @author Aki
+     * @reason Change Max PacketSize
+     */
+    @Overwrite
+    public ResourceLocation readResourceLocation()
+    {
+        return new ResourceLocation(this.readString(PacketSizeUtil.PacketSize));
+    }
+
+    /**
+     * @author Aki
+     * @reason Change Max PacketSize
+     */
+    @Overwrite
+    @Nullable
+    public NBTTagCompound readCompoundTag() throws IOException
+    {
+        int i = this.readerIndex();
+        byte b0 = this.readByte();
+
+        if (b0 == 0)
+        {
+            return null;
+        }
+        else
+        {
+            this.readerIndex(i);
+
+            try
+            {
+                return CompressedStreamTools.read(new ByteBufInputStream(this), new NBTSizeTracker(PacketSizeUtil.ReadNBTSize));
+            }
+            catch (IOException ioexception)
+            {
+                throw new EncoderException(ioexception);
+            }
+        }
+    }
+
+    /**
+     * @author Aki
      * @reason Replace WriteString
      */
     @Overwrite
@@ -40,8 +101,8 @@ public abstract class MixinPacketBuffer extends ByteBuf {
         //byte[] abyte = string.getBytes(StandardCharsets.UTF_8);
         int utf8bytes = NetworkUtils.utf8Bytes(string);
 
-        if (utf8bytes > 32767) {
-            throw new EncoderException("String too big (was " + utf8bytes + " bytes encoded, max " + 32767 + ")");
+        if (utf8bytes > PacketSizeUtil.PacketSize) {
+            throw new EncoderException("String too big (was " + utf8bytes + " bytes encoded, max " + PacketSizeUtil.PacketSize + ")");
         } else {
             this.writeVarInt(utf8bytes);
             this.writeCharSequence(string, StandardCharsets.UTF_8);

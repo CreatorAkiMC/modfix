@@ -13,14 +13,17 @@ import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.settings.IKeyConflictContext;
+import net.minecraftforge.client.settings.KeyBindingMap;
 import net.minecraftforge.client.settings.KeyModifier;
 import org.lwjgl.input.Keyboard;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +31,8 @@ import java.util.stream.Collectors;
 public class MixinKeyBinding {
     @Shadow
     private int keyCode;
+
+    @Shadow @Final private static KeyBindingMap HASH;
 
     @Inject(method = "<init>(Ljava/lang/String;Lnet/minecraftforge/client/settings/IKeyConflictContext;Lnet/minecraftforge/client/settings/KeyModifier;ILjava/lang/String;)V", at = @At("RETURN"))
     public void InitDisableToAlt(String description, IKeyConflictContext keyConflictContext, KeyModifier keyModifier, int keyCode, String category, CallbackInfo ci) {
@@ -59,6 +64,22 @@ public class MixinKeyBinding {
 
                     chat.printChatMessage(new TextComponentString("You chose the key pattern number " + (key - 1)).setStyle(new Style().setItalic(true).setColor(TextFormatting.AQUA)));
                     ci.cancel();
+                }
+            }
+        }
+    }
+
+    @Inject(method = "setKeyBindState", at = @At("HEAD"), cancellable = true)
+    private static void FixSetKeyBindState(int keyCode, boolean pressed, CallbackInfo ci) {
+        Minecraft instance = Minecraft.getMinecraft();
+        int id = ((GameSettingsExtended) instance.gameSettings).getPatternID();
+        List<KeyBinding> keyBindings = Arrays.asList(((GameSettingsExtended) instance.gameSettings).getPatternKeyBindings(id));
+        if (keyCode != 0)
+        {
+            for (KeyBinding keybinding : HASH.lookupAll(keyCode)) {
+                List<KeyBinding> MatchKeyBindings = keyBindings.stream().filter(keyBinding -> keyBinding.getKeyDescription().equals(keybinding.getKeyDescription())).collect(Collectors.toList());
+                if (keybinding != null && (MatchKeyBindings.size() == 0 || MatchKeyBindings.size() == 1 && MatchKeyBindings.get(0).getKeyCode() == keyCode)) {
+                    keybinding.pressed = pressed;
                 }
             }
         }

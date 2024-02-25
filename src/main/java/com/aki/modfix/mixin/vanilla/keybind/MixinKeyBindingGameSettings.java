@@ -917,4 +917,9 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
             this.ModKeyBinding[this.Pattern][i].setKeyModifierAndCode(register.modifier, register.keycode);
         }
     }
+
+    @Override
+    public KeyBinding[] getPatternKeyBindings(int id) {
+        return this.ModKeyBinding[id];
+    }
 }

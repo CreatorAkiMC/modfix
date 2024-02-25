@@ -27,7 +27,6 @@
     "vanilla.misc.network.process_size.MixinCPacketCustomPayload",
     "vanilla.misc.network.process_size.MixinNBTTagCompound",
     "vanilla.misc.network.process_size.MixinNettyCompressionDecoder",
-    "vanilla.misc.network.process_size.MixinPacketBuffer",
     "vanilla.misc.network.process_size.MixinSPacketCustomPayload",
     "vanilla.misc.network.security.MixinClientConnection",
     "vanilla.misc.network.security.MixinServerLoginHandler",
