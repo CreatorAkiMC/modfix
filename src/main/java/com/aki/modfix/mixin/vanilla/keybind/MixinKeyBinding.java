@@ -77,11 +77,14 @@ public class MixinKeyBinding {
         if (keyCode != 0)
         {
             for (KeyBinding keybinding : HASH.lookupAll(keyCode)) {
-                List<KeyBinding> MatchKeyBindings = keyBindings.stream().filter(keyBinding -> keyBinding.getKeyDescription().equals(keybinding.getKeyDescription())).collect(Collectors.toList());
-                if (keybinding != null && (MatchKeyBindings.size() == 0 || MatchKeyBindings.size() == 1 && MatchKeyBindings.get(0).getKeyCode() == keyCode)) {
-                    keybinding.pressed = pressed;
+                if(keybinding != null) {
+                    List<KeyBinding> MatchKeyBindings = keyBindings.stream().filter(keyBinding -> keyBinding.getKeyDescription().equals(keybinding.getKeyDescription())).collect(Collectors.toList());
+                    if ((MatchKeyBindings.size() == 0 || MatchKeyBindings.size() == 1 && MatchKeyBindings.get(0).getKeyCode() == keyCode)) {
+                        keybinding.pressed = pressed;
+                    }
                 }
             }
         }
+        ci.cancel();
     }
 }

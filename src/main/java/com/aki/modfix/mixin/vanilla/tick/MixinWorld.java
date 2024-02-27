@@ -9,12 +9,14 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
@@ -122,6 +124,7 @@ public abstract class MixinWorld implements IBlockAccess {
     @Shadow
     public abstract void tick();
 
+    @Shadow @Final public List<EntityPlayer> playerEntities;
     @Unique
     public Object2ObjectOpenHashMap<BlockPos, TickBalanceStorage> TickTimeHash = new Object2ObjectOpenHashMap<>();
 
@@ -295,10 +298,22 @@ public abstract class MixinWorld implements IBlockAccess {
                                     tileentity.invalidate();
                                     setBlockToAir(tileentity.getPos());
                                     this.removeTileEntity(tileentity.getPos());
-                                    System.out.println("-----ERROR-----");
-                                    System.out.println(" ERROR BlockPos: " + tileentity.getPos());
-                                    System.out.println(" Destroy The Block ");
-                                    System.out.println("------END------");
+
+                                    String[] CrashMessages = new String[] {
+                                            "-----ERROR-----",
+                                            " ERROR BlockPos: " + tileentity.getPos(),
+                                            " The Block was removed by system.",
+                                            "------END------"
+                                    };
+
+                                    for(String message : CrashMessages) {
+                                        System.out.println(message);
+                                    }
+
+                                    for(EntityPlayer player : this.playerEntities) {
+                                        for(String message : CrashMessages)
+                                            player.sendMessage(new TextComponentString(message));
+                                    }
 
                                     ReportedException RE = new ReportedException(crashreport2);
                                     RE.printStackTrace();
@@ -351,12 +366,12 @@ public abstract class MixinWorld implements IBlockAccess {
         this.RunCount -= slowlyTickTile.size();
         int MaxLateCycle = 0;
         if (this.RunCount > 0) {
-            long speed = Modfix.OneTickNanoBase / this.RunCount;
-            int count = (int) (sum.get() / speed);
+            long speed = Modfix.OneTickNanoBase / (long)this.RunCount;
+            int count = (int) ((double)sum.get() / (double)speed);
             for (Map.Entry<BlockPos, TickBalanceStorage> entry : slowlyTickTile.entrySet()) {
                 TickBalanceStorage balanceStorage = entry.getValue();
                 //重いものほどTickを遅らせる(遅延させる)
-                int LateCycle = (int) ((balanceStorage.getTime() / sum.get()) * count * 2);
+                int LateCycle = (int) (((double)balanceStorage.getTime() / (double)sum.get()) * (double)count);
                 MaxLateCycle = Math.max(MaxLateCycle, LateCycle);
                 balanceStorage.setStopTickCycle(LateCycle);
                 this.TickTimeHash.replace(entry.getKey(), balanceStorage);
