@@ -3,7 +3,6 @@ package com.aki.modfix.mixin.vanilla.rendering;
 import com.aki.mcutils.APICore.Utils.GuiDebugHelper;
 import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
-import com.aki.modfix.InformationCollector;
 import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import net.minecraft.client.Minecraft;
@@ -75,9 +74,6 @@ public abstract class MixinRenderGlobal {
         strings.add("  CutOut_Mipped: " + ChunkRenderManager.RenderSections(ChunkRenderPass.CUTOUT_MIPPED) + ", Translucent: " + ChunkRenderManager.RenderSections(ChunkRenderPass.TRANSLUCENT));
         strings.add("  Total: " + ChunkRenderManager.AllPassRenderSize());
         strings.add("  RenderChunks: " + ChunkRenderManager.totalRenderedSections());
-        strings.add("ModFix TileEntity Tick Info (Update every second): ");
-        strings.add("  TickBase: " + Modfix.OneTickNanoBase + "ns, " + "OneTickTime: " + InformationCollector.getOneTickTime() + ", LateTickTime: " + InformationCollector.getLateTime());
-        strings.add("  LateTileEntities: " + InformationCollector.getLateTileEntities() + ", MaxLateCycle: " + InformationCollector.getMaxLateCycle());
         this.modFix$StringListIndex = GuiDebugHelper.ReplaceDebugStringList(this.modFix$StringListIndex >= 0 ? modfix$OldstringList : strings, strings);
         modfix$OldstringList = new LinkedList<>(strings);
         info.setReturnValue("C: 0/0 (s) D: 0, L: 0, pC: 0, pU: 0, aB: 0");

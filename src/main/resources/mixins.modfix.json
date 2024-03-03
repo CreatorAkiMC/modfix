@@ -7,10 +7,11 @@
   "plugin": "com.aki.modfix.MixinLoaderConfig",
   "target": "@env(DEFAULT)",
   "mixins": [
-
+    "vanilla.misc.network.process_size.MixinNBTTagCompound",
+    "vanilla.misc.network.process_size.MixinNettyCompressionDecoder"
   ],
   "server": [
-
+    "vanilla.misc.network.process_size.MixinSPacketCustomPayload"
   ],
   "client": [
     "vanilla.misc.MixinBlockPos",
@@ -25,9 +26,6 @@
     "vanilla.misc.network.packet.MixinPacketBuffer",
     "vanilla.misc.network.pipeline.MixinNettyVarint21FrameDecoderFix",
     "vanilla.misc.network.process_size.MixinCPacketCustomPayload",
-    "vanilla.misc.network.process_size.MixinNBTTagCompound",
-    "vanilla.misc.network.process_size.MixinNettyCompressionDecoder",
-    "vanilla.misc.network.process_size.MixinSPacketCustomPayload",
     "vanilla.misc.network.security.MixinClientConnection",
     "vanilla.misc.network.security.MixinServerLoginHandler",
     "vanilla.misc.rand.MixinMinecraftServer",
@@ -44,8 +42,7 @@
     "vanilla.rendering.fast.MixinVertexBuffer",
     "vanilla.rendering.vertex.MixinBufferBuilder_FA",
     "vanilla.rendering.vertex.MixinVertexFormat",
-    "vanilla.rendering.vertex.MixinVertexFormatElement",
-    "vanilla.tick.MixinWorld"
+    "vanilla.rendering.vertex.MixinVertexFormatElement"
   ],
   "injectors": {
     "defaultRequire": 1

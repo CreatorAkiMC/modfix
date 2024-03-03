@@ -40,9 +40,6 @@ public class Modfix {
 
     public static final int ModPriority = 2339;
 
-    public static final long OneTickNanoBase = 50000000;// -> 50ms (1/20_1Tick)
-
-
     /**
      * This is the instance of your mod as created by Forge. It will never be null.
      */
