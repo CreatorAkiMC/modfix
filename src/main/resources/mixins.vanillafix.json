@@ -13,7 +13,15 @@
 
   ],
   "client": [
-    "vanilla.rendering.MixinClientChunkProvider"
+    "vanillafix.MixinBlockFluidRenderer",
+    "vanillafix.MixinBlockModelRenderer",
+    "vanillafix.MixinBlockModelRendererOptifine",
+    "vanillafix.MixinForgeBlockModelRenderer",
+    "vanillafix.MixinItemRenderer",
+    "vanillafix.MixinRender",
+    "vanillafix.MixinRenderItem",
+    "vanillafix.MixinTextureAtlasSprite",
+    "vanillafix.MixinTextureMap"
   ],
   "injectors": {
     "defaultRequire": 1

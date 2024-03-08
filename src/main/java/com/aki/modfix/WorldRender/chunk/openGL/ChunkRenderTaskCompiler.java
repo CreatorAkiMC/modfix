@@ -11,6 +11,7 @@ import com.aki.mcutils.APICore.Utils.render.SortVertexUtil;
 import com.aki.mcutils.APICore.Utils.render.VisibilitySet;
 import com.aki.modfix.GLSytem.GlDynamicVBO;
 import com.aki.modfix.Modfix;
+import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.BetterFoliage;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.FluidLoggedAPI;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
@@ -37,6 +38,7 @@ import java.util.stream.IntStream;
 
 public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderTaskBase<T> {
     private static final BlockingQueue<RegionRenderCacheBuilder> BUFFERBUILDER_QUEUE = new LinkedBlockingQueue<>();
+
 
     static {
         IntStream.range(0, (Runtime.getRuntime().availableProcessors() - 2) * 2).mapToObj(i -> new RegionRenderCacheBuilder()).forEach(BUFFERBUILDER_QUEUE::add);
@@ -198,6 +200,9 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
             }
             ForgeHooksClient.setRenderLayer(layer);
 
+            //VanillaFix の修正
+            ChunkRenderManager.CurrentChunkRender = this.chunkRender;
+
             BufferBuilder bufferBuilder = bufferBuilderPack.getWorldRendererByLayer(layer);
             if (!bufferBuilder.isDrawing) {
                 bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
@@ -208,6 +213,10 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
             } else {
                 mc.getBlockRendererDispatcher().renderBlock(blockState, pos, this.access, bufferBuilder);
             }
+
+            //VanillaFix の修正
+            ChunkRenderManager.CurrentChunkRender = null;
+
             ForgeHooksClient.setRenderLayer(null);
         }
     }

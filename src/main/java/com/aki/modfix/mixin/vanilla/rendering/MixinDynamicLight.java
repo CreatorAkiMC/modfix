@@ -66,8 +66,6 @@ public class MixinDynamicLight {
         double posZ = this.entity.posZ - 0.5;
         int lightLevel = GLOptifine.GET_LIGHT_LEVEL.invoke(null, this.entity);
 
-        System.out.println("LightLevel: " + lightLevel);
-
         double dx = posX - this.lastPosX;
         double dy = posY - this.lastPosY;
         double dz = posZ - this.lastPosZ;

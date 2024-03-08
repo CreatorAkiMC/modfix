@@ -95,7 +95,6 @@ public abstract class MixinRenderGlobal {
                 }
             }
         }
-
         info.cancel();
     }
 

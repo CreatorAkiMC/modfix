@@ -7,12 +7,15 @@ import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.WorldUtil;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -42,6 +45,8 @@ public class ChunkRender {
     private int EmptyCount = 0;//空の場合は加算
 
     private int ID = -1;
+
+    private Set<TextureAtlasSprite> visibleTextures = new HashSet<>();
 
     public ChunkRender(int X, int Y, int Z) {
         this.pos = SectionPos.of(X, Y, Z);
@@ -108,6 +113,10 @@ public class ChunkRender {
 
     public boolean isVisibleFromAnyOrigin(EnumFacing direction) {
         return (VisibleDirections & (1 << direction.ordinal())) != 0;
+    }
+
+    public Set<TextureAtlasSprite> getVisibleTextures() {
+        return visibleTextures;
     }
 
     public void setOrigin(EnumFacing origin) {
@@ -269,5 +278,9 @@ public class ChunkRender {
         if (this.translucentVertexData != null)
             this.translucentVertexData.close();
         this.translucentVertexData = translucentVertexData;
+    }
+
+    public ChunkRenderTaskBase<ChunkRender> getLastChunkRenderCompileTask() {
+        return LastChunkRenderCompileTask;
     }
 }

@@ -7,13 +7,13 @@
   "target": "@env(DEFAULT)",
   "plugin": "com.aki.modfix.MixinLoaderConfig",
   "mixins": [
-    "projecte.MixinPESearchSystem"
+
   ],
   "server": [
 
   ],
   "client": [
-
+    "projecte.MixinPESearchSystem"
   ],
   "injectors": {
     "defaultRequire": 1

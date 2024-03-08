@@ -19,6 +19,9 @@ public class ChunkRenderManager {
     private static ChunkGLDispatcher RenderDispatcher = null;
     private static ChunkRenderProvider<ChunkRender> renderProvider = null;
 
+    //VanillaFixの修正用
+    public static ChunkRender CurrentChunkRender = null;
+
     public static ChunkRendererBase<ChunkRender> getChunkRenderer() {
         return ChunkRender;
     }

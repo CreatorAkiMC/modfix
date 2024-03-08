@@ -4,7 +4,6 @@ import com.aki.modfix.Modfix;
 import com.aki.modfix.util.fix.GameSettingsExtended;
 import com.aki.modfix.util.fix.KeyBindingRegister;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.GameSettings;
@@ -14,18 +13,23 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumHandSide;
-import net.minecraft.util.JsonUtils;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraftforge.client.settings.KeyModifier;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -257,7 +261,7 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
 
     @Inject(method = "<init>(Lnet/minecraft/client/Minecraft;Ljava/io/File;)V", at = @At("RETURN"))
     public void NewCreateFile(Minecraft mcIn, File mcDataDir, CallbackInfo ci) {
-        ModsKeySettingFile = new File(mcDataDir, "ModsKeySettings.txt");
+        this.ModsKeySettingFile = new File(mcDataDir, "ModsKeySettings.txt");
         this.VanillaKeyBinding = this.keyBindings;
     }
 
@@ -270,7 +274,7 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
      * @author Aki
      * @reason Replace KeyBinding System
      */
-    @Overwrite
+    /*@Overwrite
     public void loadOptions() {
         FileInputStream fileInputStream = null; // Forge: fix MC-151173
         try {
@@ -593,55 +597,89 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
             }
 
             KeyBinding.resetKeyBindingArrayAndHash();
+        } catch (Exception exception) {
+            LOGGER.error("Failed to load options", exception);
+        } finally {
+            IOUtils.closeQuietly(fileInputStream);
+        } // Forge: fix MC-151173
+    }*/
 
-
-            /**
-             *
-             * 保存した設定の読み込み
-             *
-             * */
-
+    @Inject(method = "loadOptions", at = @At("RETURN"))
+    public void LoadOptionsFixReturn(CallbackInfo ci) {
+        this.VanillaKeyBinding = this.keyBindings;
+        try {
+            //なかった時にデフォルトのものを適用。
             Path path = Paths.get(this.ModsKeySettingFile.getPath());
+            if (!Files.exists(path) || (Files.exists(path) && Files.size(path) < 1)) {
+                for(KeyBinding vanillaKey : this.VanillaKeyBinding) {
+                    for (int i = 0; i < this.ModKeyBinding[0].length; i++) {//念のためコピー
+                        KeyBinding ModKey = this.ModKeyBinding[0][i];
+                        if(vanillaKey.getKeyDescription().equals(ModKey.getKeyDescription())) {
+                            ModKey.setKeyModifierAndCode(vanillaKey.getKeyModifier(), vanillaKey.getKeyCode());
+                            this.ModKeyBindingRegister[0][i] = new KeyBindingRegister(ModKey.getKeyDescription(), vanillaKey.getKeyCode(), ModKey.getKeyCategory(), vanillaKey.getKeyModifier());
+                        }
+                    }
+                }
+
+                for (int i = 1; i < 9; i++) {
+                    this.ModKeyBinding[i] = this.ModKeyBinding[0];//別の配列に同じものをコピー
+                    this.ModKeyBindingRegister[i] = this.ModKeyBindingRegister[0];
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        this.ReloadKeyBindingSettings();
+    }
+
+    @Unique
+    @Override
+    public void ReloadKeyBindingSettings() {
+        /**
+         *
+         * 保存した設定の読み込み
+         *
+         * */
+        if (this.ModsKeySettingFile != null) {
+            Path path = this.ModsKeySettingFile.toPath();
             try {
                 //ファイルがある場合に読み込む
                 if (Files.exists(path) || !(Files.exists(path) && Files.size(path) < 1)) {
-                    list = IOUtils.readLines(fileInputStream = new FileInputStream(this.ModsKeySettingFile), StandardCharsets.UTF_8); // Forge: fix MC-117449, MC-151173
-
+                    List<String> list = IOUtils.readLines(Files.newInputStream(this.ModsKeySettingFile.toPath()), StandardCharsets.UTF_8); // Forge: fix MC-117449, MC-151173
                     int idx = 0;
                     for (String s : list) {
                         try {
                             Iterator<String> iterator = COLON_SPLITTER.omitEmptyStrings().limit(2).split(s).iterator();
                             String s1 = iterator.next();
                             String s2 = iterator.next();
-                            if (s1.equals("Select Pattern ")) {
-                                this.Pattern = Integer.parseInt(s2.toLowerCase(Locale.ROOT).replace(" ", ""));
-                            } else if (s1.contains("[idx ")) {
-                                idx = Integer.parseInt(s2.toLowerCase(Locale.ROOT).replace(" ]", "").replace(" ", "")) - 1;
-                                System.out.println("Index: " + idx);
-                            } else {
-                                KeyBinding[] keyBindings = this.ModKeyBinding[idx];
-                                KeyBindingRegister[] registers = this.ModKeyBindingRegister[idx];
+                            if (!s1.equals("Select Pattern ")) {
+                                if (s1.contains("[idx ")) {
+                                    idx = Integer.parseInt(s2.toLowerCase(Locale.ROOT).replace(" ]", "").replace(" ", "")) - 1;
+                                } else {
+                                    KeyBinding[] keyBindings = this.ModKeyBinding[idx];
+                                    KeyBindingRegister[] registers = this.ModKeyBindingRegister[idx];
 
-                                for (int i = 0; i < keyBindings.length; i++) {
-                                    KeyBinding keybinding = keyBindings[i];
-                                    KeyBindingRegister register = registers[i];
-                                    if (s1.equals("key_" + keybinding.getKeyDescription())) {
-                                        if (s2.indexOf(':') != -1) {
-                                            String[] t = s2.split(":");
-                                            keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]), Integer.parseInt(t[0]));
-                                            register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]));
-                                        } else {
-                                            keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.NONE, Integer.parseInt(s2));
-                                            register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), KeyModifier.NONE);
+                                    for (int i = 0; i < keyBindings.length; i++) {
+                                        KeyBinding keybinding = keyBindings[i];
+                                        KeyBindingRegister register = registers[i];
+                                        if (s1.equals("key_" + keybinding.getKeyDescription())) {
+                                            if (s2.indexOf(':') != -1) {
+                                                String[] t = s2.split(":");
+                                                keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]), Integer.parseInt(t[0]));
+                                                register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]));
+                                            } else {
+                                                keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.NONE, Integer.parseInt(s2));
+                                                register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), KeyModifier.NONE);
+                                            }
                                         }
+
+                                        keyBindings[i] = keybinding;
+                                        registers[i] = register;
                                     }
-
-                                    keyBindings[i] = keybinding;
-                                    registers[i] = register;
+                                    this.ModKeyBinding[idx] = keyBindings;
+                                    this.ModKeyBindingRegister[idx] = registers;
                                 }
-
-                                this.ModKeyBinding[idx] = keyBindings;
-                                this.ModKeyBindingRegister[idx] = registers;
                             }
                         } catch (Exception ignored) {
 
@@ -651,68 +689,6 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
             } catch (IOException e) {
                 LOGGER.error("Failed to File Check KeyBinds by (ModFix mod) ", e);
             }
-
-        } catch (Exception exception) {
-            LOGGER.error("Failed to load options", exception);
-        } finally {
-            IOUtils.closeQuietly(fileInputStream);
-        } // Forge: fix MC-151173
-    }
-
-    @Override
-    public void ReloadKeyBindingSettings() {
-        /**
-         *
-         * 保存した設定の読み込み
-         *
-         * */
-
-        Path path = Paths.get(this.ModsKeySettingFile.getPath());
-        try {
-            //ファイルがある場合に読み込む
-            if (Files.exists(path) || !(Files.exists(path) && Files.size(path) < 1)) {
-                List<String> list = IOUtils.readLines(Files.newInputStream(this.ModsKeySettingFile.toPath()), StandardCharsets.UTF_8); // Forge: fix MC-117449, MC-151173
-                int idx = 0;
-                for (String s : list) {
-                    try {
-                        Iterator<String> iterator = COLON_SPLITTER.omitEmptyStrings().limit(2).split(s).iterator();
-                        String s1 = iterator.next();
-                        String s2 = iterator.next();
-                        if (!s1.equals("Select Pattern ")) {
-                            if (s1.contains("[idx ")) {
-                                idx = Integer.parseInt(s2.toLowerCase(Locale.ROOT).replace(" ]", "").replace(" ", "")) - 1;
-                            } else {
-                                KeyBinding[] keyBindings = this.ModKeyBinding[idx];
-                                KeyBindingRegister[] registers = this.ModKeyBindingRegister[idx];
-
-                                for (int i = 0; i < keyBindings.length; i++) {
-                                    KeyBinding keybinding = keyBindings[i];
-                                    KeyBindingRegister register = registers[i];
-                                    if (s1.equals("key_" + keybinding.getKeyDescription())) {
-                                        if (s2.indexOf(':') != -1) {
-                                            String[] t = s2.split(":");
-                                            keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]), Integer.parseInt(t[0]));
-                                            register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]));
-                                        } else {
-                                            keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.NONE, Integer.parseInt(s2));
-                                            register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), KeyModifier.NONE);
-                                        }
-                                    }
-
-                                    keyBindings[i] = keybinding;
-                                    registers[i] = register;
-                                }
-                                this.ModKeyBinding[idx] = keyBindings;
-                                this.ModKeyBindingRegister[idx] = registers;
-                            }
-                        }
-                    } catch (Exception ignored) {
-
-                    }
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.error("Failed to File Check KeyBinds by (ModFix mod) ", e);
         }
     }
 
@@ -720,7 +696,7 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
      * @author Aki
      * @reason Replace KeyBinding System
      */
-    @Overwrite
+    /*@Overwrite
     public void saveOptions() {
         if (net.minecraftforge.fml.client.FMLClientHandler.instance().isLoading()) return;
         PrintWriter printwriter = null;
@@ -818,12 +794,6 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
             IOUtils.closeQuietly(printwriter);
         }
 
-        //Mod KeyBinding 用のファイルに保存、 Modを抜いても初期化されないように
-        //元ファイルには変更を加えない
-        /*for (int i = 0; i < 9; i++) {
-            System.out.println("IIINNNDDDEEEXXX: " + i);
-            System.out.println("ModsRegister: " + Arrays.toString(this.ModKeyBindingRegister[i]));
-        }*/
         try {
             printwriter = new PrintWriter(new OutputStreamWriter(Files.newOutputStream(this.ModsKeySettingFile.toPath()), StandardCharsets.UTF_8));
             printwriter.println("Create by ModFix mod (Creator Aki)");
@@ -845,6 +815,38 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
         }
 
         this.sendSettingsToServer();
+    }*/
+
+    /*@Inject(method = "saveOptions", at = @At("HEAD"))
+    public void SaveOptionsHead(CallbackInfo ci) {
+        KeyBinding[] copyDest = new KeyBinding[this.VanillaKeyBinding.length + this.ModKeyBinding[this.Pattern].length];
+        System.arraycopy(this.VanillaKeyBinding, 0, copyDest, 0, this.VanillaKeyBinding.length);
+        System.arraycopy(this.ModKeyBinding[this.Pattern], 0, copyDest, this.VanillaKeyBinding.length, this.ModKeyBinding[this.Pattern].length);
+        this.keyBindings = copyDest;
+    }*/
+
+    @Inject(method = "saveOptions", at = @At("RETURN"))
+    public void SaveOptionsReturn(CallbackInfo ci) {
+        PrintWriter printwriter = null;
+        try {
+            printwriter = new PrintWriter(new OutputStreamWriter(Files.newOutputStream(this.ModsKeySettingFile.toPath()), StandardCharsets.UTF_8));
+            printwriter.println("Create by ModFix mod (Creator Aki)");
+            printwriter.println("Select Pattern : " + this.Pattern);
+            for (int i = 0; i < 9; i++) {//[1] ~ [9] (0 ~ 8)
+                printwriter.println("[idx : " + (i + 1) + " ]");
+                for (int i2 = 0; i2 < this.ModKeyBinding[i].length; i2++) {
+                    KeyBinding keybinding = this.ModKeyBinding[i][i2];
+                    KeyBindingRegister register = this.ModKeyBindingRegister[i][i2];
+
+                    String keyString = "key_" + keybinding.getKeyDescription() + ":" + register.keycode;
+                    printwriter.println(register.modifier != net.minecraftforge.client.settings.KeyModifier.NONE ? keyString + ":" + register.modifier : keyString);
+                }
+            }
+        } catch (Exception exception) {
+            LOGGER.error("Failed to save mod key options", exception);
+        } finally {
+            IOUtils.closeQuietly(printwriter);
+        }
     }
 
     @Override

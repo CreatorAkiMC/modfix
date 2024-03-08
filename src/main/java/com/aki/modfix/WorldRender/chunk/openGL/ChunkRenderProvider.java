@@ -257,4 +257,8 @@ public class ChunkRenderProvider<T extends ChunkRender> {
     public T getNeighbor(T renderChunk, EnumFacing facing) {
         return (T) renderChunk.getNeighbor(facing);
     }
+
+    public ChunkRender[] getChunkRenders() {
+        return chunkRenders;
+    }
 }
