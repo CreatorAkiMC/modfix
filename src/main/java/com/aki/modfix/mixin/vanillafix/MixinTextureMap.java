@@ -30,15 +30,14 @@ public abstract class MixinTextureMap extends AbstractTexture {
     @Overwrite
     public void updateAnimations() {
         Minecraft.getMinecraft().profiler.startSection("determineVisibleTextures");
-        for (ChunkRender chunkRender : ChunkRenderManager.getRenderProvider().getChunkRenders()) {
-            for (TextureAtlasSprite texture : chunkRender.getVisibleTextures()) {
-                System.out.println("ModFix ChunkRender Sprite needUpdate");
-                ((IPatchedTextureAtlasSpriteModFix) texture).modfix$markNeedsAnimationUpdate();
+        if(ChunkRenderManager.getRenderProvider() != null) {
+            for (ChunkRender chunkRender : ChunkRenderManager.getRenderProvider().getChunkRenders()) {
+                for (TextureAtlasSprite texture : chunkRender.getVisibleTextures()) {
+                    ((IPatchedTextureAtlasSpriteModFix) texture).modfix$markNeedsAnimationUpdate();
+                }
             }
         }
         Minecraft.getMinecraft().profiler.endSection();
-
-        System.out.println("Update");
 
         GlStateManager.bindTexture(getGlTextureId());
         for (TextureAtlasSprite texture : listAnimatedSprites) {

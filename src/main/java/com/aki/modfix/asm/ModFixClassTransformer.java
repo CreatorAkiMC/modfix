@@ -4,12 +4,15 @@ import com.aki.mcutils.APICore.asm.ASMUtil;
 import com.aki.mcutils.APICore.asm.HashMapClassNodeClassTransformer;
 import com.aki.mcutils.APICore.asm.IClassTransformerRegistry;
 import net.minecraft.launchwrapper.IClassTransformer;
+import org.dimdev.vanillafix.VanillaFixLoadingPlugin;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+
+import java.lang.reflect.Field;
 
 //import com.aki.mcutils.APICore.asm.IClassTransformer; -> net.minecraft.launchwrapper.IClassTransformer
 public class ModFixClassTransformer extends HashMapClassNodeClassTransformer implements IClassTransformer {
@@ -54,5 +57,16 @@ public class ModFixClassTransformer extends HashMapClassNodeClassTransformer imp
                     new JumpInsnNode(Opcodes.GOTO, (LabelNode) popNode2)
             ));
         });
+
+        try {
+            Class<?> LoadingConfigClass = VanillaFixLoadingPlugin.config.getClass();
+            Object o = VanillaFixLoadingPlugin.config;
+
+            Field textureFixes = LoadingConfigClass.getDeclaredField("textureFixes");
+            textureFixes.setAccessible(true);
+            textureFixes.setBoolean(o, false);
+        } catch (IllegalAccessException | NoSuchFieldException ignored) {
+
+        }
     }
 }
