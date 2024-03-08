@@ -18,7 +18,8 @@
 
   ],
   "client": [
-    "modsupport.MixinLoader"
+    "modsupport.MixinLoader",
+    "vanillafix.MixinChangeConfig"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -16,12 +16,7 @@
     "vanillafix.MixinBlockFluidRenderer",
     "vanillafix.MixinBlockModelRenderer",
     "vanillafix.MixinBlockModelRendererOptifine",
-    "vanillafix.MixinForgeBlockModelRenderer",
-    "vanillafix.MixinItemRenderer",
-    "vanillafix.MixinRender",
-    "vanillafix.MixinRenderItem",
-    "vanillafix.MixinTextureAtlasSprite",
-    "vanillafix.MixinTextureMap"
+    "vanillafix.MixinForgeBlockModelRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

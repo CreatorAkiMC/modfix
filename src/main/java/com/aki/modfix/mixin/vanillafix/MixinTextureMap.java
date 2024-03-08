@@ -6,7 +6,6 @@ import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.util.fix.extensions.IPatchedTextureAtlasSpriteModFix;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -30,14 +29,16 @@ public abstract class MixinTextureMap extends AbstractTexture {
      */
     @Overwrite
     public void updateAnimations() {
-        // TODO: Recalculate list after chunk update instead!
         Minecraft.getMinecraft().profiler.startSection("determineVisibleTextures");
         for (ChunkRender chunkRender : ChunkRenderManager.getRenderProvider().getChunkRenders()) {
             for (TextureAtlasSprite texture : chunkRender.getVisibleTextures()) {
+                System.out.println("ModFix ChunkRender Sprite needUpdate");
                 ((IPatchedTextureAtlasSpriteModFix) texture).modfix$markNeedsAnimationUpdate();
             }
         }
         Minecraft.getMinecraft().profiler.endSection();
+
+        System.out.println("Update");
 
         GlStateManager.bindTexture(getGlTextureId());
         for (TextureAtlasSprite texture : listAnimatedSprites) {
