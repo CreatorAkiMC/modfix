@@ -1,9 +1,11 @@
 package com.aki.modfix;
 
+import net.minecraft.launchwrapper.Launch;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +28,24 @@ public class MixinLoaderConfig implements IMixinConfigPlugin {
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         System.out.println("S-ModFix TargetClass: " + targetClassName);
         System.out.println("------ MixinClassName: " + mixinClassName);
+
+        if (mixinClassName.equals("com.aki.modfix.mixin.vanillafix.MixinBlockModelRenderer")) {
+            return !classExists("optifine.OptiFineForgeTweaker");
+        }
+
+        if (mixinClassName.equals("com.aki.modfix.mixin.vanillafix.MixinBlockModelRendererOptifine")) {
+            return classExists("optifine.OptiFineForgeTweaker");
+        }
+
         return true;//SettingMixins.getOrDefault(mixinClassName, true);
+    }
+
+    public boolean classExists(String name) {
+        try {
+            return Launch.classLoader.getClassBytes(name) != null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
