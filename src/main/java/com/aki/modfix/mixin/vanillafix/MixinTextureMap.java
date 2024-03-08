@@ -6,6 +6,7 @@ import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.util.fix.extensions.IPatchedTextureAtlasSpriteModFix;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;

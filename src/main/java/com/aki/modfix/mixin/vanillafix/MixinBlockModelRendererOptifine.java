@@ -11,32 +11,24 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
+import net.optifine.render.RenderEnv;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 
 @Mixin(value = BlockModelRenderer.class, priority = Modfix.ModPriority)
-public class MixinBlockModelRenderer {
-    /**
-     * @reason Adds the textures used to render this block to the set of textures in
-     * the CompiledChunk.
-     */
-    @Inject(method = "renderQuadsSmooth", at = @At("HEAD"))
-    private void onRenderQuadsSmooth(IBlockAccess blockAccess, IBlockState state, BlockPos pos, BufferBuilder buffer, List<BakedQuad> quads, float[] quadBounds, BitSet bitSet, BlockModelRenderer.AmbientOcclusionFace aoFace, CallbackInfo ci) {
+public class MixinBlockModelRendererOptifine {
+    @Inject(method = "renderQuadsSmooth", remap = false, at = @At("HEAD"))
+    private void onRenderQuadsSmooth(IBlockAccess blockAccess, IBlockState state, BlockPos pos, BufferBuilder buffer, List<BakedQuad> quads, RenderEnv renderEnv, CallbackInfo ci) {
         markQuads(quads);
     }
 
-    /**
-     * @reason Adds the textures used to render this block to the set of textures in
-     * the CompiledChunk.
-     */
-    @Inject(method = "renderQuadsFlat", at = @At("HEAD"))
-    private void onRenderQuadsFlat(IBlockAccess blockAccess, IBlockState state, BlockPos pos, int brightness, boolean ownBrightness, BufferBuilder buffer, List<BakedQuad> quads, BitSet bitSet, CallbackInfo ci) {
+    @Inject(method = "renderQuadsFlat", remap = false, at = @At("HEAD"))
+    private void onRenderQuadsFlat(IBlockAccess blockAccess, IBlockState state, BlockPos pos, int brightness, boolean ownBrightness, BufferBuilder buffer, List<BakedQuad> quads, RenderEnv renderEnv, CallbackInfo ci) {
         markQuads(quads);
     }
 

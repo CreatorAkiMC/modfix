@@ -33,11 +33,13 @@ public class MixinForgeBlockModelRenderer {
         ChunkRender chunk = ChunkRenderManager.CurrentChunkRender;
         if (chunk != null) {
             Set<TextureAtlasSprite> visibleTextures = chunk.getVisibleTextures();
+
             for (BakedQuad quad : model.getQuads(state, null, rand)) {
                 if (quad.getSprite() != null) {
                     visibleTextures.add(quad.getSprite());
                 }
             }
+
             for (EnumFacing side : EnumFacing.values()) {
                 List<BakedQuad> quads = model.getQuads(state, side, rand);
                 if (!quads.isEmpty() && !checkSides || state.shouldSideBeRendered(world, pos, side)) {
@@ -56,6 +58,7 @@ public class MixinForgeBlockModelRenderer {
                     ((IPatchedTextureAtlasSpriteModFix) quad.getSprite()).modfix$markNeedsAnimationUpdate();
                 }
             }
+
             for (EnumFacing side : EnumFacing.values()) {
                 List<BakedQuad> quads = model.getQuads(state, side, rand);
                 if (!quads.isEmpty() && !checkSides || state.shouldSideBeRendered(world, pos, side)) {
