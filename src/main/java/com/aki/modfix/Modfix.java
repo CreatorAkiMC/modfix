@@ -3,11 +3,15 @@ package com.aki.modfix;
 import com.aki.modfix.util.fix.GameSettingsExtended;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.MoverType;
+import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
@@ -18,8 +22,13 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Mod(
         modid = Modfix.MOD_ID,
@@ -82,6 +91,38 @@ public class Modfix {
         if (event.getEntity() instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer) event.getEntity();
             player.sendMessage(new TextComponentString(player.getDisplayName().getUnformattedText() + " chose the key pattern number " + ((GameSettingsExtended) Minecraft.getMinecraft().gameSettings).getPatternID()).setStyle(new Style().setItalic(true).setColor(TextFormatting.AQUA)));
+        }
+    }
+
+    //経験値を1つにまとめる。
+    @SubscribeEvent
+    public void WorldTickEvent(TickEvent.WorldTickEvent event) {
+        World world = event.world;
+        if(world != null && !world.isRemote) {
+            List<EntityXPOrb> xpOrbs = new ArrayList<>();
+            for(Entity entity : world.getLoadedEntityList()) {
+                if(entity instanceof EntityXPOrb && !entity.isDead) {
+                    if(xpOrbs.size() > 0) {
+                        xpOrbs.forEach(xp -> {
+                            double dist = Math.sqrt(Math.pow(xp.posX - entity.posX, 2.0) + Math.pow(xp.posY - entity.posY, 2.0) + Math.pow(xp.posZ - entity.posZ, 2.0));
+                            double d5 = Math.pow(1.0 - (dist / 8.0d), 2.0d);
+                            if(dist <= 8.0d && d5 > 0.0) {
+                                entity.motionX += (xp.posX - entity.posX) / (8.0d * (dist / 8.0d)) * d5 * 0.1D;
+                                entity.motionY += (xp.posX - entity.posX) / (8.0d * (dist / 8.0d)) * d5 * 0.1D;
+                                entity.motionZ += (xp.posX - entity.posX) / (8.0d * (dist / 8.0d)) * d5 * 0.1D;
+                                entity.move(MoverType.SELF, entity.motionX, entity.motionY, entity.motionZ);
+                                if(dist <= 0.8d) {
+                                    ((EntityXPOrb) entity).xpValue += xp.getXpValue();
+                                    xp.setDead();
+                                }
+                            }
+                        });
+                        xpOrbs = xpOrbs.stream().filter(orbs -> !orbs.isDead).collect(Collectors.toList());
+                    }
+                    xpOrbs.add((EntityXPOrb) entity);
+                }
+            }
+            xpOrbs.clear();
         }
     }
 

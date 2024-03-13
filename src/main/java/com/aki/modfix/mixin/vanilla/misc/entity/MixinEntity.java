@@ -1,0 +1,68 @@
+package com.aki.modfix.mixin.vanilla.misc.entity;
+
+import com.aki.modfix.util.fix.extensions.IPrevMotion;
+import net.minecraft.entity.Entity;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(Entity.class)
+public class MixinEntity implements IPrevMotion {
+
+    @Unique
+    private double prevMotionX;
+    @Unique
+    private double prevMotionY;
+    @Unique
+    private double prevMotionZ;
+    @Shadow
+    private double motionX;
+    @Shadow
+    private double motionY;
+    @Shadow
+    private double motionZ;
+
+    /**
+     * {@link Entity#onUpdate()} at line
+     */
+    @Inject(method = "onUpdate", at = @At("HEAD"))
+    public void onOnUpdate(CallbackInfo info) {
+        prevMotionX = motionX;
+        prevMotionY = motionY;
+        prevMotionZ = motionZ;
+    }
+
+    @Override
+    public double getPrevMotionX() {
+        return prevMotionX;
+    }
+
+    @Override
+    public void setPrevMotionX(double prevMotionX) {
+        this.prevMotionX = prevMotionX;
+    }
+
+    @Override
+    public double getPrevMotionY() {
+        return prevMotionY;
+    }
+
+    @Override
+    public void setPrevMotionY(double prevMotionY) {
+        this.prevMotionY = prevMotionY;
+    }
+
+    @Override
+    public double getPrevMotionZ() {
+        return prevMotionZ;
+    }
+
+    @Override
+    public void setPrevMotionZ(double prevMotionZ) {
+        this.prevMotionZ = prevMotionZ;
+    }
+
+}
