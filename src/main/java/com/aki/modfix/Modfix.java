@@ -4,7 +4,6 @@ import com.aki.modfix.util.fix.GameSettingsExtended;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.MoverType;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -104,14 +103,14 @@ public class Modfix {
                 if(entity instanceof EntityXPOrb && !entity.isDead) {
                     if(xpOrbs.size() > 0) {
                         xpOrbs.forEach(xp -> {
-                            double dist = Math.sqrt(Math.pow(xp.posX - entity.posX, 2.0) + Math.pow(xp.posY - entity.posY, 2.0) + Math.pow(xp.posZ - entity.posZ, 2.0));
-                            double d5 = Math.pow(1.0 - (dist / 8.0d), 2.0d);
-                            if(dist <= 8.0d && d5 > 0.0) {
-                                entity.motionX += (xp.posX - entity.posX) / (8.0d * (dist / 8.0d)) * d5 * 0.1D;
-                                entity.motionY += (xp.posX - entity.posX) / (8.0d * (dist / 8.0d)) * d5 * 0.1D;
-                                entity.motionZ += (xp.posX - entity.posX) / (8.0d * (dist / 8.0d)) * d5 * 0.1D;
-                                entity.move(MoverType.SELF, entity.motionX, entity.motionY, entity.motionZ);
-                                if(dist <= 0.8d) {
+                            double dist = Math.sqrt(Math.pow((xp.posX - entity.posX) / 8.0d, 2.0) + Math.pow((xp.posY - entity.posY) / 8.0d, 2.0) + Math.pow((xp.posZ - entity.posZ) / 8.0d, 2.0));
+                            double d5 = 1.0 - dist;
+                            if(d5 > 0.0d) {
+                                d5 = Math.pow(d5, 2.0);
+                                entity.motionX += (xp.posX - entity.posX) / 8 / (dist * d5) * 0.1D;
+                                entity.motionY += (xp.posY - entity.posY) / 8 / (dist * d5) * 0.1D;
+                                entity.motionZ += (xp.posZ - entity.posZ) / 8 / (dist * d5) * 0.1D;
+                                if (dist <= 0.8d) {
                                     ((EntityXPOrb) entity).xpValue += xp.getXpValue();
                                     xp.setDead();
                                 }
