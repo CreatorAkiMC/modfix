@@ -26,6 +26,7 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -97,31 +98,35 @@ public class Modfix {
     @SubscribeEvent
     public void WorldTickEvent(TickEvent.WorldTickEvent event) {
         World world = event.world;
-        if(world != null && !world.isRemote) {
-            List<EntityXPOrb> xpOrbs = new ArrayList<>();
-            for(Entity entity : world.getLoadedEntityList()) {
-                if(entity instanceof EntityXPOrb && !entity.isDead) {
-                    if(xpOrbs.size() > 0) {
-                        xpOrbs.forEach(xp -> {
-                            double dist = Math.sqrt(Math.pow((xp.posX - entity.posX) / 8.0d, 2.0) + Math.pow((xp.posY - entity.posY) / 8.0d, 2.0) + Math.pow((xp.posZ - entity.posZ) / 8.0d, 2.0));
-                            double d5 = 1.0 - dist;
-                            if(d5 > 0.0d) {
-                                d5 = Math.pow(d5, 2.0);
-                                entity.motionX += (xp.posX - entity.posX) / 8 / (dist * d5) * 0.1D;
-                                entity.motionY += (xp.posY - entity.posY) / 8 / (dist * d5) * 0.1D;
-                                entity.motionZ += (xp.posZ - entity.posZ) / 8 / (dist * d5) * 0.1D;
-                                if (dist <= 0.8d) {
-                                    ((EntityXPOrb) entity).xpValue += xp.getXpValue();
-                                    xp.setDead();
+        try {
+            if (world != null && !world.isRemote) {
+                List<EntityXPOrb> xpOrbs = new ArrayList<>();
+                for (Entity entity : world.getLoadedEntityList()) {
+                    if (entity instanceof EntityXPOrb && !entity.isDead) {
+                        if (xpOrbs.size() > 0) {
+                            xpOrbs.forEach(xp -> {
+                                double dist = Math.sqrt(Math.pow((xp.posX - entity.posX) / 8.0d, 2.0) + Math.pow((xp.posY - entity.posY) / 8.0d, 2.0) + Math.pow((xp.posZ - entity.posZ) / 8.0d, 2.0));
+                                double d5 = 1.0 - dist;
+                                if (d5 > 0.0d) {
+                                    d5 = Math.pow(d5, 2.0);
+                                    entity.motionX += (xp.posX - entity.posX) / 8 / (dist * d5) * 0.1D;
+                                    entity.motionY += (xp.posY - entity.posY) / 8 / (dist * d5) * 0.1D;
+                                    entity.motionZ += (xp.posZ - entity.posZ) / 8 / (dist * d5) * 0.1D;
+                                    if (dist <= 0.8d) {
+                                        ((EntityXPOrb) entity).xpValue += xp.getXpValue();
+                                        xp.setDead();
+                                    }
                                 }
-                            }
-                        });
-                        xpOrbs = xpOrbs.stream().filter(orbs -> !orbs.isDead).collect(Collectors.toList());
+                            });
+                            xpOrbs = xpOrbs.stream().filter(orbs -> !orbs.isDead).collect(Collectors.toList());
+                        }
+                        xpOrbs.add((EntityXPOrb) entity);
                     }
-                    xpOrbs.add((EntityXPOrb) entity);
                 }
+                xpOrbs.clear();
             }
-            xpOrbs.clear();
+        } catch (ConcurrentModificationException e) {
+            e.printStackTrace();
         }
     }
 
