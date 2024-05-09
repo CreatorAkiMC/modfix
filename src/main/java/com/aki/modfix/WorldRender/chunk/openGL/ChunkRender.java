@@ -6,16 +6,15 @@ import com.aki.modfix.GLSytem.GlDynamicVBO;
 import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
+import com.aki.modfix.util.gl.BlockVertexDatas;
 import com.aki.modfix.util.gl.WorldUtil;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -46,7 +45,9 @@ public class ChunkRender {
 
     private int ID = -1;
 
-    private Set<TextureAtlasSprite> visibleTextures = new HashSet<>();
+    private final Set<TextureAtlasSprite> visibleTextures = new HashSet<>();
+
+    public HashMap<BlockPos, BlockVertexDatas> BlockVertexDatas = new HashMap<>();
 
     public ChunkRender(int X, int Y, int Z) {
         this.pos = SectionPos.of(X, Y, Z);
@@ -149,11 +150,8 @@ public class ChunkRender {
     }
 
     public boolean isFrustumCulled(Frustum frustum) {
-        return !frustum.isAABBInFrustum(this.getX(), this.getY(), this.getZ(), this.getX() + 16, this.getY() + 16, this.getZ() + 16);
-    }
-
-    public LinkedHashMap<ChunkRenderPass, GlDynamicVBO.VBOPart> getVBOArray() {
-        return this.VBOs;
+        //Fix bugs
+        return !frustum.isAABBInFrustum(this.getX() - 1, this.getY() - 1, this.getZ() - 1, this.getX() + 17, this.getY() + 17, this.getZ() + 17);
     }
 
     @Nullable
@@ -177,10 +175,6 @@ public class ChunkRender {
 
     public boolean IsVBOEmpty() {
         return this.EmptyCount == 0;
-    }
-
-    public int EmptyCount() {
-        return this.EmptyCount;
     }
 
     public boolean canCompile() {

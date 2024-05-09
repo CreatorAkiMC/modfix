@@ -15,10 +15,15 @@ import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.BetterFoliage;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.FluidLoggedAPI;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
+import com.aki.modfix.util.gl.BakedModelEnumFacing;
+import com.aki.modfix.util.gl.BlockVertexDatas;
+import com.aki.modfix.util.gl.ChunkModelMeshUtils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.entity.Entity;
@@ -26,12 +31,15 @@ import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.WorldType;
 import net.minecraftforge.client.ForgeHooksClient;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.IntStream;
@@ -163,6 +171,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                             //VBO のずれを減らす
                             if (vboPart != null)
                                 vboPart.free();
+                            System.out.println("Vertexes: " + bufferBuilder.getVertexCount());
                             vboPart = this.renderer.buffer(pass, this.chunkRender, bufferBuilder.getByteBuffer());
                             this.chunkRender.setVBO(pass, vboPart);
                             if (pass == ChunkRenderPass.TRANSLUCENT) {
@@ -182,6 +191,8 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
     }
 
     private void renderBlockState(IBlockState blockState, BlockPos.MutableBlockPos pos, GraphVisibility visibilityGraph, RegionRenderCacheBuilder bufferBuilderPack, Minecraft mc) {
+        long rand = MathHelper.getCoordinateRandom(pos.getX(), pos.getY(), pos.getZ());
+
         if (blockState.getRenderType() == EnumBlockRenderType.INVISIBLE) {
             return;
         }
@@ -214,10 +225,64 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 mc.getBlockRendererDispatcher().renderBlock(blockState, pos, this.access, bufferBuilder);
             }
 
+            EnumBlockRenderType enumblockrendertype = blockState.getRenderType();
+            if (enumblockrendertype == EnumBlockRenderType.MODEL) {
+                if (this.access.getWorldType() != WorldType.DEBUG_ALL_BLOCK_STATES)
+                {
+                    try
+                    {
+                        blockState = blockState.getActualState(this.access, pos);
+                    }
+                    catch (Exception ignored)
+                    {
+                        ;
+                    }
+                }
+
+                IBakedModel model = ChunkModelMeshUtils.getBakedModelFromState(blockState);
+                blockState = ChunkModelMeshUtils.getExtendState(blockState, pos, this.access);
+
+                BlockVertexDatas vertexDatas = new BlockVertexDatas();
+
+                for (EnumFacing enumfacing : EnumFacing.values())
+                {
+                    List<BakedQuad> list = model.getQuads(blockState, enumfacing, rand);
+
+                    if (!list.isEmpty() && blockState.shouldSideBeRendered(this.access, pos, enumfacing))
+                    {
+                        for(BakedQuad quad : list) {
+                            int[] vertex = quad.getVertexData();
+                            for (int index = 0; index < 4; index++) {
+                                int pos_head = index * 7;
+                                vertexDatas.AddVertexPosFromBitInt(BakedModelEnumFacing.getBakedFacing(enumfacing), vertex[pos_head], vertex[pos_head + 1], vertex[pos_head + 2]);
+                            }
+                        }
+                    }
+                }
+
+                List<BakedQuad> list = model.getQuads(blockState, null, rand);
+
+                if (!list.isEmpty())
+                {
+                    for(BakedQuad quad : list) {
+                        int[] vertex = quad.getVertexData();
+                        for (int index = 0; index < 4; index++) {
+                            int pos_head = index * 7;
+                            vertexDatas.AddVertexPosFromBitInt(BakedModelEnumFacing._NULL, vertex[pos_head], vertex[pos_head + 1], vertex[pos_head + 2]);
+                        }
+                    }
+                }
+
+                this.chunkRender.BlockVertexDatas.put(pos, vertexDatas);
+                System.out.println("__Pos: " + pos + ", Data: " + vertexDatas);
+            }
+
             //VanillaFix の修正
             ChunkRenderManager.CurrentChunkRender = null;
 
             ForgeHooksClient.setRenderLayer(null);
         }
     }
+
+
 }

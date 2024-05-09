@@ -44,6 +44,7 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     public LinkedHashMap<ChunkRenderPass, GlDynamicVBO> DynamicBuffers;
     public RTList<LinkedHashMap<ChunkRenderPass, GlCommandBuffer>> CommandBuffers;
     public RTList<LinkedHashMap<ChunkRenderPass, GlVertexOffsetBuffer>> OffsetBuffers;
+    public LinkedHashMap<ChunkRenderPass, GlMutableBuffer> IndicesBuffers;
 
     public String A_POS = "a_pos";
     public String A_COLOR = "a_color";
@@ -62,6 +63,8 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         //SyncListのように実装
         this.VaoBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GLMutableArrayBuffer()));
         this.DynamicBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlDynamicVBO());
+        //インデックスバッファ
+        this.IndicesBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlMutableBuffer(GL15.GL_DYNAMIC_DRAW));
         this.SyncList = new RTList<>(2, 0, i -> -1);
     }
 
@@ -221,6 +224,7 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     public void deleteDatas() {
         this.VaoBuffers.forEach((index, map) -> map.values().forEach(GLMutableArrayBuffer::delete));
         this.DynamicBuffers.values().forEach(GlDynamicVBO::Delete);
+        this.IndicesBuffers.values().forEach(GlMutableBuffer::delete);
 
         if (program != null)
             program.Delete();
