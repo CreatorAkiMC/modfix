@@ -1,6 +1,8 @@
 package com.aki.modfix.util.gl;
 
-import com.aki.mcutils.APICore.Utils.render.MapCreateHelper;
+import com.aki.mcutils.APICore.Utils.list.MapCreateHelper;
+import com.aki.mcutils.APICore.Utils.list.Pair;
+import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import org.lwjgl.util.vector.Vector3f;
 
 import java.util.ArrayList;
@@ -9,30 +11,38 @@ import java.util.List;
 
 // 頂点座標データを保存
 public class BlockVertexDatas {
-    private final HashMap<BakedModelEnumFacing, List<Vector3f>> VertexPosMap = MapCreateHelper.CreateHashMap(BakedModelEnumFacing.values(), (i) -> new ArrayList<>());
-
-    public BlockVertexDatas() {}
-
-    public void AddVertexPosFromBitInt(BakedModelEnumFacing enumFacing, int x, int y, int z) {
-        this.AddVertexPosFromFloat(enumFacing, Float.intBitsToFloat(x), Float.intBitsToFloat(y), Float.intBitsToFloat(z));
+    public ChunkRender chunkRender;
+    private int vertexes_id = 0;
+    private final HashMap<BakedModelEnumFacing, List<Pair<Integer, Integer>>> VertexData_Indexes = MapCreateHelper.CreateHashMap(BakedModelEnumFacing.values(), i -> new ArrayList<>());
+    public BlockVertexDatas(ChunkRender chunk) {
+        this.chunkRender = chunk;
     }
 
-    public void AddVertexPosFromFloat(BakedModelEnumFacing enumFacing, float x, float y, float z) {
-        this.AddVertexPosFromFloatVec(enumFacing, new Vector3f(x, y, z));
+    public void addVertexIndex(BakedModelEnumFacing facing, int index) {
+        this.VertexData_Indexes.get(facing).add(new Pair<>(vertexes_id++, index));
     }
 
-    public void AddVertexPosFromFloatVec(BakedModelEnumFacing enumFacing, Vector3f vector3f) {
-        this.VertexPosMap.get(enumFacing).add(vector3f);
+    //Vertex_id, VertexArraysId
+    /*public List<Pair<Integer, Integer>> getIds(BakedModelEnumFacing facing) {
+        return this.VertexData_Indexes.get(facing);
+    }*/
+
+    public int getSize(BakedModelEnumFacing facing) {
+        return this.VertexData_Indexes.get(facing).size();
     }
 
-    public HashMap<BakedModelEnumFacing, List<Vector3f>> getVertexPosMap() {
-        return VertexPosMap;
+    //頂点インデックス(このブロック内 0 <= x) と 頂点座標
+    //頂点座標の配列に変換。
+    public Pair<Integer, Vector3f> getVertex(BakedModelEnumFacing facing, int InIndex) {
+        Pair<Integer, Integer> pair = this.VertexData_Indexes.get(facing).get(InIndex);
+        return new Pair<>(pair.getKey(), this.chunkRender.getVertexes().get(pair.getValue()));
     }
 
     @Override
     public String toString() {
         return "BlockVertexDatas{" +
-                "VertexPosMap=" + VertexPosMap +
+                "vertexes_ids=" + vertexes_id +
+                ", VertexData_Indexes=" + VertexData_Indexes +
                 '}';
     }
 }

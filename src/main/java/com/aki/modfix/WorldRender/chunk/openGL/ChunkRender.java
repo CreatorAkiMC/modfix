@@ -1,17 +1,23 @@
 package com.aki.modfix.WorldRender.chunk.openGL;
 
+import com.aki.mcutils.APICore.Utils.list.GFastList;
+import com.aki.mcutils.APICore.Utils.list.MapCreateHelper;
 import com.aki.mcutils.APICore.Utils.memory.UnsafeByteBuffer;
-import com.aki.mcutils.APICore.Utils.render.*;
+import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
+import com.aki.mcutils.APICore.Utils.render.Frustum;
+import com.aki.mcutils.APICore.Utils.render.SectionPos;
+import com.aki.mcutils.APICore.Utils.render.VisibilitySet;
 import com.aki.modfix.GLSytem.GlDynamicVBO;
 import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.BlockVertexDatas;
 import com.aki.modfix.util.gl.WorldUtil;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -47,7 +53,11 @@ public class ChunkRender {
 
     private final Set<TextureAtlasSprite> visibleTextures = new HashSet<>();
 
-    public HashMap<BlockPos, BlockVertexDatas> BlockVertexDatas = new HashMap<>();
+    //public HashMap<BlockPos, BlockVertexDatas> BlockVertexDatas = new HashMap<>();
+    //チャンク全体の頂点
+    private final List<Vector3f> vertexes = new GFastList<>();
+    //blockState から頂点 -> 軽量化
+    private final HashMap<IBlockState, BlockVertexDatas> StateToVertexDatas = new HashMap<>();
 
     public ChunkRender(int X, int Y, int Z) {
         this.pos = SectionPos.of(X, Y, Z);
@@ -216,6 +226,8 @@ public class ChunkRender {
             this.VBOs.replace(i, null);
         });//this.VBOs.forEach((key, value) -> this.VBOs.replace(key, null));
         this.setTranslucentVertexData(null);
+        this.vertexes.clear();
+        this.StateToVertexDatas.clear();
     }
 
     private void deleteTask() {
@@ -272,6 +284,18 @@ public class ChunkRender {
         if (this.translucentVertexData != null)
             this.translucentVertexData.close();
         this.translucentVertexData = translucentVertexData;
+    }
+
+    public List<Vector3f> getVertexes() {
+        return this.vertexes;
+    }
+
+    public void addStateVertexes(IBlockState state, BlockVertexDatas vertexDatas) {
+        this.StateToVertexDatas.put(state, vertexDatas);
+    }
+
+    public boolean IsStateVertexContains(IBlockState state) {
+        return this.StateToVertexDatas.containsKey(state);
     }
 
     public ChunkRenderTaskBase<ChunkRender> getLastChunkRenderCompileTask() {

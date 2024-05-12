@@ -37,6 +37,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.WorldType;
 import net.minecraftforge.client.ForgeHooksClient;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector3f;
 
 import java.util.Arrays;
 import java.util.List;
@@ -171,7 +172,6 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                             //VBO のずれを減らす
                             if (vboPart != null)
                                 vboPart.free();
-                            System.out.println("Vertexes: " + bufferBuilder.getVertexCount());
                             vboPart = this.renderer.buffer(pass, this.chunkRender, bufferBuilder.getByteBuffer());
                             this.chunkRender.setVBO(pass, vboPart);
                             if (pass == ChunkRenderPass.TRANSLUCENT) {
@@ -225,6 +225,12 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 mc.getBlockRendererDispatcher().renderBlock(blockState, pos, this.access, bufferBuilder);
             }
 
+            /**
+             * BlockState(と頂点) がすでに保存されていれば処理しない。
+             * 頂点は使いまわす(リストの座標も) -> メモリ削減
+             *
+             * */
+
             EnumBlockRenderType enumblockrendertype = blockState.getRenderType();
             if (enumblockrendertype == EnumBlockRenderType.MODEL) {
                 if (this.access.getWorldType() != WorldType.DEBUG_ALL_BLOCK_STATES)
@@ -232,49 +238,65 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                     try
                     {
                         blockState = blockState.getActualState(this.access, pos);
-                    }
-                    catch (Exception ignored)
-                    {
-                        ;
-                    }
+                    } catch (Exception ignored) {}
                 }
 
                 IBakedModel model = ChunkModelMeshUtils.getBakedModelFromState(blockState);
                 blockState = ChunkModelMeshUtils.getExtendState(blockState, pos, this.access);
+                if(!this.chunkRender.IsStateVertexContains(blockState)) {
 
-                BlockVertexDatas vertexDatas = new BlockVertexDatas();
+                    BlockVertexDatas vertexDatas = new BlockVertexDatas(this.chunkRender);
+                    List<Vector3f> vertexes = this.chunkRender.getVertexes();
 
-                for (EnumFacing enumfacing : EnumFacing.values())
-                {
-                    List<BakedQuad> list = model.getQuads(blockState, enumfacing, rand);
+                    for (EnumFacing enumfacing : EnumFacing.values()) {
+                        List<BakedQuad> list = model.getQuads(blockState, enumfacing, rand);
 
-                    if (!list.isEmpty() && blockState.shouldSideBeRendered(this.access, pos, enumfacing))
-                    {
-                        for(BakedQuad quad : list) {
-                            int[] vertex = quad.getVertexData();
-                            for (int index = 0; index < 4; index++) {
-                                int pos_head = index * 7;
-                                vertexDatas.AddVertexPosFromBitInt(BakedModelEnumFacing.getBakedFacing(enumfacing), vertex[pos_head], vertex[pos_head + 1], vertex[pos_head + 2]);
+                        if (!list.isEmpty() && blockState.shouldSideBeRendered(this.access, pos, enumfacing)) {
+                            for (BakedQuad quad : list) {
+                                int[] vertex = quad.getVertexData();
+                                for (int index = 0; index < 4; index++) {
+                                    int pos_head = index * 7;
+                                    Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
+                                    int vertex_index = vertexes.indexOf(vec3f);
+                                    if (vertex_index == -1) {
+                                        vertexes.add(vec3f);// after size - 1 -> index
+                                        vertex_index = vertexes.size() - 1;
+                                    }
+                                    vertexDatas.addVertexIndex(BakedModelEnumFacing.getBakedFacing(enumfacing), vertex_index);
+                                }
                             }
                         }
                     }
-                }
 
-                List<BakedQuad> list = model.getQuads(blockState, null, rand);
+                    List<BakedQuad> list = model.getQuads(blockState, null, rand);
 
-                if (!list.isEmpty())
-                {
-                    for(BakedQuad quad : list) {
-                        int[] vertex = quad.getVertexData();
-                        for (int index = 0; index < 4; index++) {
-                            int pos_head = index * 7;
-                            vertexDatas.AddVertexPosFromBitInt(BakedModelEnumFacing._NULL, vertex[pos_head], vertex[pos_head + 1], vertex[pos_head + 2]);
+                    if (!list.isEmpty()) {
+                        for (BakedQuad quad : list) {
+                            int[] vertex = quad.getVertexData();
+                            for (int index = 0; index < 4; index++) {
+                                int pos_head = index * 7;
+                                Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
+                                int vertex_index = vertexes.indexOf(vec3f);
+                                if (vertex_index == -1) {
+                                    vertexes.add(vec3f);// after size - 1 -> index
+                                    vertex_index = vertexes.size() - 1;
+                                }
+                                vertexDatas.addVertexIndex(BakedModelEnumFacing._NULL, vertex_index);
+                            }
                         }
                     }
-                }
 
-                this.chunkRender.BlockVertexDatas.put(pos, vertexDatas);
-                System.out.println("__Pos: " + pos + ", Data: " + vertexDatas);
+                    //
+                    // メモリをたくさん食う。
+                    // -> ・同じ形状のものを1つの参照にする。(ブロック等、ポインタのように)
+                    //    ・結合する？ 一辺のデータと面積を使う。-> 逆算
+                    //       -> 大きなまとまりとして扱う
+                    // 追加をもっと高速にする。
+                    // -> 配列で作る？
+                    //
+                    this.chunkRender.addStateVertexes(blockState, vertexDatas);
+                    System.out.println("__Pos: " + pos + ", Data: " + vertexDatas);
+                }
             }
 
             //VanillaFix の修正
