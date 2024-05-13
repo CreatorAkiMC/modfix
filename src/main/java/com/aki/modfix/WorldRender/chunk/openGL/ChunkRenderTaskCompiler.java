@@ -225,10 +225,9 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 mc.getBlockRendererDispatcher().renderBlock(blockState, pos, this.access, bufferBuilder);
             }
 
-            /**
+            /*
              * BlockState(と頂点) がすでに保存されていれば処理しない。
-             * 頂点は使いまわす(リストの座標も) -> メモリ削減
-             *
+             * 頂点のデータを使いまわす(リストの座標も) -> メモリ削減・軽量化
              * */
 
             EnumBlockRenderType enumblockrendertype = blockState.getRenderType();
@@ -286,14 +285,6 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         }
                     }
 
-                    //
-                    // メモリをたくさん食う。
-                    // -> ・同じ形状のものを1つの参照にする。(ブロック等、ポインタのように)
-                    //    ・結合する？ 一辺のデータと面積を使う。-> 逆算
-                    //       -> 大きなまとまりとして扱う
-                    // 追加をもっと高速にする。
-                    // -> 配列で作る？
-                    //
                     this.chunkRender.addStateVertexes(blockState, vertexDatas);
                     System.out.println("__Pos: " + pos + ", Data: " + vertexDatas);
                 }
