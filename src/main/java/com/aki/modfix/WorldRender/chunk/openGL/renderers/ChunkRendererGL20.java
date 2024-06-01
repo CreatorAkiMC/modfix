@@ -5,7 +5,7 @@ import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.GLFogUtils;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import com.aki.mcutils.APICore.Utils.render.ListUtil;
-import com.aki.modfix.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.WorldRender.chunk.openGL.RenderEngineType;
 import org.lwjgl.opengl.GL11;
@@ -65,7 +65,7 @@ public class ChunkRendererGL20 extends ChunkRendererBase<ChunkRender> {
 
     protected void draw(ChunkRender chunkRender, ChunkRenderPass pass, double cameraX, double cameraY, double cameraZ) {
         GL20.glVertexAttrib3f(program.getAttributeLocation(A_OFFSET), (float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
-        GlDynamicVBO.VBOPart vboPart = chunkRender.getVBO(pass);
+        GLDynamicVBO.VBOPart vboPart = chunkRender.getVBO(pass);
         GL11.glDrawArrays(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount());
     }
 

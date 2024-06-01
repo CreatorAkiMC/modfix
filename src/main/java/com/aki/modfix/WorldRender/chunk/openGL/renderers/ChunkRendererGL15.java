@@ -3,7 +3,7 @@ package com.aki.modfix.WorldRender.chunk.openGL.renderers;
 import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
 import com.aki.mcutils.APICore.Utils.render.ListUtil;
-import com.aki.modfix.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.WorldRender.chunk.openGL.RenderEngineType;
 import org.lwjgl.opengl.GL11;
@@ -61,7 +61,7 @@ public class ChunkRendererGL15 extends ChunkRendererBase<ChunkRender> {
     }
 
     protected void draw(ChunkRender renderChunk, ChunkRenderPass pass, double cameraX, double cameraY, double cameraZ) {
-        GlDynamicVBO.VBOPart vboPart = renderChunk.getVBO(pass);
+        GLDynamicVBO.VBOPart vboPart = renderChunk.getVBO(pass);
         GL11.glPushMatrix();
         GL11.glTranslated(renderChunk.getX() - cameraX, renderChunk.getY() - cameraY, renderChunk.getZ() - cameraZ);
         //System.out.println(" GLVBOFist: " + vboPart.getVBOFirst() + ", Count: " + vboPart.getVertexCount());

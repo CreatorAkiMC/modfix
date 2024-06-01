@@ -7,7 +7,8 @@ import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.Frustum;
 import com.aki.mcutils.APICore.Utils.render.SectionPos;
 import com.aki.mcutils.APICore.Utils.render.VisibilitySet;
-import com.aki.modfix.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GLDynamicIBO;
+import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
@@ -17,9 +18,11 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
+import java.nio.IntBuffer;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,7 +32,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ChunkRender {
     //private RegionRenderCacheBuilder VBOs = null;
-    private final LinkedHashMap<ChunkRenderPass, GlDynamicVBO.VBOPart> VBOs = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> null);
+    private final LinkedHashMap<ChunkRenderPass, GLDynamicVBO.VBOPart> VBOs = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> null);
+    private final LinkedHashMap<ChunkRenderPass, GLDynamicIBO.IBOPart> IBOs = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> null);
     private boolean dirty;
 
     private final ChunkRender[] neighbors = new ChunkRender[EnumFacing.values().length];
@@ -49,15 +53,14 @@ public class ChunkRender {
 
     private int EmptyCount = 0;//空の場合は加算
 
-    private int ID = -1;
-
     private final Set<TextureAtlasSprite> visibleTextures = new HashSet<>();
 
-    //public HashMap<BlockPos, BlockVertexDatas> BlockVertexDatas = new HashMap<>();
     //チャンク全体の頂点
     private final List<Vector3f> vertexes = new GFastList<>();
     //blockState から頂点 -> 軽量化
-    private final HashMap<IBlockState, BlockVertexDatas> StateToVertexDatas = new HashMap<>();
+    private final HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexDatas>> StateToVertexDatas = new HashMap<>();
+    private final HashMap<ChunkRenderPass, Integer> BaseVertexes = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> 0);
+    private final HashMap<ChunkRenderPass, IntBuffer> IndexesBuffers = new HashMap<>();
 
     public ChunkRender(int X, int Y, int Z) {
         this.pos = SectionPos.of(X, Y, Z);
@@ -76,15 +79,6 @@ public class ChunkRender {
         }
 
         return false;
-    }
-
-    public ChunkRender setID(int id) {
-        this.ID = id;
-        return this;
-    }
-
-    public int getID() {
-        return this.ID;
     }
 
     //BlockX
@@ -165,12 +159,17 @@ public class ChunkRender {
     }
 
     @Nullable
-    public GlDynamicVBO.VBOPart getVBO(ChunkRenderPass pass) {
+    public GLDynamicVBO.VBOPart getVBO(ChunkRenderPass pass) {
         return this.VBOs.get(pass);
     }
 
-    public void setVBO(ChunkRenderPass pass, @Nullable GlDynamicVBO.VBOPart SetVBO) {
-        GlDynamicVBO.VBOPart vboPart = this.VBOs.get(pass);
+    @Nullable
+    public GLDynamicIBO.IBOPart getIBO(ChunkRenderPass pass) {
+        return this.IBOs.get(pass);
+    }
+
+    public void setVBO(ChunkRenderPass pass, @Nullable GLDynamicVBO.VBOPart SetVBO) {
+        GLDynamicVBO.VBOPart vboPart = this.VBOs.get(pass);
         if (vboPart != null)
             vboPart.free();
         this.VBOs.replace(pass, SetVBO);
@@ -181,6 +180,13 @@ public class ChunkRender {
 
         if (pass == ChunkRenderPass.TRANSLUCENT)
             this.setTranslucentVertexData(null);
+    }
+
+    public void setIBO(ChunkRenderPass pass, @Nullable GLDynamicIBO.IBOPart SetIBO) {
+        GLDynamicIBO.IBOPart vboPart = this.IBOs.get(pass);
+        if (vboPart != null)
+            vboPart.free();
+        this.IBOs.replace(pass, SetIBO);
     }
 
     public boolean IsVBOEmpty() {
@@ -224,7 +230,12 @@ public class ChunkRender {
                 this.VBOs.get(i).free();
             }
             this.VBOs.replace(i, null);
-        });//this.VBOs.forEach((key, value) -> this.VBOs.replace(key, null));
+            if(this.IBOs.get(i) != null) {
+                this.IBOs.get(i).free();
+            }
+            this.IBOs.replace(i, null);
+        });
+        //this.VBOs.forEach((key, value) -> this.VBOs.replace(key, null));
         this.setTranslucentVertexData(null);
         this.vertexes.clear();
         this.StateToVertexDatas.clear();
@@ -265,7 +276,7 @@ public class ChunkRender {
         if (this.lastChunkRenderCompileTaskResult != null && !this.lastChunkRenderCompileTaskResult.isDone())
             return;
 
-        GlDynamicVBO.VBOPart vboPart = this.getVBO(ChunkRenderPass.TRANSLUCENT);
+        GLDynamicVBO.VBOPart vboPart = this.getVBO(ChunkRenderPass.TRANSLUCENT);
         if (vboPart != null) {
             this.LastChunkRenderCompileTask = new ChunkRenderTranslucentSorter<>(chunkRenderer, taskDispatcher, this, vboPart, this.getTranslucentVertexData());
 
@@ -290,15 +301,39 @@ public class ChunkRender {
         return this.vertexes;
     }
 
-    public void addStateVertexes(IBlockState state, BlockVertexDatas vertexDatas) {
-        this.StateToVertexDatas.put(state, vertexDatas);
+    public int getBaseVertex(ChunkRenderPass pass) {
+        return this.BaseVertexes.get(pass);
     }
 
-    public boolean IsStateVertexContains(IBlockState state) {
-        return this.StateToVertexDatas.containsKey(state);
+    public void addBaseVertex(ChunkRenderPass pass, int add) {
+        this.BaseVertexes.replace(pass, this.BaseVertexes.get(pass) + add);
     }
 
+    public void addStateVertexes(ChunkRenderPass pass, IBlockState state, BlockVertexDatas vertexDatas) {
+        this.StateToVertexDatas.computeIfAbsent(pass, key -> new HashMap<>()).put(state, vertexDatas);
+    }
+
+    public boolean IsStateVertexContains(ChunkRenderPass pass, IBlockState state) {
+        return this.StateToVertexDatas.computeIfAbsent(pass, key -> new HashMap<>()).containsKey(state);
+    }
+
+    public BlockVertexDatas GetVertexDatasFromState(ChunkRenderPass pass, IBlockState state) {
+        return this.StateToVertexDatas.computeIfAbsent(pass, key -> new HashMap<>()).get(state);
+    }
+
+    public void CreateIndexesBuffer(ChunkRenderPass pass, int[] datas) {
+        IntBuffer intBuffer = BufferUtils.createIntBuffer(datas.length);
+        intBuffer.put(datas);
+        intBuffer.flip();
+        this.IndexesBuffers.put(pass, intBuffer);
+    }
+
+    public IntBuffer getIndexesBuffer(ChunkRenderPass pass) {
+        return this.IndexesBuffers.getOrDefault(pass, IntBuffer.allocate(0));
+    }
+
+    /*
     public ChunkRenderTaskBase<ChunkRender> getLastChunkRenderCompileTask() {
         return LastChunkRenderCompileTask;
-    }
+    }*/
 }

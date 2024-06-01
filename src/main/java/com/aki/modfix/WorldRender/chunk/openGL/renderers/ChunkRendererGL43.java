@@ -6,7 +6,7 @@ package com.aki.modfix.WorldRender.chunk.openGL.renderers;
 import com.aki.mcutils.APICore.Utils.list.MapCreateHelper;
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.*;
-import com.aki.modfix.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.WorldRender.chunk.openGL.RenderEngineType;
@@ -22,7 +22,6 @@ import java.util.Objects;
 public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
     /**
      * Bufferのデータマッピング
-     *
      *         BLOCK.addElement(POSITION_3F);
      *         BLOCK.addElement(COLOR_4UB); -> Color
      *         BLOCK.addElement(TEX_2F); -> TEXCOORD
@@ -97,8 +96,13 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
                 this.DynamicBuffers.get(pass).unbind(GL15.GL_ARRAY_BUFFER);
 
+                this.IndicesBuffers.get(pass).bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
+                //
+                //buffer.upload(0L);
+
                 VAO.unbind();
                 VAOMap.replace(pass, VAO);
+                this.IndicesBuffers.get(pass).unbind(GL15.GL_ELEMENT_ARRAY_BUFFER);
             });
 
         } catch (Exception e) {
@@ -133,10 +137,10 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
 
             this.RenderChunks.forEach((pass, list) -> {
                 ListUtil.forEach(list, pass == ChunkRenderPass.TRANSLUCENT, (chunkRender, index) -> {
+                    //System.out.println("BufSize: " + GL15.glGetBufferParameteri(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_BUFFER_SIZE));
                     this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
-                    GlDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
-
-                    this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
+                    GLDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
+                    this.CommandBuffers.getSelect().get(pass).addElementsIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), chunkRender.getBaseVertex(pass), index, 1);
                 });
             });
 
@@ -163,7 +167,18 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
         int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
         this.CommandBuffers.getSelect().get(pass).bind(RenderBufferMode);
         //this.CommandBuffers.get(pass).getCount() == this.RenderChunks.get(pass).size()
-        GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.CommandBuffers.getSelect().get(pass).getCount(), 0);
+        //this.IndicesBuffers.get(pass).bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
+
+        GL43.glMultiDrawElementsIndirect(GL11.GL_QUADS, GL11.GL_UNSIGNED_INT, 0, this.CommandBuffers.getSelect().get(pass).getCount(), 0);
+        //GL11.glDrawElements(GL11.GL_POINTS, 24, GL11.GL_UNSIGNED_INT, 0);
+
+        //System.out.println("-4- IndexSize: " + GL15.glGetBufferParameteri(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_BUFFER_SIZE) + ", Pass: " + pass);
+
+        int error;
+        while ((error = GL11.glGetError()) != GL11.GL_NO_ERROR) {
+            System.out.println("--4Error -> " + error + " ");
+        }
+
         if (pass == ChunkRenderPass.TRANSLUCENT) {//culling
             if (this.SyncList.getSelect() != -1)
                 GL15.glDeleteQueries(this.SyncList.getSelect());
@@ -171,6 +186,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
             GL33.glQueryCounter(query, GL33.GL_TIMESTAMP);
             this.SyncList.setSelect(query);
         }
+
         this.CommandBuffers.getSelect().get(pass).unbind(RenderBufferMode);//GL15.glBindBuffer(RenderBufferMode, 0);
         this.VaoBuffers.getSelect().get(pass).unbind();
     }

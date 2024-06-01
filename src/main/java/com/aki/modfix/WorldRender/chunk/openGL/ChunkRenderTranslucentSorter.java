@@ -2,7 +2,7 @@ package com.aki.modfix.WorldRender.chunk.openGL;
 
 import com.aki.mcutils.APICore.Utils.memory.UnsafeByteBuffer;
 import com.aki.mcutils.APICore.Utils.render.SortVertexUtil;
-import com.aki.modfix.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -17,10 +17,10 @@ import org.lwjgl.opengl.GL15;
  */
 public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRenderTaskBase<T> {
 
-    private final GlDynamicVBO.VBOPart vboPart;
+    private final GLDynamicVBO.VBOPart vboPart;
     private final UnsafeByteBuffer vertexData;
 
-    public ChunkRenderTranslucentSorter(ChunkRendererBase<T> renderer, ChunkGLDispatcher dispatcher, T chunkRender, GlDynamicVBO.VBOPart vboPart, UnsafeByteBuffer translucent) {
+    public ChunkRenderTranslucentSorter(ChunkRendererBase<T> renderer, ChunkGLDispatcher dispatcher, T chunkRender, GLDynamicVBO.VBOPart vboPart, UnsafeByteBuffer translucent) {
         super(renderer, dispatcher, chunkRender);
         this.vboPart = vboPart;
         this.vertexData = translucent;

@@ -3,7 +3,7 @@ package com.aki.modfix.WorldRender.chunk.openGL.renderers;
 import com.aki.mcutils.APICore.Utils.list.MapCreateHelper;
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.*;
-import com.aki.modfix.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.WorldRender.chunk.openGL.RenderEngineType;
@@ -118,7 +118,7 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
         this.VaoBuffers.getSelect().get(pass).bind();
         //this.CommandBuffers.get(pass).getCount() == this.RenderChunks.get(pass).size()
         ListUtil.forEach(RenderChunks.get(pass), pass == ChunkRenderPass.TRANSLUCENT, (renderChunk, i) -> {
-            GlDynamicVBO.VBOPart vboPart = renderChunk.getVBO(pass);
+            GLDynamicVBO.VBOPart vboPart = renderChunk.getVBO(pass);
             if(vboPart != null)
                 GL42.glDrawArraysInstancedBaseInstance(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount(), 1, i);
         });

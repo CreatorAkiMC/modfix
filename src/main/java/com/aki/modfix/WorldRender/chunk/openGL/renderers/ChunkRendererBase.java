@@ -9,7 +9,8 @@ import com.aki.mcutils.APICore.Utils.render.*;
 import com.aki.mcutils.APICore.program.shader.ShaderHelper;
 import com.aki.mcutils.APICore.program.shader.ShaderObject;
 import com.aki.mcutils.APICore.program.shader.ShaderProgram;
-import com.aki.modfix.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GLDynamicIBO;
+import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkGLDispatcher;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
@@ -27,6 +28,7 @@ import org.lwjgl.opengl.GL15;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,10 +44,10 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     protected final LinkedHashMap<ChunkRenderPass, List<ChunkRender>> RenderChunks = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.values(), i -> new ArrayList<>());
 
     public RTList<LinkedHashMap<ChunkRenderPass, GLMutableArrayBuffer>> VaoBuffers;
-    public LinkedHashMap<ChunkRenderPass, GlDynamicVBO> DynamicBuffers;
+    public LinkedHashMap<ChunkRenderPass, GLDynamicVBO> DynamicBuffers;
     public RTList<LinkedHashMap<ChunkRenderPass, GlCommandBuffer>> CommandBuffers;
     public RTList<LinkedHashMap<ChunkRenderPass, GlVertexOffsetBuffer>> OffsetBuffers;
-    public LinkedHashMap<ChunkRenderPass, GlMutableBuffer> IndicesBuffers;
+    public LinkedHashMap<ChunkRenderPass, GLDynamicIBO> IndicesBuffers;
 
     public String A_POS = "a_pos";
     public String A_COLOR = "a_color";
@@ -63,9 +65,9 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
 
         //SyncListのように実装
         this.VaoBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GLMutableArrayBuffer()));
-        this.DynamicBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlDynamicVBO());
+        this.DynamicBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GLDynamicVBO());
         //インデックスバッファ
-        this.IndicesBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlMutableBuffer(GL15.GL_DYNAMIC_DRAW));
+        this.IndicesBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GLDynamicIBO());
         this.SyncList = new RTList<>(2, 0, i -> -1);
     }
 
@@ -124,8 +126,6 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         ChunkRender rootRenderChunk = provider.getRenderChunkAt(chunkX, chunkY, chunkZ);
         rootRenderChunk.VisibleDirections = 0x3F;
 
-        int ID = 0;
-
         chunkQueue.add(rootRenderChunk);
 
         double fogEndSqr = GLFogUtils.calculateFogEndSqr();
@@ -135,7 +135,6 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         while ((renderChunk = chunkQueue.poll()) != null) {
 
             renderChunk.lastRecordedTime = Frame;
-            renderChunk = renderChunk.setID(ID++);
             renderChunk.ChunkRenderCompileAsync((ChunkRendererBase<ChunkRender>) this, ChunkRenderManager.getRenderDispatcher());
             addToRenderLists(renderChunk);
 
@@ -224,8 +223,8 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
 
     public void deleteDatas() {
         this.VaoBuffers.forEach((index, map) -> map.values().forEach(GLMutableArrayBuffer::delete));
-        this.DynamicBuffers.values().forEach(GlDynamicVBO::Delete);
-        this.IndicesBuffers.values().forEach(GlMutableBuffer::delete);
+        this.DynamicBuffers.values().forEach(GLDynamicVBO::Delete);
+        this.IndicesBuffers.forEach((index, map) -> map.Delete());
 
         if (program != null)
             program.Delete();
@@ -238,8 +237,12 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         this.SyncList.getList().stream().filter(i -> i != -1).forEach(GL15::glDeleteQueries);
     }
 
-    public GlDynamicVBO.VBOPart buffer(ChunkRenderPass pass, ChunkRender render, ByteBuffer buffer) {
-        return this.DynamicBuffers.get(pass).Buf_Upload(render, buffer);
+    public GLDynamicVBO.VBOPart buffer(ChunkRenderPass pass, ByteBuffer buffer) {
+        return this.DynamicBuffers.get(pass).Buf_Upload(buffer);
+    }
+
+    public GLDynamicIBO.IBOPart buffer(ChunkRenderPass pass, IntBuffer buffer) {
+        return this.IndicesBuffers.get(pass).Buf_Upload(buffer);
     }
 
     protected boolean isSpectator() {

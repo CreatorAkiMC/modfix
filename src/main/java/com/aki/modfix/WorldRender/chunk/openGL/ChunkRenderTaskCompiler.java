@@ -4,12 +4,15 @@
 
 package com.aki.modfix.WorldRender.chunk.openGL;
 
+import com.aki.mcutils.APICore.Utils.list.MapCreateHelper;
+import com.aki.mcutils.APICore.Utils.list.Pair;
 import com.aki.mcutils.APICore.Utils.memory.NIOBufferUtil;
 import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.GraphVisibility;
 import com.aki.mcutils.APICore.Utils.render.SortVertexUtil;
 import com.aki.mcutils.APICore.Utils.render.VisibilitySet;
-import com.aki.modfix.GLSytem.GlDynamicVBO;
+import com.aki.modfix.GLSytem.GLDynamicIBO;
+import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.BetterFoliage;
@@ -18,6 +21,7 @@ import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.BakedModelEnumFacing;
 import com.aki.modfix.util.gl.BlockVertexDatas;
 import com.aki.modfix.util.gl.ChunkModelMeshUtils;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -34,12 +38,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.WorldType;
 import net.minecraftforge.client.ForgeHooksClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
+import java.nio.IntBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -132,6 +137,88 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
             }
         }
 
+        HashMap<ChunkRenderPass, IntArrayList> indexLists = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> new IntArrayList());
+        int index_offset = 0;
+
+        //頂点インデックスの準備 -> VAO用
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                for (int z = 0; z < 16; z++) {
+                    pos.setPos(this.chunkRender.getX() + x, this.chunkRender.getY() + y, this.chunkRender.getZ() + z);
+
+                    IBlockState blockState = this.access.getBlockState(pos);
+                    blockState = ChunkModelMeshUtils.getActualState(blockState, pos, this.access);
+                    blockState = ChunkModelMeshUtils.getExtendState(blockState, pos, this.access);
+
+                    ChunkRenderPass pass = ChunkRenderPass.ConvVanillaRenderPass(blockState.getBlock().getRenderLayer());
+
+                    BlockVertexDatas vertexDatas = this.chunkRender.GetVertexDatasFromState(pass, blockState);
+                    if (vertexDatas != null) {
+                        for (BakedModelEnumFacing baked_facing : BakedModelEnumFacing.values()) {
+                            int size = vertexDatas.getSize(baked_facing);
+                            EnumFacing facing = baked_facing.getFacing();
+                            if (facing == null || blockState.shouldSideBeRendered(this.access, pos, facing)) {
+                                for (int i = 0; i < size; i++) {
+                                    Pair<Integer, Vector3f> index_vec = vertexDatas.getVertex(baked_facing, i);
+                                    indexLists.get(pass).add(index_offset + index_vec.getKey());
+                                }
+                            }
+                        }
+                        index_offset += vertexDatas.getVertexCount();
+                    }
+                }
+            }
+            if (this.getCancel()) {
+                return ChunkRenderTaskResult.CANCELLED;
+            }
+        }
+
+        //System.out.println("Out: " + indexLists);
+
+        for(ChunkRenderPass pass : ChunkRenderPass.values()) {
+            this.chunkRender.CreateIndexesBuffer(pass, indexLists.get(pass).toIntArray());
+            System.out.print("VertexIndexes: " + Arrays.toString(indexLists.get(pass).toIntArray()) + ", Pass: " + pass);
+        }
+
+        this.dispatcher.runOnRenderThread(() -> {
+            if (!this.getCancel()) {
+                try {
+                    for (ChunkRenderPass pass : ChunkRenderPass.values()) {
+                        /*
+                         * sizeチェック必要 -> 増加している
+                         * sectorに分けるのが一番よさそう
+                         * すでにデータがある場合、置き換えるみたいな
+                         *
+                         *　ChunkRender ごとに部屋(Sector)を割り当てる...
+                         * */
+                        IntBuffer buffer = this.chunkRender.getIndexesBuffer(pass);
+                        GLDynamicIBO.IBOPart iboPart = this.chunkRender.getIBO(pass);
+                        if(iboPart != null) {
+                            iboPart.free();
+                        }
+
+                        if(buffer != null) {
+                            iboPart = this.renderer.buffer(pass, buffer);
+                        } else {
+                            iboPart = null;
+                        }
+
+                        this.chunkRender.setIBO(pass, iboPart);
+                        /*buffer.bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
+
+                        System.out.print("___Size: " + GL15.glGetBufferParameteri(GL15.GL_ELEMENT_ARRAY_BUFFER, 34660));
+
+                        buffer.bufferSubData(0, this.chunkRender.getIndexesBuffer(pass));
+                        buffer.unbind();*/
+                    }
+                } catch (Exception e) {
+                    Minecraft.getMinecraft().crashed(new CrashReport("ModFix ChunkRenderTaskCompiler MultiThread", e));
+                }
+            }
+        });
+
+        indexLists.clear();
+
         VisibilitySet visibilitySet = visibilityGraph.compute();
 
         if (bufferBuilderPack.getWorldRendererByLayer(BlockRenderLayer.TRANSLUCENT).isDrawing) {
@@ -168,11 +255,11 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         if (bufferBuilder == null) {
                             this.chunkRender.setVBO(pass, null);
                         } else {
-                            GlDynamicVBO.VBOPart vboPart = this.chunkRender.getVBO(pass);
+                            GLDynamicVBO.VBOPart vboPart = this.chunkRender.getVBO(pass);
                             //VBO のずれを減らす
                             if (vboPart != null)
                                 vboPart.free();
-                            vboPart = this.renderer.buffer(pass, this.chunkRender, bufferBuilder.getByteBuffer());
+                            vboPart = this.renderer.buffer(pass, bufferBuilder.getByteBuffer());
                             this.chunkRender.setVBO(pass, vboPart);
                             if (pass == ChunkRenderPass.TRANSLUCENT) {
                                 this.chunkRender.setTranslucentVertexData(NIOBufferUtil.copyAsUnsafeBuffer(bufferBuilder.getByteBuffer()));
@@ -226,31 +313,26 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
             }
 
             /*
+             * データの準備
              * BlockState(と頂点) がすでに保存されていれば処理しない。
              * 頂点のデータを使いまわす(リストの座標も) -> メモリ削減・軽量化
              * */
-
             EnumBlockRenderType enumblockrendertype = blockState.getRenderType();
             if (enumblockrendertype == EnumBlockRenderType.MODEL) {
-                if (this.access.getWorldType() != WorldType.DEBUG_ALL_BLOCK_STATES)
-                {
-                    try
-                    {
-                        blockState = blockState.getActualState(this.access, pos);
-                    } catch (Exception ignored) {}
-                }
+
+                blockState = ChunkModelMeshUtils.getActualState(blockState, pos, this.access);
 
                 IBakedModel model = ChunkModelMeshUtils.getBakedModelFromState(blockState);
                 blockState = ChunkModelMeshUtils.getExtendState(blockState, pos, this.access);
-                if(!this.chunkRender.IsStateVertexContains(blockState)) {
+                ChunkRenderPass pass = ChunkRenderPass.ConvVanillaRenderPass(layer);
+                if(!this.chunkRender.IsStateVertexContains(pass, blockState)) {
 
-                    BlockVertexDatas vertexDatas = new BlockVertexDatas(this.chunkRender);
+                    BlockVertexDatas vertexDatas = new BlockVertexDatas(this.chunkRender, pass);
                     List<Vector3f> vertexes = this.chunkRender.getVertexes();
 
                     for (EnumFacing enumfacing : EnumFacing.values()) {
                         List<BakedQuad> list = model.getQuads(blockState, enumfacing, rand);
-
-                        if (!list.isEmpty() && blockState.shouldSideBeRendered(this.access, pos, enumfacing)) {
+                        if (!list.isEmpty()) {
                             for (BakedQuad quad : list) {
                                 int[] vertex = quad.getVertexData();
                                 for (int index = 0; index < 4; index++) {
@@ -261,6 +343,9 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                                         vertexes.add(vec3f);// after size - 1 -> index
                                         vertex_index = vertexes.size() - 1;
                                     }
+
+                                    //隠れている(見えない面)も含む
+                                    //if (blockState.shouldSideBeRendered(this.access, pos, enumfacing))
                                     vertexDatas.addVertexIndex(BakedModelEnumFacing.getBakedFacing(enumfacing), vertex_index);
                                 }
                             }
@@ -285,8 +370,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         }
                     }
 
-                    this.chunkRender.addStateVertexes(blockState, vertexDatas);
-                    System.out.println("__Pos: " + pos + ", Data: " + vertexDatas);
+                    this.chunkRender.addStateVertexes(pass, blockState, vertexDatas);
                 }
             }
 
