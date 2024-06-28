@@ -3,12 +3,12 @@ package com.aki.modfix.GLSytem;
 import com.aki.mcutils.APICore.Utils.render.GlObject;
 import org.lwjgl.opengl.GL15;
 
-import java.nio.IntBuffer;
+import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class GLDynamicIBO extends GlObject {
-    private final IntChainSectors BaseSector;
+    private final ChainSectors BaseSector;
 
     private final Queue<Runnable> Listeners = new ArrayDeque<>();//IniVBOS を実行 -> レンダーを更新
 
@@ -31,7 +31,7 @@ public class GLDynamicIBO extends GlObject {
         };*/
 
 
-        BaseSector = new IntChainSectors(integer -> {
+        BaseSector = new ChainSectors(integer -> {
             //iboの更新
             if(integer != this.handle()) {
                 this.setHandle(integer);
@@ -41,7 +41,7 @@ public class GLDynamicIBO extends GlObject {
 
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, this.handle());
         //16**3 = 4096,  24 -> 6 * 4
-        GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, 4096 * 24L, GL15.GL_DYNAMIC_DRAW);
+        GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, 0L/*4096 * 24L*/, GL15.GL_DYNAMIC_DRAW);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 
@@ -57,13 +57,14 @@ public class GLDynamicIBO extends GlObject {
      * オリジナル(X)と補完用Index()Xなどで位置を特定
      */
 
-    public GLDynamicIBO.IBOPart Buf_Upload(IntBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
-        IntChainSectors sector = this.BaseSector.getChainSector();
+    public GLDynamicIBO.IBOPart Buf_Upload(ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
+        ChainSectors sector = this.BaseSector.getChainSector();
+        sector.setUsed(true);
         sector.BufferUpload(this.handle(), buffer);
         return new GLDynamicIBO.IBOPart(sector);
     }
 
-    public void FreeSector(IntChainSectors sector) {
+    public void FreeSector(ChainSectors sector) {
         sector.Free(this.handle());
     }
 
@@ -83,9 +84,9 @@ public class GLDynamicIBO extends GlObject {
 
     public class IBOPart {
         private boolean valid = true;//free = false
-        private final IntChainSectors sector;
+        private final ChainSectors sector;
 
-        public IBOPart(IntChainSectors sector) {
+        public IBOPart(ChainSectors sector) {
             this.sector = sector;
         }
 

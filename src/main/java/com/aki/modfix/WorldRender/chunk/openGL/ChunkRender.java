@@ -13,16 +13,16 @@ import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.BlockVertexDatas;
+import com.aki.modfix.util.gl.VertexData;
 import com.aki.modfix.util.gl.WorldUtil;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
-import java.nio.IntBuffer;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -56,11 +56,11 @@ public class ChunkRender {
     private final Set<TextureAtlasSprite> visibleTextures = new HashSet<>();
 
     //チャンク全体の頂点
-    private final List<Vector3f> vertexes = new GFastList<>();
+    private final List<VertexData> vertexes = new GFastList<>();
     //blockState から頂点 -> 軽量化
-    private final HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexDatas>> StateToVertexDatas = new HashMap<>();
+    private final HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexDatas>> StateToVertexData = new HashMap<>();
     private final HashMap<ChunkRenderPass, Integer> BaseVertexes = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> 0);
-    private final HashMap<ChunkRenderPass, IntBuffer> IndexesBuffers = new HashMap<>();
+    private final HashMap<ChunkRenderPass, ByteBuffer> IndexesBuffers = new HashMap<>();
 
     public ChunkRender(int X, int Y, int Z) {
         this.pos = SectionPos.of(X, Y, Z);
@@ -238,7 +238,7 @@ public class ChunkRender {
         //this.VBOs.forEach((key, value) -> this.VBOs.replace(key, null));
         this.setTranslucentVertexData(null);
         this.vertexes.clear();
-        this.StateToVertexDatas.clear();
+        this.StateToVertexData.clear();
     }
 
     private void deleteTask() {
@@ -262,9 +262,6 @@ public class ChunkRender {
             Arrays.stream(ChunkRenderPass.ALL).forEach(pass -> this.setVBO(pass, null));
             this.Visibilityset.setAllVisible();
         } else {
-            /**
-             * ほかのチャンクが表示されないのもここに原因がありそう。
-             * */
             this.LastChunkRenderCompileTask = new ChunkRenderTaskCompiler<>(chunkRenderer, taskDispatcher, this, new GLChunkRenderCache(WorldUtil.getWorld(), this.pos));
             this.lastChunkRenderCompileTaskResult = taskDispatcher.runAsync(this.LastChunkRenderCompileTask);
         }
@@ -297,7 +294,7 @@ public class ChunkRender {
         this.translucentVertexData = translucentVertexData;
     }
 
-    public List<Vector3f> getVertexes() {
+    public List<VertexData> getVertexData() {
         return this.vertexes;
     }
 
@@ -310,26 +307,27 @@ public class ChunkRender {
     }
 
     public void addStateVertexes(ChunkRenderPass pass, IBlockState state, BlockVertexDatas vertexDatas) {
-        this.StateToVertexDatas.computeIfAbsent(pass, key -> new HashMap<>()).put(state, vertexDatas);
+        this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).put(state, vertexDatas);
     }
 
     public boolean IsStateVertexContains(ChunkRenderPass pass, IBlockState state) {
-        return this.StateToVertexDatas.computeIfAbsent(pass, key -> new HashMap<>()).containsKey(state);
+        return this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).containsKey(state);
     }
 
-    public BlockVertexDatas GetVertexDatasFromState(ChunkRenderPass pass, IBlockState state) {
-        return this.StateToVertexDatas.computeIfAbsent(pass, key -> new HashMap<>()).get(state);
+    public BlockVertexDatas GetVertexDataFromState(ChunkRenderPass pass, IBlockState state) {
+        return this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).get(state);
     }
 
     public void CreateIndexesBuffer(ChunkRenderPass pass, int[] datas) {
-        IntBuffer intBuffer = BufferUtils.createIntBuffer(datas.length);
-        intBuffer.put(datas);
-        intBuffer.flip();
-        this.IndexesBuffers.put(pass, intBuffer);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(datas.length * 4);
+        for(int index : datas)
+            buffer.putInt(index);
+        buffer.flip();
+        this.IndexesBuffers.put(pass, buffer);
     }
 
-    public IntBuffer getIndexesBuffer(ChunkRenderPass pass) {
-        return this.IndexesBuffers.getOrDefault(pass, IntBuffer.allocate(0));
+    public ByteBuffer getIndexesBuffer(ChunkRenderPass pass) {
+        return this.IndexesBuffers.getOrDefault(pass, ByteBuffer.allocate(0));
     }
 
     /*

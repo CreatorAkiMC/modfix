@@ -56,6 +56,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
         this.CommandBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
         this.OffsetBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
         this.DynamicBuffers.forEach((pass, vbo) -> vbo.AddListener(() -> this.InitVAOs(pass)));
+        this.IndicesBuffers.forEach((pass, vbo) -> vbo.AddListener(() -> this.InitVAOs(pass)));
         Arrays.stream(ChunkRenderPass.ALL).forEach(this::InitVAOs);
     }
 
@@ -95,13 +96,12 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
                 this.DynamicBuffers.get(pass).unbind(GL15.GL_ARRAY_BUFFER);
-
                 this.IndicesBuffers.get(pass).bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
-                //
-                //buffer.upload(0L);
+
 
                 VAO.unbind();
                 VAOMap.replace(pass, VAO);
+
                 this.IndicesBuffers.get(pass).unbind(GL15.GL_ELEMENT_ARRAY_BUFFER);
             });
 
@@ -140,6 +140,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                     //System.out.println("BufSize: " + GL15.glGetBufferParameteri(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_BUFFER_SIZE));
                     this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
                     GLDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
+                    //BaseVertex <- Byte単位????
                     this.CommandBuffers.getSelect().get(pass).addElementsIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), chunkRender.getBaseVertex(pass), index, 1);
                 });
             });
@@ -162,6 +163,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
         GLUtils.setMatrix(projectionMatrixIndex, mat4f);
 
         GLFogUtils.setupFogFromGL(program);
+
 
         this.VaoBuffers.getSelect().get(pass).bind();
         int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
@@ -187,6 +189,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
             this.SyncList.setSelect(query);
         }
 
+        //this.IndicesBuffers.get(pass).unbind(GL15.GL_ELEMENT_ARRAY_BUFFER);
         this.CommandBuffers.getSelect().get(pass).unbind(RenderBufferMode);//GL15.glBindBuffer(RenderBufferMode, 0);
         this.VaoBuffers.getSelect().get(pass).unbind();
     }

@@ -21,6 +21,7 @@ import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.BakedModelEnumFacing;
 import com.aki.modfix.util.gl.BlockVertexDatas;
 import com.aki.modfix.util.gl.ChunkModelMeshUtils;
+import com.aki.modfix.util.gl.VertexData;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -40,9 +41,10 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.client.ForgeHooksClient;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
-import java.nio.IntBuffer;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -152,19 +154,25 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
 
                     ChunkRenderPass pass = ChunkRenderPass.ConvVanillaRenderPass(blockState.getBlock().getRenderLayer());
 
-                    BlockVertexDatas vertexDatas = this.chunkRender.GetVertexDatasFromState(pass, blockState);
+                    BlockVertexDatas vertexDatas = this.chunkRender.GetVertexDataFromState(pass, blockState);
                     if (vertexDatas != null) {
+                        //int index = 0;
+                        int vertex_count = 0;
                         for (BakedModelEnumFacing baked_facing : BakedModelEnumFacing.values()) {
                             int size = vertexDatas.getSize(baked_facing);
                             EnumFacing facing = baked_facing.getFacing();
                             if (facing == null || blockState.shouldSideBeRendered(this.access, pos, facing)) {
+                                vertex_count += size;
                                 for (int i = 0; i < size; i++) {
-                                    Pair<Integer, Vector3f> index_vec = vertexDatas.getVertex(baked_facing, i);
-                                    indexLists.get(pass).add(index_offset + index_vec.getKey());
+                                    Pair<Integer, VertexData> index_vec = vertexDatas.getVertex(baked_facing, i);
+
+                                    indexLists.get(pass).add(/*index_offset + */index_vec.getKey());
+                                    System.out.println("---BData: " + index_vec.getKey() + ", " + index_vec.getValue());
+                                    //indexLists.get(pass).add(index_offset + (index++));
                                 }
                             }
                         }
-                        index_offset += vertexDatas.getVertexCount();
+                        index_offset += vertex_count;
                     }
                 }
             }
@@ -176,8 +184,8 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         //System.out.println("Out: " + indexLists);
 
         for(ChunkRenderPass pass : ChunkRenderPass.values()) {
+            System.out.println(" ---Pass: " + pass + ", Size: " + indexLists.get(pass).size());
             this.chunkRender.CreateIndexesBuffer(pass, indexLists.get(pass).toIntArray());
-            System.out.print("VertexIndexes: " + Arrays.toString(indexLists.get(pass).toIntArray()) + ", Pass: " + pass);
         }
 
         this.dispatcher.runOnRenderThread(() -> {
@@ -191,25 +199,23 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                          *
                          *　ChunkRender ごとに部屋(Sector)を割り当てる...
                          * */
-                        IntBuffer buffer = this.chunkRender.getIndexesBuffer(pass);
+                        /**
+                         * 使われていない頂点が、干渉している？
+                         *  -> 使っている頂点の法線等がそのまま適用されて、描画がバグる。
+                         *     頂点の属性を新しく作る必要がある
+                         * */
+                        ByteBuffer buffer = this.chunkRender.getIndexesBuffer(pass);
                         GLDynamicIBO.IBOPart iboPart = this.chunkRender.getIBO(pass);
                         if(iboPart != null) {
                             iboPart.free();
-                        }
-
-                        if(buffer != null) {
-                            iboPart = this.renderer.buffer(pass, buffer);
-                        } else {
                             iboPart = null;
                         }
 
+                        if(buffer != null) {
+                            iboPart = this.renderer.bufferIBO(pass, buffer);
+                        }
+
                         this.chunkRender.setIBO(pass, iboPart);
-                        /*buffer.bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
-
-                        System.out.print("___Size: " + GL15.glGetBufferParameteri(GL15.GL_ELEMENT_ARRAY_BUFFER, 34660));
-
-                        buffer.bufferSubData(0, this.chunkRender.getIndexesBuffer(pass));
-                        buffer.unbind();*/
                     }
                 } catch (Exception e) {
                     Minecraft.getMinecraft().crashed(new CrashReport("ModFix ChunkRenderTaskCompiler MultiThread", e));
@@ -259,7 +265,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                             //VBO のずれを減らす
                             if (vboPart != null)
                                 vboPart.free();
-                            vboPart = this.renderer.buffer(pass, bufferBuilder.getByteBuffer());
+                            vboPart = this.renderer.bufferVBO(pass, bufferBuilder.getByteBuffer());
                             this.chunkRender.setVBO(pass, vboPart);
                             if (pass == ChunkRenderPass.TRANSLUCENT) {
                                 this.chunkRender.setTranslucentVertexData(NIOBufferUtil.copyAsUnsafeBuffer(bufferBuilder.getByteBuffer()));
@@ -327,26 +333,29 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 ChunkRenderPass pass = ChunkRenderPass.ConvVanillaRenderPass(layer);
                 if(!this.chunkRender.IsStateVertexContains(pass, blockState)) {
 
-                    BlockVertexDatas vertexDatas = new BlockVertexDatas(this.chunkRender, pass);
-                    List<Vector3f> vertexes = this.chunkRender.getVertexes();
+                    BlockVertexDatas vertexData = new BlockVertexDatas(this.chunkRender, pass);
+                    List<VertexData> vertexes = this.chunkRender.getVertexData();
 
                     for (EnumFacing enumfacing : EnumFacing.values()) {
                         List<BakedQuad> list = model.getQuads(blockState, enumfacing, rand);
                         if (!list.isEmpty()) {
                             for (BakedQuad quad : list) {
+
+                                /*//Optifine 対応
+                                if(Optifine.isNaturalTextures()) {
+                                    quad = Optifine.getNaturalTexture(pos, quad);
+                                }*/
                                 int[] vertex = quad.getVertexData();
                                 for (int index = 0; index < 4; index++) {
-                                    int pos_head = index * 7;
-                                    Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
-                                    int vertex_index = vertexes.indexOf(vec3f);
+                                    VertexData data = getVertexData(quad, index, vertex);
+                                    int vertex_index = vertexes.indexOf(data);
                                     if (vertex_index == -1) {
-                                        vertexes.add(vec3f);// after size - 1 -> index
+                                        vertexes.add(data);// after size - 1 -> index
                                         vertex_index = vertexes.size() - 1;
                                     }
 
                                     //隠れている(見えない面)も含む
-                                    //if (blockState.shouldSideBeRendered(this.access, pos, enumfacing))
-                                    vertexDatas.addVertexIndex(BakedModelEnumFacing.getBakedFacing(enumfacing), vertex_index);
+                                    vertexData.addVertexIndex(BakedModelEnumFacing.getBakedFacing(enumfacing), vertex_index);
                                 }
                             }
                         }
@@ -356,21 +365,25 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
 
                     if (!list.isEmpty()) {
                         for (BakedQuad quad : list) {
+
+                            /*//Optifine 対応
+                            if(Optifine.isNaturalTextures()) {
+                                quad = Optifine.getNaturalTexture(pos, quad);
+                            }*/
                             int[] vertex = quad.getVertexData();
                             for (int index = 0; index < 4; index++) {
-                                int pos_head = index * 7;
-                                Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
-                                int vertex_index = vertexes.indexOf(vec3f);
+                                VertexData data = getVertexData(quad, index, vertex);
+                                int vertex_index = vertexes.indexOf(data);
                                 if (vertex_index == -1) {
-                                    vertexes.add(vec3f);// after size - 1 -> index
+                                    vertexes.add(data);// after size - 1 -> index
                                     vertex_index = vertexes.size() - 1;
                                 }
-                                vertexDatas.addVertexIndex(BakedModelEnumFacing._NULL, vertex_index);
+                                vertexData.addVertexIndex(BakedModelEnumFacing._NULL, vertex_index);
                             }
                         }
                     }
 
-                    this.chunkRender.addStateVertexes(pass, blockState, vertexDatas);
+                    this.chunkRender.addStateVertexes(pass, blockState, vertexData);
                 }
             }
 
@@ -381,5 +394,48 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         }
     }
 
+    private static VertexData getVertexData(BakedQuad quad, int index, int[] vertex) {
+        int pos_head = index * 7;
+        Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
+        int shade = vertex[pos_head + 3];
 
+        /**
+         *  Optifine の [自然なテクスチャ]　機能でUVごと回転するため、テクスチャがバグります。
+         *  --------------------------------------------------------------------------------------
+         *  getNaturalTexture に一回通せばよさそうです。
+         *  public static BakedQuad gBlockPosNaturalTexture(BlockPos blockPosIn, BakedQuad quad) {
+         *         TextureAtlasSprite sprite = quad.getSprite();
+         *         if (sprite == null) {
+         *             return quad;
+         *         } else {
+         *             NaturalProperties nps = getNaturalProperties(sprite);
+         *             if (nps == null) {
+         *                 return quad;
+         *             } else {
+         *                 int side = ConnectedTextures.getSide(quad.getFace());
+         *                 int rand = Config.getRandom(blockPosIn, side);
+         *                 int rotate = 0;
+         *                 boolean flipU = false;
+         *                 if (nps.rotation > 1) {
+         *                     rotate = rand & 3;
+         *                 }
+         *                 if (nps.rotation == 2) {
+         *                     rotate = rotate / 2 * 2;
+         *                 }
+         *                 if (nps.flip) {
+         *                     flipU = (rand & 4) != 0;
+         *                 }
+         *                 return nps.getQuad(quad, rotate, flipU);
+         *             }
+         *         }
+         *     }
+         *  --------------------------------------------------------------------------------------
+         *  Optifine  NaturalTextures.class 参照
+         * */
+
+        // vertex[pos_head + 4]
+        Vector2f vec2f = new Vector2f(Float.intBitsToFloat(vertex[pos_head + 4]), Float.intBitsToFloat(vertex[pos_head + 5])); //UV
+
+        return new VertexData(vec3f, shade, vec2f);
+    }
 }

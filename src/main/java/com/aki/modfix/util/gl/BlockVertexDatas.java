@@ -4,7 +4,6 @@ import com.aki.mcutils.APICore.Utils.list.MapCreateHelper;
 import com.aki.mcutils.APICore.Utils.list.Pair;
 import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
-import org.lwjgl.util.vector.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,6 +49,7 @@ public class BlockVertexDatas {
     }
 
     //vertexes_id == 頂点の数といえる
+    //ただし、すべての面が描画されている場合...
     public int getVertexCount() {
         return this.vertexes_id;
     }
@@ -69,9 +69,9 @@ public class BlockVertexDatas {
 
     //頂点インデックス(このブロック内 0 <= x) と 頂点座標
     //頂点座標の配列に変換。
-    public Pair<Integer, Vector3f> getVertex(BakedModelEnumFacing facing, int InIndex) {
+    public Pair<Integer, VertexData> getVertex(BakedModelEnumFacing facing, int InIndex) {
         Pair<Integer, Integer> pair = this.VertexData_Indexes.get(facing).get(InIndex);
-        return new Pair<>(pair.getKey(), this.chunkRender.getVertexes().get(pair.getValue()));
+        return new Pair<>(pair.getKey(), this.chunkRender.getVertexData().get(pair.getValue()));
     }
 
     @Override

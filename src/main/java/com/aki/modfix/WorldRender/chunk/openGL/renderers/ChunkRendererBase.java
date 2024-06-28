@@ -28,7 +28,6 @@ import org.lwjgl.opengl.GL15;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -237,11 +236,11 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         this.SyncList.getList().stream().filter(i -> i != -1).forEach(GL15::glDeleteQueries);
     }
 
-    public GLDynamicVBO.VBOPart buffer(ChunkRenderPass pass, ByteBuffer buffer) {
+    public GLDynamicVBO.VBOPart bufferVBO(ChunkRenderPass pass, ByteBuffer buffer) {
         return this.DynamicBuffers.get(pass).Buf_Upload(buffer);
     }
 
-    public GLDynamicIBO.IBOPart buffer(ChunkRenderPass pass, IntBuffer buffer) {
+    public GLDynamicIBO.IBOPart bufferIBO(ChunkRenderPass pass, ByteBuffer buffer) {
         return this.IndicesBuffers.get(pass).Buf_Upload(buffer);
     }
 
