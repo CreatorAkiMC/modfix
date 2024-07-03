@@ -12,7 +12,8 @@
     "vanilla.keybind.MixinGuiNewChat",
     "vanilla.keybind.MixinGuiOptions",
     "vanilla.keybind.MixinKeyBinding",
-    "vanilla.keybind.MixinKeyBindingGameSettings"
+    "vanilla.keybind.MixinKeyBindingGameSettings",
+    "vanilla.rendering.MixinBlockModelCustomizer"
   ],
   "server": [
 

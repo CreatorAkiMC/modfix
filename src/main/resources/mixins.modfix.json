@@ -37,6 +37,7 @@
     "vanilla.misc.rand.MixinWorld",
     "vanilla.misc.rand.MixinWorldServer",
     "vanilla.misc.stack.MixinItemStack",
+    "vanilla.rendering.MixinBakedQuad",
     "vanilla.rendering.MixinBetterBiomeBlend",
     "vanilla.rendering.MixinBlock",
     "vanilla.rendering.MixinDynamicLight",

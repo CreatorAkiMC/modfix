@@ -11,6 +11,7 @@ import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.GraphVisibility;
 import com.aki.mcutils.APICore.Utils.render.SortVertexUtil;
 import com.aki.mcutils.APICore.Utils.render.VisibilitySet;
+import com.aki.mcutils.asm.Optifine;
 import com.aki.modfix.GLSytem.GLDynamicIBO;
 import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.Modfix;
@@ -22,6 +23,7 @@ import com.aki.modfix.util.gl.BakedModelEnumFacing;
 import com.aki.modfix.util.gl.BlockVertexDatas;
 import com.aki.modfix.util.gl.ChunkModelMeshUtils;
 import com.aki.modfix.util.gl.VertexData;
+import com.aki.modfix.util.gl.extensions.IBakedQuadExtension;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -167,7 +169,6 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                                     Pair<Integer, VertexData> index_vec = vertexDatas.getVertex(baked_facing, i);
 
                                     indexLists.get(pass).add(/*index_offset + */index_vec.getKey());
-                                    System.out.println("---BData: " + index_vec.getKey() + ", " + index_vec.getValue());
                                     //indexLists.get(pass).add(index_offset + (index++));
                                 }
                             }
@@ -184,7 +185,6 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         //System.out.println("Out: " + indexLists);
 
         for(ChunkRenderPass pass : ChunkRenderPass.values()) {
-            System.out.println(" ---Pass: " + pass + ", Size: " + indexLists.get(pass).size());
             this.chunkRender.CreateIndexesBuffer(pass, indexLists.get(pass).toIntArray());
         }
 
@@ -340,14 +340,14 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         List<BakedQuad> list = model.getQuads(blockState, enumfacing, rand);
                         if (!list.isEmpty()) {
                             for (BakedQuad quad : list) {
+                                //optifine 対応
+                                if(Optifine.isNaturalTextures() && ((IBakedQuadExtension)quad).getOriginalBakedQuad() != null) {
+                                    quad = ((IBakedQuadExtension)quad).getOriginalBakedQuad();
+                                }
 
-                                /*//Optifine 対応
-                                if(Optifine.isNaturalTextures()) {
-                                    quad = Optifine.getNaturalTexture(pos, quad);
-                                }*/
                                 int[] vertex = quad.getVertexData();
                                 for (int index = 0; index < 4; index++) {
-                                    VertexData data = getVertexData(quad, index, vertex);
+                                    VertexData data = getVertexData(index, vertex);
                                     int vertex_index = vertexes.indexOf(data);
                                     if (vertex_index == -1) {
                                         vertexes.add(data);// after size - 1 -> index
@@ -365,14 +365,14 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
 
                     if (!list.isEmpty()) {
                         for (BakedQuad quad : list) {
+                            //optifine 対応
+                            if(Optifine.isNaturalTextures() && ((IBakedQuadExtension)quad).getOriginalBakedQuad() != null) {
+                                quad = ((IBakedQuadExtension)quad).getOriginalBakedQuad();
+                            }
 
-                            /*//Optifine 対応
-                            if(Optifine.isNaturalTextures()) {
-                                quad = Optifine.getNaturalTexture(pos, quad);
-                            }*/
                             int[] vertex = quad.getVertexData();
                             for (int index = 0; index < 4; index++) {
-                                VertexData data = getVertexData(quad, index, vertex);
+                                VertexData data = getVertexData(index, vertex);
                                 int vertex_index = vertexes.indexOf(data);
                                 if (vertex_index == -1) {
                                     vertexes.add(data);// after size - 1 -> index
@@ -394,10 +394,11 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         }
     }
 
-    private static VertexData getVertexData(BakedQuad quad, int index, int[] vertex) {
+    private static VertexData getVertexData(int index, int[] vertex) {
         int pos_head = index * 7;
         Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
         int shade = vertex[pos_head + 3];
+
 
         /**
          *  Optifine の [自然なテクスチャ]　機能でUVごと回転するため、テクスチャがバグります。
@@ -433,7 +434,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
          *  Optifine  NaturalTextures.class 参照
          * */
 
-        // vertex[pos_head + 4]
+        // vertex[pos_head + 4] には sprite の座標などが含まれています。
         Vector2f vec2f = new Vector2f(Float.intBitsToFloat(vertex[pos_head + 4]), Float.intBitsToFloat(vertex[pos_head + 5])); //UV
 
         return new VertexData(vec3f, shade, vec2f);
