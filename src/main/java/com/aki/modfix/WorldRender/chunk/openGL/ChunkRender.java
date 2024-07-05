@@ -59,6 +59,7 @@ public class ChunkRender {
     private final List<VertexData> vertexes = new GFastList<>();
     //blockState から頂点 -> 軽量化
     private final HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexDatas>> StateToVertexData = new HashMap<>();
+    private HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexDatas>> StateToVertexDataForCheck = new HashMap<>();
     private final HashMap<ChunkRenderPass, Integer> BaseVertexes = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> 0);
     private final HashMap<ChunkRenderPass, ByteBuffer> IndexesBuffers = new HashMap<>();
 
@@ -308,10 +309,33 @@ public class ChunkRender {
 
     public void addStateVertexes(ChunkRenderPass pass, IBlockState state, BlockVertexDatas vertexDatas) {
         this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).put(state, vertexDatas);
+        if (!this.StateToVertexDataForCheck.isEmpty()) {
+            this.StateToVertexDataForCheck.get(pass).put(state, vertexDatas);
+        }
+    }
+
+    /*
+    * 使用されていないものの消去
+    * */
+    public void ContainsCheckStart() {
+        for(ChunkRenderPass pass : ChunkRenderPass.values())
+            this.StateToVertexDataForCheck.computeIfAbsent(pass, key -> new HashMap<>());
+    }
+
+    public void ContainsCheckFinishAndRemove() {
+        for(ChunkRenderPass pass : ChunkRenderPass.values()) {
+            HashMap<IBlockState, BlockVertexDatas> map = this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>());
+            map.clear();
+            map.putAll(this.StateToVertexDataForCheck.get(pass));
+        }
+        this.StateToVertexDataForCheck.clear();
     }
 
     public boolean IsStateVertexContains(ChunkRenderPass pass, IBlockState state) {
-        return this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).containsKey(state);
+        boolean isContains = this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).containsKey(state);
+        if(isContains)
+            this.StateToVertexDataForCheck.get(pass).put(state, this.StateToVertexData.get(pass).get(state));
+        return isContains;
     }
 
     public BlockVertexDatas GetVertexDataFromState(ChunkRenderPass pass, IBlockState state) {

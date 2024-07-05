@@ -323,6 +323,9 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
              * BlockState(と頂点) がすでに保存されていれば処理しない。
              * 頂点のデータを使いまわす(リストの座標も) -> メモリ削減・軽量化
              * */
+
+            this.chunkRender.ContainsCheckStart();
+
             EnumBlockRenderType enumblockrendertype = blockState.getRenderType();
             if (enumblockrendertype == EnumBlockRenderType.MODEL) {
 
@@ -347,7 +350,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
 
                                 int[] vertex = quad.getVertexData();
                                 for (int index = 0; index < 4; index++) {
-                                    VertexData data = getVertexData(index, vertex);
+                                    VertexData data = getVertexData(quad, index, vertex);
                                     int vertex_index = vertexes.indexOf(data);
                                     if (vertex_index == -1) {
                                         vertexes.add(data);// after size - 1 -> index
@@ -372,7 +375,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
 
                             int[] vertex = quad.getVertexData();
                             for (int index = 0; index < 4; index++) {
-                                VertexData data = getVertexData(index, vertex);
+                                VertexData data = getVertexData(quad, index, vertex);
                                 int vertex_index = vertexes.indexOf(data);
                                 if (vertex_index == -1) {
                                     vertexes.add(data);// after size - 1 -> index
@@ -382,10 +385,11 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                             }
                         }
                     }
-
                     this.chunkRender.addStateVertexes(pass, blockState, vertexData);
                 }
             }
+
+            this.chunkRender.ContainsCheckFinishAndRemove();
 
             //VanillaFix の修正
             ChunkRenderManager.CurrentChunkRender = null;
@@ -394,11 +398,12 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         }
     }
 
-    private static VertexData getVertexData(int index, int[] vertex) {
-        int pos_head = index * 7;
-        Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
-        int shade = vertex[pos_head + 3];
+    private static VertexData getVertexData(BakedQuad quad, int index, int[] vertex) {
+        //getFormat が大事かもしれない
+        int pos_head = index * quad.getFormat().getIntegerSize();
+        int uvIndex = pos_head + quad.getFormat().getUvOffsetById(0) / 4;
 
+        Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
 
         /**
          *  Optifine の [自然なテクスチャ]　機能でUVごと回転するため、テクスチャがバグります。
@@ -435,8 +440,8 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
          * */
 
         // vertex[pos_head + 4] には sprite の座標などが含まれています。
-        Vector2f vec2f = new Vector2f(Float.intBitsToFloat(vertex[pos_head + 4]), Float.intBitsToFloat(vertex[pos_head + 5])); //UV
+        Vector2f vec2f = new Vector2f(Float.intBitsToFloat(vertex[uvIndex]), Float.intBitsToFloat(vertex[uvIndex + 1])); //UV
 
-        return new VertexData(vec3f, shade, vec2f);
+        return new VertexData(vec3f, vec2f);
     }
 }
