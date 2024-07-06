@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 
 // 頂点座標データを保存
-public class BlockVertexDatas {
+public class BlockVertexData {
     public final ChunkRender chunkRender;
     private final ChunkRenderPass renderPass;
     private int vertexes_id = 0;
@@ -19,7 +19,7 @@ public class BlockVertexDatas {
     //private int BaseVertex = 0;
     // Integer 頂点インデックス、Integer 頂点の座標配列インデックス。
     private final HashMap<BakedModelEnumFacing, List<Pair<Integer, Integer>>> VertexData_Indexes = MapCreateHelper.CreateHashMap(BakedModelEnumFacing.values(), i -> new ArrayList<>());
-    public BlockVertexDatas(ChunkRender chunk, ChunkRenderPass pass) {
+    public BlockVertexData(ChunkRender chunk, ChunkRenderPass pass) {
         this.chunkRender = chunk;
         this.renderPass = pass;
     }

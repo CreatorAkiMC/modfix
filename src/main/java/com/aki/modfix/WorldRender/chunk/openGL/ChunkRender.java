@@ -12,10 +12,11 @@ import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.Modfix;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
-import com.aki.modfix.util.gl.BlockVertexDatas;
+import com.aki.modfix.util.gl.BlockVertexData;
 import com.aki.modfix.util.gl.VertexData;
 import com.aki.modfix.util.gl.WorldUtil;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -58,8 +59,11 @@ public class ChunkRender {
     //チャンク全体の頂点
     private final List<VertexData> vertexes = new GFastList<>();
     //blockState から頂点 -> 軽量化
-    private final HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexDatas>> StateToVertexData = new HashMap<>();
-    private HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexDatas>> StateToVertexDataForCheck = new HashMap<>();
+    private final HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexData>> StateToVertexData = new HashMap<>();
+    //例外です
+    private final HashMap<ChunkRenderPass, HashMap<IBlockState, HashMap<IBakedModel, BlockVertexData>>> StateToWeightedVertexData = new HashMap<>();
+    private HashMap<ChunkRenderPass, HashMap<IBlockState, BlockVertexData>> StateToVertexDataForCheck = new HashMap<>();
+    private HashMap<ChunkRenderPass, HashMap<IBlockState, HashMap<IBakedModel, BlockVertexData>>> StateToWeightedVertexDataForCheck = new HashMap<>();
     private final HashMap<ChunkRenderPass, Integer> BaseVertexes = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> 0);
     private final HashMap<ChunkRenderPass, ByteBuffer> IndexesBuffers = new HashMap<>();
 
@@ -240,6 +244,7 @@ public class ChunkRender {
         this.setTranslucentVertexData(null);
         this.vertexes.clear();
         this.StateToVertexData.clear();
+        this.StateToWeightedVertexData.clear();
     }
 
     private void deleteTask() {
@@ -307,10 +312,18 @@ public class ChunkRender {
         this.BaseVertexes.replace(pass, this.BaseVertexes.get(pass) + add);
     }
 
-    public void addStateVertexes(ChunkRenderPass pass, IBlockState state, BlockVertexDatas vertexDatas) {
-        this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).put(state, vertexDatas);
+    public void addStateVertexes(ChunkRenderPass pass, IBlockState state, BlockVertexData vertexData) {
+        this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).put(state, vertexData);
         if (!this.StateToVertexDataForCheck.isEmpty()) {
-            this.StateToVertexDataForCheck.get(pass).put(state, vertexDatas);
+            this.StateToVertexDataForCheck.get(pass).put(state, vertexData);
+        }
+    }
+
+    public void addWeightedStateVertexes(ChunkRenderPass pass, IBlockState state, IBakedModel model, BlockVertexData vertexData) {
+        this.StateToWeightedVertexData.computeIfAbsent(pass, key -> new HashMap<>()).computeIfAbsent(state, key -> new HashMap<>()).put(model, vertexData);
+        HashMap<ChunkRenderPass, HashMap<IBlockState, HashMap<IBakedModel, BlockVertexData>>> dataForCheck = this.StateToWeightedVertexDataForCheck;
+        if (!dataForCheck.isEmpty()) {
+            dataForCheck.get(pass).computeIfAbsent(state, key -> new HashMap<>()).put(model, vertexData);
         }
     }
 
@@ -318,17 +331,28 @@ public class ChunkRender {
     * 使用されていないものの消去
     * */
     public void ContainsCheckStart() {
-        for(ChunkRenderPass pass : ChunkRenderPass.values())
+        for (ChunkRenderPass pass : ChunkRenderPass.values()) {
             this.StateToVertexDataForCheck.computeIfAbsent(pass, key -> new HashMap<>());
+            this.StateToWeightedVertexDataForCheck.computeIfAbsent(pass, key -> new HashMap<>());
+        }
     }
 
     public void ContainsCheckFinishAndRemove() {
         for(ChunkRenderPass pass : ChunkRenderPass.values()) {
-            HashMap<IBlockState, BlockVertexDatas> map = this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>());
-            map.clear();
-            map.putAll(this.StateToVertexDataForCheck.get(pass));
+            if (this.StateToVertexData.containsKey(pass)) {
+                HashMap<IBlockState, BlockVertexData> map = this.StateToVertexData.get(pass);
+                map.clear();
+                map.putAll(this.StateToVertexDataForCheck.get(pass));
+            }
+
+            if (this.StateToWeightedVertexData.containsKey(pass)) {
+                HashMap<IBlockState, HashMap<IBakedModel, BlockVertexData>> map2 = this.StateToWeightedVertexData.get(pass);
+                //map2.clear();
+                //map2.putAll(this.StateToWeightedVertexDataForCheck.get(pass));
+            }
         }
         this.StateToVertexDataForCheck.clear();
+        this.StateToWeightedVertexDataForCheck.clear();
     }
 
     public boolean IsStateVertexContains(ChunkRenderPass pass, IBlockState state) {
@@ -338,8 +362,27 @@ public class ChunkRender {
         return isContains;
     }
 
-    public BlockVertexDatas GetVertexDataFromState(ChunkRenderPass pass, IBlockState state) {
+    /*public boolean IsStateWeightedVertexContains(ChunkRenderPass pass, IBlockState state) {
+        return this.StateToWeightedVertexData.computeIfAbsent(pass, key -> new HashMap<>()).containsKey(state);
+    }*/
+
+    public boolean IsStateWeightedVertexContainsModel(ChunkRenderPass pass, IBlockState state, IBakedModel model) {
+        boolean isContains = false;
+        HashMap<IBlockState, HashMap<IBakedModel, BlockVertexData>> hashMap = this.StateToWeightedVertexData.computeIfAbsent(pass, key -> new HashMap<>());
+        if(hashMap.containsKey(state)) {
+            isContains = hashMap.get(state).containsKey(model);
+            if(isContains)
+                this.StateToWeightedVertexDataForCheck.get(pass).put(state, this.StateToWeightedVertexData.get(pass).get(state));
+        }
+        return isContains;
+    }
+
+    public BlockVertexData GetVertexDataFromState(ChunkRenderPass pass, IBlockState state) {
         return this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).get(state);
+    }
+
+    public BlockVertexData GetWeightedVertexDataFromState(ChunkRenderPass pass, IBlockState state, IBakedModel model) {
+        return this.StateToWeightedVertexData.computeIfAbsent(pass, key -> new HashMap<>()).get(state).get(model);
     }
 
     public void CreateIndexesBuffer(ChunkRenderPass pass, int[] datas) {
