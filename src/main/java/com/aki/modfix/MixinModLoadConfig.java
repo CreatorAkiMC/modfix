@@ -30,7 +30,8 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
             "mixins.astralsorcery.json",
             "mixins.gvc.json",
             "mixins.phosphor.json",
-            "mixins.vanillafix.json");
+            "mixins.vanillafix.json",
+            "mixins.extrautils2.json");
 
     /**
      * Vanillaの変更

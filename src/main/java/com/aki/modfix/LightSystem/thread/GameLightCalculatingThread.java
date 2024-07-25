@@ -1,7 +1,7 @@
-package com.aki.modfix.LighSystem.thread;
+package com.aki.modfix.LightSystem.thread;
 
 import com.aki.mcutils.APICore.Utils.list.Pair;
-import com.aki.modfix.LighSystem.LightingData;
+import com.aki.modfix.LightSystem.LightingData;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.optifine.GLOptifine;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;

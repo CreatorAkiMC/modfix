@@ -18,7 +18,11 @@ public class BlockVertexData {
     //重複を 1 とした頂点の数 -> 頂点インデックスを 1 から始めたものと等しい
     //private int BaseVertex = 0;
     // Integer 頂点インデックス、Integer 頂点の座標配列インデックス。
-    private final HashMap<BakedModelEnumFacing, List<Pair<Integer, Integer>>> VertexData_Indexes = MapCreateHelper.CreateHashMap(BakedModelEnumFacing.values(), i -> new ArrayList<>());
+    private final HashMap<BakedModelEnumFacing, List<Pair<Pair<Integer, Integer>, Integer>>> VertexData_Indexes = MapCreateHelper.CreateHashMap(BakedModelEnumFacing.values(), i -> new ArrayList<>());
+
+    //重複した Index の元の値を記録して、接触した面で使われていた頂点が消えたときに置き換えます。 -> 廃止予定
+    //private final HashMap<BakedModelEnumFacing, List<Pair<Integer, >>> UpdateIndex = MapCreateHelper.CreateHashMap(BakedModelEnumFacing.values(), i -> new ArrayList<>());
+
     public BlockVertexData(ChunkRender chunk, ChunkRenderPass pass) {
         this.chunkRender = chunk;
         this.renderPass = pass;
@@ -29,11 +33,11 @@ public class BlockVertexData {
         //boolean contained = false;
         int insertId = this.vertexes_id;
         end:for(BakedModelEnumFacing model_facing : BakedModelEnumFacing.values()) {
-            List<Pair<Integer, Integer>> vertexes = this.VertexData_Indexes.get(model_facing);
-            for(Pair<Integer, Integer> pair : vertexes) {
+            List<Pair<Pair<Integer, Integer>, Integer>> vertexes = this.VertexData_Indexes.get(model_facing);
+            for(Pair<Pair<Integer, Integer>, Integer> pair : vertexes) {
                 if(pair.getValue() == index) {
                     //先にあるほうに合わせる。
-                    insertId = pair.getKey();
+                    insertId = pair.getKey().getValue();
                     //contained = true;
                     break end;
                 }
@@ -44,7 +48,7 @@ public class BlockVertexData {
             //this.BaseVertex += 1;
             this.chunkRender.addBaseVertex(this.renderPass, 1);
         }
-        this.VertexData_Indexes.get(facing).add(new Pair<>(insertId, index));
+        this.VertexData_Indexes.get(facing).add(new Pair<>(new Pair<>(vertexes_id, insertId), index));
         this.vertexes_id++;
     }
 
@@ -67,10 +71,11 @@ public class BlockVertexData {
         return this.BaseVertex;
     }*/
 
-    //頂点インデックス(このブロック内 0 <= x) と 頂点座標
+    //元の頂点インデックス、頂点インデックス(このブロック内 0 <= x)、頂点座標
+    // [[key               value]                             value]
     //頂点座標の配列に変換。
-    public Pair<Integer, VertexData> getVertex(BakedModelEnumFacing facing, int InIndex) {
-        Pair<Integer, Integer> pair = this.VertexData_Indexes.get(facing).get(InIndex);
+    public Pair<Pair<Integer, Integer>, VertexData> getVertex(BakedModelEnumFacing facing, int InIndex) {
+        Pair<Pair<Integer, Integer>, Integer> pair = this.VertexData_Indexes.get(facing).get(InIndex);
         return new Pair<>(pair.getKey(), this.chunkRender.getVertexData().get(pair.getValue()));
     }
 

@@ -1,5 +1,7 @@
 package com.aki.modfix;
 
+import com.aki.mcutils.asm.Optifine;
+import com.aki.modfix.compatibility.ModCompatibilityTileRegistry;
 import com.aki.modfix.util.fix.GameSettingsExtended;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -7,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
@@ -25,6 +28,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -46,6 +51,8 @@ public class Modfix {
     public static boolean isChunkAnimatorInstalled;
     public static boolean isFluidloggedAPIInstalled;
     public static boolean isCubicChunksInstalled;
+    //Optifine natural.properties
+    public static List<ResourceLocation> natural_properties = new ArrayList<>();
 
     public static final int ModPriority = 2339;
 
@@ -73,6 +80,24 @@ public class Modfix {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         MinecraftForge.EVENT_BUS.register(this);
+        if(Optifine.isOptifineDetected())
+            this.LoadOptifineProperties();
+    }
+
+    public void LoadOptifineProperties() {
+        try {
+            natural_properties.clear();
+            String fileName = "optifine/natural.properties";
+            ResourceLocation location = new ResourceLocation(fileName);
+            InputStream stream = Optifine.getInputStream(location);
+            String data = Optifine.ReadString(stream);
+            for(String len : data.split("\n")) {
+                natural_properties.add(new ResourceLocation(len.split("=")[0].trim()));
+            }
+            stream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -84,6 +109,7 @@ public class Modfix {
         isChunkAnimatorInstalled = Loader.isModLoaded("chunkanimator");
         isFluidloggedAPIInstalled = Loader.isModLoaded("fluidlogged_api");
         isCubicChunksInstalled = Loader.isModLoaded("cubicchunks");
+        ModCompatibilityTileRegistry.Init();
     }
 
     @SubscribeEvent

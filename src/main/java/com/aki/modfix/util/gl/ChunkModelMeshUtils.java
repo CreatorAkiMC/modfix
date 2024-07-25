@@ -26,8 +26,13 @@ public class ChunkModelMeshUtils {
         {
             try
             {
-                return blockState.getActualState(access, pos);
-            } catch (Exception ignored) {}
+                return blockState.getBlock().getActualState(blockState, access, pos);
+            } catch (Exception ignored) {
+                try
+                {
+                    return blockState.getActualState(access, pos);
+                } catch (Exception ignored2) {}
+            }
         }
         return blockState;
     }

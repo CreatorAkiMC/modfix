@@ -1,4 +1,4 @@
-package com.aki.modfix.LighSystem;
+package com.aki.modfix.LightSystem;
 
 import net.minecraft.util.math.BlockPos;
 
