@@ -53,7 +53,6 @@ public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRe
                             vertexData.getBuffer());
                     GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
                 }
-
                 if(iboPart.isValid()) {
                     this.chunkRender.CreateIndexesBuffer(ChunkRenderPass.TRANSLUCENT, this.index2VertexVecList.stream().map(ChunkRenderTaskCompiler.Index2VertexVec::getIndex).toArray(Integer[]::new));
                     GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, iboPart.getIBO());
