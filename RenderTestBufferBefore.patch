@@ -1,0 +1,56 @@
+Index: src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java b/src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java
+--- a/src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java	
++++ b/src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java	(date 1689843207103)
+@@ -91,12 +91,22 @@
+ 
+         this.InitBuffer();
+     }
++    
++    public BufferBuilder bufferBuilder = new BufferBuilder(100000);
+ 
+     //init で実行
+     //BlockRenderLayers分やったほうがいい？
+     private void InitBuffer() {
+         try {
+ 
++            bufferBuilder.reset();
++            //bufferBuilder.finishDrawing();
++
++            bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
++            bufferBuilder.setTranslation(-0, -10, -0);
++
++            Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlock(Blocks.TNT.getDefaultState(), new BlockPos(0, 10, 0), FMLClientHandler.instance().getWorldClient(), bufferBuilder);
++
+             /**
+              * Pos は正しくは VertexPos(形を作る)
+              * Pos(VertexPos) は面ごと設定しなおし、レンダリングするのが一番いい
+@@ -183,23 +193,13 @@
+     }
+ 
+ 
+-    public BufferBuilder bufferBuilder = new BufferBuilder(100000);
++    
+ 
+     /**
+      * RenderGlobal SetupTerrain でする
+      * */
+     public void SetUP () {
+         try {
+-            bufferBuilder.reset();
+-            //bufferBuilder.finishDrawing();
+-
+-            bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
+-            bufferBuilder.setTranslation(-0, -10, -0);
+-
+-            Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlock(Blocks.TNT.getDefaultState(), new BlockPos(0, 10, 0), FMLClientHandler.instance().getWorldClient(), bufferBuilder);
+-
+-            System.out.println("Bytes: " + );
+-
+             this.SyncList.ToNext();
+             this.offsetBuffer.begin();
+ 

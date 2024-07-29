@@ -1,26 +1,34 @@
 package com.aki.modfix.util.gl;
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
+import net.minecraft.util.math.Vec3d;
 
+import javax.vecmath.Vector2d;
 import java.util.Objects;
 
 public class VertexData {
     // Pos
-    private final Vector3f vec3;
+    private final Vec3d posVec3;
     // Texture UV
-    private final Vector2f vec2;
-    public VertexData(Vector3f vec3f, Vector2f vec2f) {
-        this.vec3 = vec3f;
-        this.vec2 = vec2f;
+    private final Vector2d UVVec2;
+    //Light UV
+    private final int UVLight;
+
+    public VertexData(Vec3d posVec3f, Vector2d UVVec2f, int UVLight) {
+        this.posVec3 = posVec3f;
+        this.UVVec2 = UVVec2f;
+        this.UVLight = UVLight;
     }
 
-    public Vector3f getVec3() {
-        return vec3;
+    public Vec3d getPosVec3() {
+        return posVec3;
     }
 
-    public Vector2f getVec2() {
-        return vec2;
+    public Vector2d getUVVec2() {
+        return UVVec2;
+    }
+
+    public int getUVLight() {
+        return UVLight;
     }
 
     @Override
@@ -28,19 +36,20 @@ public class VertexData {
         if (this == o) return true;
         if (!(o instanceof VertexData)) return false;
         VertexData that = (VertexData) o;
-        return Objects.equals(getVec3(), that.getVec3()) && Objects.equals(getVec2(), that.getVec2());
+        return Objects.equals(getPosVec3(), that.getPosVec3()) && Objects.equals(getUVVec2(), that.getUVVec2()) && Objects.equals(getUVLight(), that.getUVLight());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getVec3(), this.getVec2());
+        return Objects.hash(this.getPosVec3(), this.getUVVec2(), this.getUVLight() * 31);
     }
 
     @Override
     public String toString() {
         return "VertexData{" +
-                "vec3=" + vec3 +
-                ", vec2=" + vec2 +
+                "posVec3=" + posVec3 +
+                ", UVVec2=" + UVVec2 +
+                ", UVLight=" + UVLight +
                 '}';
     }
 }

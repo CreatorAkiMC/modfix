@@ -1,13 +1,19 @@
 package com.aki.modfix.util.gl;
 
+import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderTaskCompiler;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.WorldType;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ChunkModelMeshUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -35,5 +41,38 @@ public class ChunkModelMeshUtils {
             }
         }
         return blockState;
+    }
+
+    private static double getDistanceFromCam(Vec3d vec3f1, double camX, double camY, double camZ) {
+        return Math.pow((vec3f1.x - camX), 2.0d) + Math.pow((vec3f1.y - camY), 2.0d) + Math.pow((vec3f1.z - camZ), 2.0d);
+    }
+
+    private static Vec3d getCenterVec3(List<ChunkRenderTaskCompiler.Index2VertexVec> vecList, int primitiveSize) {
+        Vec3d vec3d = Vec3d.ZERO;
+        for(ChunkRenderTaskCompiler.Index2VertexVec vertexVec : vecList)
+            vec3d.add(vertexVec.getVec());
+        return vec3d.scale(1.0d / (double)primitiveSize);
+    }
+
+    //camX~Z プレイヤーの座標と ChunkRender.getX~Z() の差
+    /*
+    * それぞれの頂点をバラバラに移動するのではなく、まとまりとしてソートしなければいけない。
+    * (OpenGLの GL_Quads は4つの頂点で面を作るため)
+    * */
+    public static List<ChunkRenderTaskCompiler.Index2VertexVec> SortIndex2VertexVec(List<ChunkRenderTaskCompiler.Index2VertexVec> data, int primitiveSize, double camX, double camY, double camZ) {
+        int quadSize = data.size() / primitiveSize;
+        List<List<ChunkRenderTaskCompiler.Index2VertexVec>> splitDataStream = IntStream.range(0, quadSize).boxed().map((i) -> data.subList((i * primitiveSize), ((i + 1) * primitiveSize))).collect(Collectors.toList());
+        /*splitDataStream.map((i2vs) -> {
+            Vec3d vector = new Vec3d(0, 0, 0);
+            i2vs.stream().map(ChunkRenderTaskCompiler.Index2VertexVec::getVec).forEach(vec -> vector.translate(vec.x, vec.y, vec.z));
+            return vector.scale(1.0f / (float)primitiveSize);
+        }).collect(Collectors.toList());*/
+        splitDataStream.sort((i2v1, i2v2) -> {
+            double dist1 = getDistanceFromCam(getCenterVec3(i2v1, primitiveSize), camX, camY, camZ);
+            double dist2 = getDistanceFromCam(getCenterVec3(i2v2, primitiveSize), camX, camY, camZ);
+            return Double.compare(dist1, dist2);
+        });
+
+        return splitDataStream.stream().flatMap(Collection::stream).collect(Collectors.toList());
     }
 }

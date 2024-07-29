@@ -19,24 +19,18 @@ import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.BetterFoliage;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.FluidLoggedAPI;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
-import com.aki.modfix.compatibility.ModCompatibility;
 import com.aki.modfix.util.gl.BakedModelEnumFacing;
 import com.aki.modfix.util.gl.BlockVertexData;
 import com.aki.modfix.util.gl.ChunkModelMeshUtils;
 import com.aki.modfix.util.gl.VertexData;
-import com.aki.modfix.util.gl.quad_list.BlockVertexValue;
-import com.aki.modfix.util.gl.quad_list.IBakedQuadValue;
-import com.aki.modfix.util.gl.quad_list.WeightedBakedQuadValue;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.WeightedBakedModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockRenderLayer;
@@ -49,9 +43,8 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.optifine.render.RenderEnv;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
 
+import javax.vecmath.Vector2d;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -126,8 +119,8 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         GraphVisibility visibilityGraph = new GraphVisibility();
 
-        //使用されていないデータを削除して、メモリを節約します。
-        this.chunkRender.ContainsCheckStart();
+        HashMap<ChunkRenderPass, List<Index2VertexVec>> indexLists = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> new ArrayList<>());
+        Integer[] indexOffset = new Integer[] {0, 0, 0, 0};
 
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
@@ -135,18 +128,13 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                     pos.setPos(this.chunkRender.getX() + x, this.chunkRender.getY() + y, this.chunkRender.getZ() + z);
 
                     IBlockState blockState = this.access.getBlockState(pos);
-                    IBlockState blockState1 = blockState;
                     if (blockState.getRenderType() != EnumBlockRenderType.INVISIBLE) {
-                        renderBlockState(blockState, pos, visibilityGraph, bufferBuilderPack, mc);
-
+                        renderBlockState(blockState, pos, visibilityGraph, bufferBuilderPack, indexLists, indexOffset, mc);
                         if (Modfix.isFluidloggedAPIInstalled) {
-                            FluidLoggedAPI.renderFluidState(blockState, this.access, pos, fluidState -> renderBlockState(fluidState, pos, visibilityGraph, bufferBuilderPack, mc));
+                            // エラーが出るかもしれません。
+                            //Maybe this will be an error.
+                            FluidLoggedAPI.renderFluidState(blockState, this.access, pos, fluidState -> renderBlockState(fluidState, pos, visibilityGraph, bufferBuilderPack, indexLists, indexOffset, mc));
                         }
-
-                        blockState1.getBlock().hasTileEntity(blockState1);
-
-                        blockState1 = ChunkModelMeshUtils.getActualState(blockState1, pos, this.access);
-                        blockState1 = ChunkModelMeshUtils.getExtendState(blockState1, pos, this.access);
                     }
                 }
             }
@@ -156,150 +144,31 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
             }
         }
 
-        this.chunkRender.ContainsCheckFinishAndRemove();
-
-
-        HashMap<ChunkRenderPass, IntArrayList> indexLists = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> new IntArrayList());
-        Integer[] index_offsets = new Integer[] {0, 0, 0, 0};
-
-        //頂点インデックスの準備 -> VAO用
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
-                for (int z = 0; z < 16; z++) {
-                    pos.setPos(this.chunkRender.getX() + x, this.chunkRender.getY() + y, this.chunkRender.getZ() + z);
-
-                    IBlockState blockState = this.access.getBlockState(pos);
-
-                    if (blockState.getRenderType() == EnumBlockRenderType.INVISIBLE) {
-                        continue;
-                    }
-
-                    blockState = ChunkModelMeshUtils.getActualState(blockState, pos, this.access);
-                    IBakedModel model = ChunkModelMeshUtils.getBakedModelFromState(blockState);
-                    blockState = ChunkModelMeshUtils.getExtendState(blockState, pos, this.access);
-                    int hash_code = ModCompatibility.getHash(blockState, this.access.getTileEntity(pos));
-
-                    for (BlockRenderLayer layer : BlockRenderLayer.values()) {
-                        if (Modfix.isBetterFoliageInstalled ? !BetterFoliage.canRenderBlockInLayer(blockState.getBlock(), blockState, layer) : !blockState.getBlock().canRenderInLayer(blockState, layer)) {
-                            continue;
-                        }
-
-                        ChunkRenderPass pass = ChunkRenderPass.ConvVanillaRenderPass(layer);
-
-
-
-                        long rand = MathHelper.getCoordinateRandom(pos.getX(), pos.getY(), pos.getZ());
-
-                        try {
-                            /*
-                             * Water などは getRenderLayer() が TRANSLUCENT なので index にも透過処理をしないといけない
-                             * Lava == Solid
-                             * */
-                            if (blockState.getRenderType() == EnumBlockRenderType.LIQUID) {
-                                BlockLiquid blockLiquid = (BlockLiquid) blockState.getBlock();
-                                int index = 0;
-                                /*for(boolean bool : new boolean[] {blockState.shouldSideBeRendered(this.access, pos, EnumFacing.UP), /*blockLiquid.shouldRenderSides(this.access, pos.up()), *///blockState.shouldSideBeRendered(this.access, pos, EnumFacing.DOWN), blockState.shouldSideBeRendered(this.access, pos, EnumFacing.NORTH), blockState.shouldSideBeRendered(this.access, pos, EnumFacing.SOUTH), blockState.shouldSideBeRendered(this.access, pos, EnumFacing.WEST), blockState.shouldSideBeRendered(this.access, pos, EnumFacing.EAST)}) {
-                                /*if(bool) {
-                                    for (int N = 0; N < 4; N++) {
-                                        indexLists.get(pass).add(index++);
-                                        }
-                                    }
-                                }*/
-
-                                //上(上) ->4(+4) 8
-                                //下   　->4     12
-                                //横(それぞれ4 * 2) * 4面 -> 32
-                                for (int i = 0; i < 44; i++) {
-                                    indexLists.get(pass).add(i);
-                                }
-                                this.chunkRender.addBaseVertex(pass, 1);
-                                index_offsets[pass.ordinal()] += 44;
-
-                            } else {
-                                if (Optifine.isOptifineDetected()) {
-                                    RenderEnv renderEnv = Optifine.getRenderEnv(bufferBuilderPack.getWorldRendererByLayer(layer), blockState, pos);
-                                    model = Optifine.getBakedModel(model, blockState, renderEnv);
-                                    if (!Optifine.isAlternateBlocks()) {
-                                        rand = 0L;
-                                    }
-                                }
-
-                                BlockVertexData vertexData = null;
-                                if (Modfix.natural_properties.stream().anyMatch(blockState.getBlock().getRegistryName()::equals) && Optifine.isNaturalTextures()) {
-                                    vertexData = this.getBlockVertexData(this.access, pos, pass, model, blockState, layer, rand, bufferBuilderPack.getWorldRendererByLayer(layer));
-                                } else {
-                                    IBakedQuadValue quadValue = this.chunkRender.GetVertexDataFromState(pass, hash_code);
-                                    if (model instanceof WeightedBakedModel) {
-                                        vertexData = quadValue.getBlockVertexData(((WeightedBakedModel) model).getRandomModel(rand));
-                                    } else {
-                                        vertexData = quadValue.getBlockVertexData(model);
-                                    }
-                                }
-                                /*if(model instanceof WeightedBakedModel) {
-                                      vertexData = this.chunkRender.GetWeightedVertexDataFromState(pass, blockState, ((WeightedBakedModel)model).getRandomModel(rand));
-                                 } else if(Modfix.natural_properties.stream().anyMatch(blockState.getBlock().getRegistryName()::equals) && Optifine.isNaturalTextures()) {
-                                        vertexData = this.chunkRender.GetWeightedVertexDataFromState(pass, blockState, model);
-                                 } else {
-                                        vertexData = this.chunkRender.GetVertexDataFromState(pass, blockState).get;
-                                 }*/
-
-                                if (vertexData != null) {
-                                    //int index = 0;
-                                    int vertex_count = 0;
-                                    Set<Integer> update_indexes = new HashSet<>();
-                                    //面を描画しないとき、その頂点数を全体から引きます。
-                                    int diff_offset = 0;
-
-                                    for (BakedModelEnumFacing baked_facing : BakedModelEnumFacing.values()) {
-                                        int size = vertexData.getSize(baked_facing);
-                                        EnumFacing facing = baked_facing.getFacing();
-
-                                        if (facing == null || blockState.shouldSideBeRendered(this.access, pos, facing)) {
-                                            vertex_count += size;
-                                            for (int i = 0; i < size; i++) {
-                                                Pair<Pair<Integer, Integer>, VertexData> index_vec = vertexData.getVertex(baked_facing, i);
-                                                int vertex_index = index_vec.getKey().getValue();
-                                                if (update_indexes.contains(vertex_index)) {
-                                                    vertex_index = index_vec.getKey().getKey();
-                                                }
-                                                indexLists.get(pass).add(index_offsets[pass.ordinal()] + (vertex_index - diff_offset));
-                                                //indexLists.get(pass).add(index_offset + (index++));
-                                            }
-                                        } else {
-                                            for (int i = 0; i < size; i++) {
-                                                update_indexes.add(vertexData.getVertex(baked_facing, i).getKey().getValue());
-                                            }
-                                            diff_offset += size;
-                                        }
-                                    }
-                                    index_offsets[pass.ordinal()] += vertex_count;
-                                }
-
-                                System.out.println("---Pass: " + pass + ", IndexesList: " + indexLists);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Modfix.logger.error("ChunkRenderTaskCompiler Error: " + blockState.getBlock().getRegistryName());
-                            Modfix.logger.error(e.getLocalizedMessage());
-                        }
-                    }
-                }
-            }
-            if (this.getCancel()) {
-                return ChunkRenderTaskResult.CANCELLED;
+        if (bufferBuilderPack.getWorldRendererByLayer(BlockRenderLayer.TRANSLUCENT).isDrawing) {
+            Entity entity = mc.getRenderViewEntity();
+            if (entity != null) {
+                BufferBuilder bufferBuilder = bufferBuilderPack.getWorldRendererByLayer(BlockRenderLayer.TRANSLUCENT);
+                Vec3d camera = entity.getPositionEyes(1.0F);
+                SortVertexUtil.sortVertexData(NIOBufferUtil.asMemoryAccess(bufferBuilder.getByteBuffer()), bufferBuilder.getVertexCount(), bufferBuilder.getVertexFormat().getSize(), 4,
+                        (float) (chunkRender.getX() - camera.x), (float) (chunkRender.getY() - camera.y), (float) (chunkRender.getZ() - camera.z));
+                indexLists.replace(ChunkRenderPass.TRANSLUCENT, ChunkModelMeshUtils.SortIndex2VertexVec(indexLists.get(ChunkRenderPass.TRANSLUCENT), 4, (camera.x - chunkRender.getX()), (camera.y - chunkRender.getY()), (camera.z - chunkRender.getZ())));
             }
         }
-
-        //System.out.println("Out: " + indexLists);
-
         for(ChunkRenderPass pass : ChunkRenderPass.values()) {
-            this.chunkRender.CreateIndexesBuffer(pass, indexLists.get(pass).toIntArray());
+            this.chunkRender.CreateIndexesBuffer(pass, indexLists.get(pass).stream().map(Index2VertexVec::getIndex).toArray(Integer[]::new));
+            if(pass == ChunkRenderPass.TRANSLUCENT)
+                this.chunkRender.setTranslucentIndexData(indexLists.get(pass));
+        }
+
+        if (this.getCancel()) {
+            return ChunkRenderTaskResult.CANCELLED;
         }
 
         this.dispatcher.runOnRenderThread(() -> {
             if (!this.getCancel()) {
                 try {
                     for (ChunkRenderPass pass : ChunkRenderPass.values()) {
+
                         /*
                          * sizeチェック必要 -> 増加している
                          * sectorに分けるのが一番よさそう
@@ -334,20 +203,6 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         indexLists.clear();
 
         VisibilitySet visibilitySet = visibilityGraph.compute();
-
-        if (bufferBuilderPack.getWorldRendererByLayer(BlockRenderLayer.TRANSLUCENT).isDrawing) {
-            Entity entity = mc.getRenderViewEntity();
-            if (entity != null) {
-                BufferBuilder bufferBuilder = bufferBuilderPack.getWorldRendererByLayer(BlockRenderLayer.TRANSLUCENT);
-                Vec3d camera = entity.getPositionEyes(1.0F);
-                SortVertexUtil.sortVertexData(NIOBufferUtil.asMemoryAccess(bufferBuilder.getByteBuffer()), bufferBuilder.getVertexCount(), bufferBuilder.getVertexFormat().getSize(), 4,
-                        (float) (chunkRender.getX() - camera.x), (float) (chunkRender.getY() - camera.y), (float) (chunkRender.getZ() - camera.z));
-            }
-        }
-
-        if (this.getCancel()) {
-            return ChunkRenderTaskResult.CANCELLED;
-        }
 
         BufferBuilder[] finishedBufferBuilders = Arrays.stream(BlockRenderLayer.values()).map(bufferBuilderPack::getWorldRendererByLayer).map(bufferBuilder -> {
             if (!bufferBuilder.isDrawing) {
@@ -391,7 +246,13 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
         return ChunkRenderTaskResult.SUCCESSFUL;
     }
 
-    private void renderBlockState(IBlockState blockState, BlockPos.MutableBlockPos pos, GraphVisibility visibilityGraph, RegionRenderCacheBuilder bufferBuilderPack, Minecraft mc) {
+    /**
+     * getBlockVertexData を動かしているので、IsStateVertexContainsの意味はほとんど無いです。
+     * なので、renderBlockState内で index まで作ったほうが軽そうです。
+     * また、ChunkRender とのスレッド同期が起きず、一回の getBlockState で処理できるので、バグが起きにくくなります。
+     * それに、ほぼすべてのmodへの互換性も維持できます。
+     * */
+    private void renderBlockState(IBlockState blockState, BlockPos.MutableBlockPos pos, GraphVisibility visibilityGraph, RegionRenderCacheBuilder bufferBuilderPack, HashMap<ChunkRenderPass, List<Index2VertexVec>> indexList, Integer[] indexOffset, Minecraft mc) {
         long rand = MathHelper.getCoordinateRandom(pos.getX(), pos.getY(), pos.getZ());
 
         if(Optifine.isOptifineDetected() && !Optifine.isAlternateBlocks()) {
@@ -408,18 +269,11 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
             }
         }
 
-
-
         blockState.getBlock().hasTileEntity(blockState);
-        IBlockState blockState_copy = blockState;
 
-        blockState_copy = ChunkModelMeshUtils.getActualState(blockState_copy, pos, this.access);
-
-        IBakedModel model = ChunkModelMeshUtils.getBakedModelFromState(blockState_copy);
-
-        blockState_copy = ChunkModelMeshUtils.getExtendState(blockState_copy, pos, this.access);
-
-        int hash_code = ModCompatibility.getHash(blockState_copy, this.access.getTileEntity(pos));
+        blockState = ChunkModelMeshUtils.getActualState(blockState, pos, this.access);
+        IBakedModel model = ChunkModelMeshUtils.getBakedModelFromState(blockState);
+        blockState = ChunkModelMeshUtils.getExtendState(blockState, pos, this.access);
 
         for (BlockRenderLayer layer : BlockRenderLayer.values()) {
             if (Modfix.isBetterFoliageInstalled ? !BetterFoliage.canRenderBlockInLayer(blockState.getBlock(), blockState, layer) : !blockState.getBlock().canRenderInLayer(blockState, layer)) {
@@ -436,41 +290,62 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 bufferBuilder.setTranslation(-this.chunkRender.getX(), -this.chunkRender.getY(), -this.chunkRender.getZ());
             }
 
-
-
             if (Modfix.isBetterFoliageInstalled) {
                 BetterFoliage.renderWorldBlock(mc.getBlockRendererDispatcher(), blockState, pos, this.access, bufferBuilder, layer);
             } else {
                 /**
                  * mc.getBlockRendererDispatcher().renderBlock(blockState, pos, this.access, bufferBuilder);
-                 * を通すと、参照渡しでblockStateが変わる
+                 * を通すと、参照渡しでblockStateが変わる (多分...)
                  * */
                 mc.getBlockRendererDispatcher().renderBlock(blockState, pos, this.access, bufferBuilder);
             }
 
-
-            /*
-             * データの準備
-             * BlockState(と頂点) がすでに保存されていれば処理しない。
-             * 頂点のデータを使いまわす(リストの座標も) -> メモリ削減・軽量化
-             * */
-
-            EnumBlockRenderType enumblockrendertype = blockState_copy.getRenderType();
+            EnumBlockRenderType enumblockrendertype = blockState.getRenderType();
             if (enumblockrendertype == EnumBlockRenderType.MODEL) {
                 if(Optifine.isOptifineDetected()) {
                     if(Optifine.isShaders())
-                        Optifine.pushEntity(blockState_copy, pos, this.access, bufferBuilder);
-                    RenderEnv renderEnv = Optifine.getRenderEnv(bufferBuilder, blockState_copy, pos);
-                    model = Optifine.getBakedModel(model, blockState_copy, renderEnv);
+                        Optifine.pushEntity(blockState, pos, this.access, bufferBuilder);
+                    RenderEnv renderEnv = Optifine.getRenderEnv(bufferBuilder, blockState, pos);
+                    model = Optifine.getBakedModel(model, blockState, renderEnv);
                 }
 
                 ChunkRenderPass pass = ChunkRenderPass.ConvVanillaRenderPass(layer);
 
-                BlockVertexData vertexData = this.getBlockVertexData(this.access, pos, pass, model, blockState_copy, layer, rand, bufferBuilder);
+                BlockVertexData vertexData = this.getBlockVertexData(this.access, pos, pass, model, blockState, layer, rand, bufferBuilder);
 
-                if (model instanceof WeightedBakedModel) {
+                //int index = 0;
+                int vertexCount = 0;
+                Set<Integer> updateIndexes = new HashSet<>();
+                //面を描画しないとき、その頂点数を全体から引きます。
+                int diffCount = 0;
+
+                for (BakedModelEnumFacing bakedFacing : BakedModelEnumFacing.values()) {
+                    int size = vertexData.getSize(bakedFacing);
+                    EnumFacing facing = bakedFacing.getFacing();
+
+                    if (facing == null || blockState.shouldSideBeRendered(this.access, pos, facing)) {
+                        vertexCount += size;
+                        for (int i = 0; i < size; i++) {
+                            Pair<Pair<Integer, Integer>, VertexData> indexVec = vertexData.getVertex(bakedFacing, i);
+                            int vertexIndex = indexVec.getKey().getValue();
+                            if (updateIndexes.contains(vertexIndex)) {
+                                vertexIndex = indexVec.getKey().getKey();
+                            }
+
+                            indexList.get(pass).add(new Index2VertexVec(indexOffset[pass.ordinal()] + (vertexIndex - diffCount), indexVec.getValue().getPosVec3().add(pos.getX(), pos.getY(), pos.getZ())));
+                        }
+                    } else {
+                        for (int i = 0; i < size; i++) {
+                            updateIndexes.add(vertexData.getVertex(bakedFacing, i).getKey().getValue());
+                        }
+                        diffCount += size;
+                    }
+                }
+                indexOffset[pass.ordinal()] += vertexCount;
+
+                /*if (model instanceof WeightedBakedModel) {
                     IBakedModel randomModel = ((WeightedBakedModel)model).getRandomModel(rand);
-                    IBakedQuadValue quadValue = this.chunkRender.GetVertexDataFromState(pass, hash_code);
+                    IBakedQuadValue quadValue = this.chunkRender.GetVertexDataFromState(pass, hashCode);
 
                     if(quadValue == null) {
                         quadValue = new WeightedBakedQuadValue();
@@ -480,21 +355,16 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         if(!((WeightedBakedQuadValue) quadValue).IsBakedModel(randomModel)) {
                             ((WeightedBakedQuadValue) quadValue).AddModelToVertexData(randomModel, vertexData);
                         }
-                        this.chunkRender.UpdateStateToVertexData(pass, hash_code, quadValue);
+                        this.chunkRender.UpdateStateToVertexData(pass, hashCode, quadValue);
                     }
                     //For Optifine NaturalTexture
-                } else if(Modfix.natural_properties.stream().anyMatch(blockState_copy.getBlock().getRegistryName()::equals) && Optifine.isNaturalTextures()) {
-                    /*
-                    * Optifine の NaturalTextures の仕様上、IBlockState やIBakedModel と紐づけてしまうと、処理が重くなってしまいそうです。
-                    * */
-                    /*if(!this.chunkRender.IsStateWeightedVertexContainsModel(pass, blockState_copy, model)) {
-                        this.chunkRender.add(pass, blockState_copy, model, vertexData);
-                    }*/
+                } else if(Modfix.natural_properties.stream().anyMatch(blockState.getBlock().getRegistryName()::equals) && Optifine.isNaturalTextures()) {
+
                 } else {
-                    if (!this.chunkRender.IsStateVertexContains(pass, hash_code)) {
-                        this.chunkRender.addStateVertexes(pass, hash_code, new BlockVertexValue(vertexData));
+                    if (!this.chunkRender.IsStateVertexContains(pass, hashCode)) {
+                        this.chunkRender.addStateVertexes(pass, hashCode, new BlockVertexValue(vertexData));
                     }
-                }
+                }*/
 
                 if(Optifine.isShaders() && Optifine.isShaders())
                     Optifine.popEntity(bufferBuilder);
@@ -526,22 +396,17 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
 
                     for (BakedQuad quad : list) {
 
-                        //Don`t use this.
-                        /*if (Optifine.isNaturalTextures() && ((IBakedQuadExtension) quad).getOriginalBakedQuad() != null) {
-                            quad = ((IBakedQuadExtension) quad).getOriginalBakedQuad();
-                        }*/
-
                         int[] vertex = quad.getVertexData();
                         for (int index = 0; index < 4; index++) {
                             VertexData data = this.getVertexData(quad, index, vertex);
-                            int vertex_index = vertexes.indexOf(data);
-                            if (vertex_index == -1) {
+                            int vertexIndex = vertexes.indexOf(data);
+                            if (vertexIndex == -1) {
                                 vertexes.add(data);// after size - 1 -> index
-                                vertex_index = vertexes.size() - 1;
+                                vertexIndex = vertexes.size() - 1;
                             }
 
                             //隠れている(見えない面)も含む
-                            vertexData.addVertexIndex(BakedModelEnumFacing.getBakedFacing(enumfacing), vertex_index);
+                            vertexData.addVertexIndex(BakedModelEnumFacing.getBakedFacing(enumfacing), vertexIndex);
                         }
                     }
                 }
@@ -553,20 +418,16 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 list = Optifine.getNaturalBakedArray(list, access, blockState, pos, (EnumFacing) null, layer, rand, renderEnv);
 
                 for (BakedQuad quad : list) {
-                    //Don`t use this.
-                    /*if (Optifine.isNaturalTextures() && ((IBakedQuadExtension) quad).getOriginalBakedQuad() != null) {
-                        quad = ((IBakedQuadExtension) quad).getOriginalBakedQuad();
-                    }*/
 
                     int[] vertex = quad.getVertexData();
                     for (int index = 0; index < 4; index++) {
                         VertexData data = this.getVertexData(quad, index, vertex);
-                        int vertex_index = vertexes.indexOf(data);
-                        if (vertex_index == -1) {
+                        int vertexIndex = vertexes.indexOf(data);
+                        if (vertexIndex == -1) {
                             vertexes.add(data);// after size - 1 -> index
-                            vertex_index = vertexes.size() - 1;
+                            vertexIndex = vertexes.size() - 1;
                         }
-                        vertexData.addVertexIndex(BakedModelEnumFacing._NULL, vertex_index);
+                        vertexData.addVertexIndex(BakedModelEnumFacing._NULL, vertexIndex);
                     }
                 }
             }
@@ -578,14 +439,14 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         int[] vertex = quad.getVertexData();
                         for (int index = 0; index < 4; index++) {
                             VertexData data = this.getVertexData(quad, index, vertex);
-                            int vertex_index = vertexes.indexOf(data);
-                            if (vertex_index == -1) {
+                            int vertexIndex = vertexes.indexOf(data);
+                            if (vertexIndex == -1) {
                                 vertexes.add(data);// after size - 1 -> index
-                                vertex_index = vertexes.size() - 1;
+                                vertexIndex = vertexes.size() - 1;
                             }
 
                             //隠れている(見えない面)も含む
-                            vertexData.addVertexIndex(BakedModelEnumFacing.getBakedFacing(enumfacing), vertex_index);
+                            vertexData.addVertexIndex(BakedModelEnumFacing.getBakedFacing(enumfacing), vertexIndex);
                         }
                     }
                 }
@@ -598,12 +459,12 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                     int[] vertex = quad.getVertexData();
                     for (int index = 0; index < 4; index++) {
                         VertexData data = this.getVertexData(quad, index, vertex);
-                        int vertex_index = vertexes.indexOf(data);
-                        if (vertex_index == -1) {
+                        int vertexIndex = vertexes.indexOf(data);
+                        if (vertexIndex == -1) {
                             vertexes.add(data);// after size - 1 -> index
-                            vertex_index = vertexes.size() - 1;
+                            vertexIndex = vertexes.size() - 1;
                         }
-                        vertexData.addVertexIndex(BakedModelEnumFacing._NULL, vertex_index);
+                        vertexData.addVertexIndex(BakedModelEnumFacing._NULL, vertexIndex);
                     }
                 }
             }
@@ -614,10 +475,12 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
 
     private VertexData getVertexData(BakedQuad quad, int index, int[] vertex) {
         //getFormat が大事かもしれない
-        int pos_head = index * quad.getFormat().getIntegerSize();
-        int uvIndex = pos_head + quad.getFormat().getUvOffsetById(0) / 4;
+        VertexFormat format = quad.getFormat();
+        int posHead = index * format.getIntegerSize();
+        //int UVIndex = posHead + format.getUvOffsetById(0) / 4;
+        //int UVLightIndex = posHead + UVIndex + 2;
 
-        Vector3f vec3f = new Vector3f(Float.intBitsToFloat(vertex[pos_head]), Float.intBitsToFloat(vertex[pos_head + 1]), Float.intBitsToFloat(vertex[pos_head + 2]));
+        Vec3d PosVec3 = new Vec3d(Float.intBitsToFloat(vertex[posHead]), Float.intBitsToFloat(vertex[posHead + 1]), Float.intBitsToFloat(vertex[posHead + 2]));
 
         /**
          *  Optifine の [自然なテクスチャ]　機能でUVごと回転するため、テクスチャがバグります。
@@ -653,9 +516,39 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
          *  Optifine  NaturalTextures.class 参照
          * */
 
-        // vertex[pos_head + 4] には sprite の座標などが含まれています。
-        Vector2f vec2f = new Vector2f(Float.intBitsToFloat(vertex[uvIndex]), Float.intBitsToFloat(vertex[uvIndex + 1])); //UV
+        // vertex[posHead + 4 (+1)] には sprite[UV] の座標などが含まれています。
+        //DefaultVertexFormats.TEX_2F
+        Vector2d UVVec2d = new Vector2d(Float.intBitsToFloat(vertex[posHead + 4]), Float.intBitsToFloat(vertex[posHead + 5])); //UV
 
-        return new VertexData(vec3f, vec2f);
+        //DefaultVertexFormats.TEX_2S
+        int UVLight = vertex[posHead + 6];//, (float)vertex[posHead + 7]); //UV
+
+        return new VertexData(PosVec3, UVVec2d, UVLight);
+    }
+
+    public static class Index2VertexVec {
+        private final int index;
+        private final Vec3d vec;
+
+        public Index2VertexVec(int index, Vec3d vec) {
+            this.index = index;
+            this.vec = vec;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public Vec3d getVec() {
+            return vec;
+        }
+
+        @Override
+        public String toString() {
+            return "Index2VertexVec{" +
+                    "index=" + index +
+                    ", vec=" + vec +
+                    '}';
+        }
     }
 }

@@ -90,7 +90,7 @@ public class GLDynamicIBO extends GlObject {
             this.sector = sector;
         }
 
-        public int getVBO() {
+        public int getIBO() {
             return GLDynamicIBO.this.handle();
         }
 
@@ -100,7 +100,7 @@ public class GLDynamicIBO extends GlObject {
         }*/
 
         //バグ？
-        public int getVBOFirst() {
+        public int getIBOFirst() {
             return sector.GetRenderFirst();
         }
 

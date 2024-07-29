@@ -1,0 +1,43 @@
+Index: src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java b/src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java
+--- a/src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java	
++++ b/src/main/java/com/aki/modfix/chunk/openGL/test/GLRenderTest.java	(date 1688911038342)
+@@ -96,13 +96,20 @@
+         FloatBuffer bufferData = BufferUtils.createFloatBuffer(vertices.length).put(vertices);
+         FloatBuffer PosData = BufferUtils.createFloatBuffer(Pos.length).put(Pos);
+         bufferData.flip();
+-        //PosData.flip();
+-
+-        this.VaoBuffer.bind();
+-
++        PosData.flip();
+         //頂点座標
+         VertexBuffer.bind(GL15.GL_ARRAY_BUFFER);
+         VertexBuffer.upload(GL15.GL_ARRAY_BUFFER, bufferData);
++        VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);
++
++        //位置座標
++        PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
++        PosBuffer.upload(GL15.GL_ARRAY_BUFFER, PosData);
++        PosBuffer.unbind(GL15.GL_ARRAY_BUFFER);
++
++        this.VaoBuffer.bind();
++
++        VertexBuffer.bind(GL15.GL_ARRAY_BUFFER);
+         int VPos = this.program.getAttributeLocation("vertexPos");
+         //Size は分割する量
+         GL20.glVertexAttribPointer(VPos, 3, GL11.GL_FLOAT, false, 0,0L);
+@@ -110,9 +117,7 @@
+         GL20.glEnableVertexAttribArray(VPos);
+         VertexBuffer.unbind(GL15.GL_ARRAY_BUFFER);
+ 
+-        //位置座標
+         PosBuffer.bind(GL15.GL_ARRAY_BUFFER);
+-        PosBuffer.upload(GL15.GL_ARRAY_BUFFER, PosData);
+         int A_Pos = this.program.getAttributeLocation("a_pos");
+         //Size は分割する量
+         GL20.glVertexAttribPointer(A_Pos, 3, GL11.GL_FLOAT, false, 0,0L);

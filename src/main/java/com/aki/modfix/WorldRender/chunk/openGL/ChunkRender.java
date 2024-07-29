@@ -14,7 +14,6 @@ import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.VertexData;
 import com.aki.modfix.util.gl.WorldUtil;
-import com.aki.modfix.util.gl.quad_list.IBakedQuadValue;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -47,6 +46,7 @@ public class ChunkRender {
     private CompletableFuture<ChunkRenderTaskResult> lastChunkRenderCompileTaskResult;
 
     private UnsafeByteBuffer translucentVertexData;
+    private List<ChunkRenderTaskCompiler.Index2VertexVec> translucentIndexData = new ArrayList<>();
 
     private SectionPos pos;
 
@@ -56,9 +56,11 @@ public class ChunkRender {
 
     //チャンク全体の頂点
     private final List<VertexData> vertexes = new GFastList<>();
+
     //blockState から頂点 -> 軽量化
-    private final HashMap<ChunkRenderPass, HashMap<Integer, IBakedQuadValue>> StateToVertexData = new HashMap<>();
-    private final HashMap<ChunkRenderPass, HashMap<Integer, IBakedQuadValue>> StateToVertexDataForCheck = new HashMap<>();
+    // (ChunkRenderTaskCompiler に移します。)
+    //private final HashMap<ChunkRenderPass, HashMap<Integer, IBakedQuadValue>> StateToVertexData = new HashMap<>();
+    //private final HashMap<ChunkRenderPass, HashMap<Integer, IBakedQuadValue>> StateToVertexDataForCheck = new HashMap<>();
     //例外です
     private final HashMap<ChunkRenderPass, Integer> BaseVertexes = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> 0);
     private final HashMap<ChunkRenderPass, ByteBuffer> IndexesBuffers = new HashMap<>();
@@ -239,6 +241,8 @@ public class ChunkRender {
         //this.VBOs.forEach((key, value) -> this.VBOs.replace(key, null));
         this.setTranslucentVertexData(null);
         this.vertexes.clear();
+        this.IndexesBuffers.clear();
+        //this.StateToVertexData.clear();
     }
 
     private void deleteTask() {
@@ -281,8 +285,9 @@ public class ChunkRender {
             return;
 
         GLDynamicVBO.VBOPart vboPart = this.getVBO(ChunkRenderPass.TRANSLUCENT);
-        if (vboPart != null) {
-            this.LastChunkRenderCompileTask = new ChunkRenderTranslucentSorter<>(chunkRenderer, taskDispatcher, this, vboPart, this.getTranslucentVertexData());
+        GLDynamicIBO.IBOPart iboPart = this.getIBO(ChunkRenderPass.TRANSLUCENT);
+        if (vboPart != null && iboPart != null) {
+            this.LastChunkRenderCompileTask = new ChunkRenderTranslucentSorter<>(chunkRenderer, taskDispatcher, this, vboPart, this.getTranslucentVertexData(), iboPart, this.getTranslucentIndexData());
 
             this.lastChunkRenderCompileTaskResult = taskDispatcher.runAsync(this.LastChunkRenderCompileTask);
         } else {
@@ -292,13 +297,21 @@ public class ChunkRender {
 
     @Nullable
     public UnsafeByteBuffer getTranslucentVertexData() {
-        return translucentVertexData;
+        return this.translucentVertexData;
+    }
+    public List<ChunkRenderTaskCompiler.Index2VertexVec> getTranslucentIndexData() {
+        return this.translucentIndexData;
     }
 
     public void setTranslucentVertexData(@Nullable UnsafeByteBuffer translucentVertexData) {
         if (this.translucentVertexData != null)
             this.translucentVertexData.close();
         this.translucentVertexData = translucentVertexData;
+    }
+
+    public void setTranslucentIndexData(List<ChunkRenderTaskCompiler.Index2VertexVec> indexData) {
+        //this.translucentIndexData.clear();
+        this.translucentIndexData = indexData;
     }
 
     public List<VertexData> getVertexData() {
@@ -315,17 +328,14 @@ public class ChunkRender {
 
     /**
      * Hash値はかぶります(参照が少なすぎる)。
+     * 参照回数の関係でめちゃくちゃ重い、衝突起きる
      * */
-    public void addStateVertexes(ChunkRenderPass pass, int hash_code, IBakedQuadValue quadValue) {
+    /*public void addStateVertexes(ChunkRenderPass pass, int hash_code, IBakedQuadValue quadValue) {
         this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).put(hash_code, quadValue);
         if (!this.StateToVertexDataForCheck.isEmpty()) {
             this.StateToVertexDataForCheck.get(pass).put(hash_code, quadValue);
         }
     }
-
-    /*
-    * 使用されていないものの消去
-    * */
     public void ContainsCheckStart() {
         for (ChunkRenderPass pass : ChunkRenderPass.values()) {
             this.StateToVertexDataForCheck.computeIfAbsent(pass, key -> new HashMap<>());
@@ -351,10 +361,6 @@ public class ChunkRender {
         return isContains;
     }
 
-    /*public boolean IsStateWeightedVertexContains(ChunkRenderPass pass, IBlockState state) {
-        return this.StateToWeightedVertexData.computeIfAbsent(pass, key -> new HashMap<>()).containsKey(state);
-    }*/
-
     public IBakedQuadValue GetVertexDataFromState(ChunkRenderPass pass, int hash_code) {
         return this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).get(hash_code);
     }
@@ -368,22 +374,21 @@ public class ChunkRender {
         if(stateToDataForCheck.replace(hash_code, value) == null) {
             stateToDataForCheck.put(hash_code, value);
         }
-    }
+    }*/
 
-    public void CreateIndexesBuffer(ChunkRenderPass pass, int[] datas) {
+    public void CreateIndexesBuffer(ChunkRenderPass pass, Integer[] datas) {
         ByteBuffer buffer = BufferUtils.createByteBuffer(datas.length * 4);
-        for(int index : datas)
+        for (int index : datas)
             buffer.putInt(index);
         buffer.flip();
-        this.IndexesBuffers.put(pass, buffer);
+        if (this.IndexesBuffers.containsKey(pass)) {
+            this.IndexesBuffers.replace(pass, buffer);
+        } else {
+            this.IndexesBuffers.put(pass, buffer);
+        }
     }
 
     public ByteBuffer getIndexesBuffer(ChunkRenderPass pass) {
         return this.IndexesBuffers.getOrDefault(pass, ByteBuffer.allocate(0));
     }
-
-    /*
-    public ChunkRenderTaskBase<ChunkRender> getLastChunkRenderCompileTask() {
-        return LastChunkRenderCompileTask;
-    }*/
 }

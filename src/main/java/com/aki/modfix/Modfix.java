@@ -45,7 +45,7 @@ public class Modfix {
 
     public static final String MOD_ID = "modfix";
     public static final String MOD_NAME = "Modsfix";
-    public static final String VERSION = "1.0.0-SNAPSHOT";
+    public static final String VERSION = "1.0.1-SNAPSHOT";
 
     public static boolean isBetterFoliageInstalled;
     public static boolean isChunkAnimatorInstalled;
