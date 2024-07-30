@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
         modid = Modfix.MOD_ID,
         name = Modfix.MOD_NAME,
         version = Modfix.VERSION,
+        guiFactory = "com.aki.modfix.ConfigGuiFactory",
         dependencies = "required-after:mcutils"
 )
 public class Modfix {
