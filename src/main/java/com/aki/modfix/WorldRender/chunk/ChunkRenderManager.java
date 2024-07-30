@@ -2,6 +2,7 @@ package com.aki.modfix.WorldRender.chunk;
 
 import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.GLUtils;
+import com.aki.modfix.ModfixConfig;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkGLDispatcher;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderProvider;
@@ -60,14 +61,16 @@ public class ChunkRenderManager {
     private static ChunkRendererBase<ChunkRender> getGLChunkRenderer() {
         if (GLOptifine.OPTIFINE_INSIDE)
             return GLOptifine.createChunkRenderer(ChunkRender);
+        int i = Math.min(ModfixConfig.DefaultUseGLIndex, 3);
         ContextCapabilities context = GLUtils.CAPS;
-        if (context.OpenGL43) {
+
+        if(i == 3 && context.OpenGL43) {
             return new ChunkRendererGL43();
-        } else if (context.OpenGL42) {
+        } else if(i == 2 && context.OpenGL42) {
             return new ChunkRendererGL42();
-        } else if (context.OpenGL20) {
+        } else if(i == 1 && context.OpenGL20) {
             return new ChunkRendererGL20();
-        } else if (context.OpenGL15) {
+        } else if(context.OpenGL15) {
             return new ChunkRendererGL15();
         }
         throw new UnsupportedOperationException("Your PC Don`t Supported OpenGL");
@@ -75,13 +78,15 @@ public class ChunkRenderManager {
 
     public static RenderEngineType getBestRenderEngineType() {
         ContextCapabilities context = GLUtils.CAPS;
-        if (context.OpenGL43) {
+        int i = Math.min(ModfixConfig.DefaultUseGLIndex, 3);
+
+        if(i == 3 && context.OpenGL43) {
             return RenderEngineType.GL43;
-        } else if (context.OpenGL42) {
+        } else if(i == 2 && context.OpenGL42) {
             return RenderEngineType.GL42;
-        } else if (context.OpenGL20) {
+        } else if(i == 1 && context.OpenGL20) {
             return RenderEngineType.GL20;
-        } else if (context.OpenGL15) {
+        } else if(context.OpenGL15) {
             return RenderEngineType.GL15;
         }
 

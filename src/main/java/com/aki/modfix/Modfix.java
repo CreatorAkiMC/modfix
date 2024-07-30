@@ -16,8 +16,11 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -72,6 +75,7 @@ public class Modfix {
     public void preinit(FMLPreInitializationEvent event) {
         ForgeModContainer.alwaysSetupTerrainOffThread = true;
         logger = event.getModLog();
+        ModfixConfig.PreInit(event);
     }
 
     /**
@@ -110,6 +114,15 @@ public class Modfix {
         isFluidloggedAPIInstalled = Loader.isModLoaded("fluidlogged_api");
         isCubicChunksInstalled = Loader.isModLoaded("cubicchunks");
         ModCompatibilityTileRegistry.Init();
+    }
+
+    @SubscribeEvent
+    public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+        // コンフィグが変更された時に呼ばれる。
+        if (event.getModID().equals(Modfix.MOD_ID)) {
+            ConfigManager.sync(MOD_ID, Config.Type.INSTANCE);
+            ModfixConfig.SyncConfig();
+        }
     }
 
     @SubscribeEvent

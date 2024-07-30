@@ -4,6 +4,7 @@ import com.aki.mcutils.APICore.Utils.list.MapCreateHelper;
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.*;
 import com.aki.modfix.GLSytem.GLDynamicVBO;
+import com.aki.modfix.ModfixConfig;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.WorldRender.chunk.openGL.RenderEngineType;
@@ -30,6 +31,8 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
         //this.CommandBuffers = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT));
         this.OffsetBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
         this.DynamicBuffers.forEach((pass, vbo) -> vbo.AddListener(() -> this.InitVAOs(pass)));
+        if(ModfixConfig.UseElementBuffer)
+            this.IndicesBuffers.forEach((pass, vbo) -> vbo.AddListener(() -> this.InitVAOs(pass)));
         Arrays.stream(ChunkRenderPass.ALL).forEach(this::InitVAOs);
     }
 
@@ -69,9 +72,14 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
                 this.DynamicBuffers.get(pass).unbind(GL15.GL_ARRAY_BUFFER);
+                if(ModfixConfig.UseElementBuffer)
+                    this.IndicesBuffers.get(pass).bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
 
                 VAO.unbind();
                 VAOMap.replace(pass, VAO);
+
+                if(ModfixConfig.UseElementBuffer)
+                    this.IndicesBuffers.get(pass).unbind(GL15.GL_ELEMENT_ARRAY_BUFFER);
             });
 
         } catch (Exception e) {
@@ -119,8 +127,13 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
         //this.CommandBuffers.get(pass).getCount() == this.RenderChunks.get(pass).size()
         ListUtil.forEach(RenderChunks.get(pass), pass == ChunkRenderPass.TRANSLUCENT, (renderChunk, i) -> {
             GLDynamicVBO.VBOPart vboPart = renderChunk.getVBO(pass);
-            if(vboPart != null)
-                GL42.glDrawArraysInstancedBaseInstance(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount(), 1, i);
+            if(vboPart != null) {
+                if (ModfixConfig.UseElementBuffer) {
+                    GL42.glDrawElementsInstancedBaseVertexBaseInstance(GL11.GL_QUADS, renderChunk.getIndexesBuffer(pass), 1, renderChunk.getBaseVertex(pass), i);
+                } else {
+                    GL42.glDrawArraysInstancedBaseInstance(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount(), 1, i);
+                }
+            }
         });
         //GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.CommandBuffers.get(pass).getCount(), 0);
 

@@ -5,6 +5,7 @@ import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
 import com.aki.mcutils.APICore.Utils.render.SortVertexUtil;
 import com.aki.modfix.GLSytem.GLDynamicIBO;
 import com.aki.modfix.GLSytem.GLDynamicVBO;
+import com.aki.modfix.ModfixConfig;
 import com.aki.modfix.WorldRender.chunk.openGL.renderers.ChunkRendererBase;
 import com.aki.modfix.util.gl.ChunkModelMeshUtils;
 import net.minecraft.client.Minecraft;
@@ -43,7 +44,8 @@ public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRe
         //プレイヤーとチャンクとの距離から、チャンクの透過ブロックを降順(距離が遠いものから)に並べ替えます。
         Vec3d camera = renderViewEntity.getPositionEyes(1.0f);
         SortVertexUtil.sortVertexData(vertexData, vboPart.getVertexCount(), DefaultVertexFormats.BLOCK.getSize(), 4, (float) (chunkRender.getX() - camera.x), (float) (chunkRender.getY() - camera.y), (float) (chunkRender.getZ() - camera.z));
-        this.index2VertexVecList = ChunkModelMeshUtils.SortIndex2VertexVec(this.index2VertexVecList, 4, (camera.x - chunkRender.getX()), (camera.y - chunkRender.getY()), (camera.z - chunkRender.getZ()));
+        if(ModfixConfig.UseElementBuffer)
+            this.index2VertexVecList = ChunkModelMeshUtils.SortIndex2VertexVec(this.index2VertexVecList, 4, (camera.x - chunkRender.getX()), (camera.y - chunkRender.getY()), (camera.z - chunkRender.getZ()));
 
         dispatcher.runOnRenderThread(() -> {
             if (!this.getCancel()) {
@@ -54,7 +56,7 @@ public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRe
                     GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
                 }
 
-                if(iboPart.isValid()) {
+                if(iboPart.isValid() && ModfixConfig.UseElementBuffer) {
                     this.chunkRender.CreateIndexesBuffer(ChunkRenderPass.TRANSLUCENT, this.index2VertexVecList.stream().map(ChunkRenderTaskCompiler.Index2VertexVec::getIndex).toArray(Integer[]::new));
                     GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, iboPart.getIBO());
                     GL15.glBufferSubData(GL15.GL_ELEMENT_ARRAY_BUFFER, iboPart.getIBOFirst(),//Target, Offset, Data

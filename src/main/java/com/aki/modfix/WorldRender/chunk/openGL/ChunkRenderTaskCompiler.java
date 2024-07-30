@@ -15,6 +15,7 @@ import com.aki.mcutils.asm.Optifine;
 import com.aki.modfix.GLSytem.GLDynamicIBO;
 import com.aki.modfix.GLSytem.GLDynamicVBO;
 import com.aki.modfix.Modfix;
+import com.aki.modfix.ModfixConfig;
 import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.BetterFoliage;
 import com.aki.modfix.WorldRender.chunk.openGL.integreate.FluidLoggedAPI;
@@ -271,9 +272,11 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
 
         blockState.getBlock().hasTileEntity(blockState);
 
-        blockState = ChunkModelMeshUtils.getActualState(blockState, pos, this.access);
-        IBakedModel model = ChunkModelMeshUtils.getBakedModelFromState(blockState);
-        blockState = ChunkModelMeshUtils.getExtendState(blockState, pos, this.access);
+        IBlockState blockStateCopy = blockState;
+
+        blockStateCopy = ChunkModelMeshUtils.getActualState(blockStateCopy, pos, this.access);
+        IBakedModel model = ChunkModelMeshUtils.getBakedModelFromState(blockStateCopy);
+        blockStateCopy = ChunkModelMeshUtils.getExtendState(blockStateCopy, pos, this.access);
 
         for (BlockRenderLayer layer : BlockRenderLayer.values()) {
             if (Modfix.isBetterFoliageInstalled ? !BetterFoliage.canRenderBlockInLayer(blockState.getBlock(), blockState, layer) : !blockState.getBlock().canRenderInLayer(blockState, layer)) {
@@ -300,48 +303,49 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 mc.getBlockRendererDispatcher().renderBlock(blockState, pos, this.access, bufferBuilder);
             }
 
-            EnumBlockRenderType enumblockrendertype = blockState.getRenderType();
-            if (enumblockrendertype == EnumBlockRenderType.MODEL) {
-                if(Optifine.isOptifineDetected()) {
-                    if(Optifine.isShaders())
-                        Optifine.pushEntity(blockState, pos, this.access, bufferBuilder);
-                    RenderEnv renderEnv = Optifine.getRenderEnv(bufferBuilder, blockState, pos);
-                    model = Optifine.getBakedModel(model, blockState, renderEnv);
-                }
-
-                ChunkRenderPass pass = ChunkRenderPass.ConvVanillaRenderPass(layer);
-
-                BlockVertexData vertexData = this.getBlockVertexData(this.access, pos, pass, model, blockState, layer, rand, bufferBuilder);
-
-                //int index = 0;
-                int vertexCount = 0;
-                Set<Integer> updateIndexes = new HashSet<>();
-                //面を描画しないとき、その頂点数を全体から引きます。
-                int diffCount = 0;
-
-                for (BakedModelEnumFacing bakedFacing : BakedModelEnumFacing.values()) {
-                    int size = vertexData.getSize(bakedFacing);
-                    EnumFacing facing = bakedFacing.getFacing();
-
-                    if (facing == null || blockState.shouldSideBeRendered(this.access, pos, facing)) {
-                        vertexCount += size;
-                        for (int i = 0; i < size; i++) {
-                            Pair<Pair<Integer, Integer>, VertexData> indexVec = vertexData.getVertex(bakedFacing, i);
-                            int vertexIndex = indexVec.getKey().getValue();
-                            if (updateIndexes.contains(vertexIndex)) {
-                                vertexIndex = indexVec.getKey().getKey();
-                            }
-
-                            indexList.get(pass).add(new Index2VertexVec(indexOffset[pass.ordinal()] + (vertexIndex - diffCount), indexVec.getValue().getPosVec3().add(pos.getX(), pos.getY(), pos.getZ())));
-                        }
-                    } else {
-                        for (int i = 0; i < size; i++) {
-                            updateIndexes.add(vertexData.getVertex(bakedFacing, i).getKey().getValue());
-                        }
-                        diffCount += size;
+            if (ModfixConfig.UseElementBuffer) {
+                EnumBlockRenderType enumblockrendertype = blockStateCopy.getRenderType();
+                if (enumblockrendertype == EnumBlockRenderType.MODEL) {
+                    if (Optifine.isOptifineDetected()) {
+                        if (Optifine.isShaders())
+                            Optifine.pushEntity(blockStateCopy, pos, this.access, bufferBuilder);
+                        RenderEnv renderEnv = Optifine.getRenderEnv(bufferBuilder, blockStateCopy, pos);
+                        model = Optifine.getBakedModel(model, blockStateCopy, renderEnv);
                     }
-                }
-                indexOffset[pass.ordinal()] += vertexCount;
+
+                    ChunkRenderPass pass = ChunkRenderPass.ConvVanillaRenderPass(layer);
+
+                    BlockVertexData vertexData = this.getBlockVertexData(this.access, pos, pass, model, blockStateCopy, layer, rand, bufferBuilder);
+
+                    //int index = 0;
+                    int vertexCount = 0;
+                    Set<Integer> updateIndexes = new HashSet<>();
+                    //面を描画しないとき、その頂点数を全体から引きます。
+                    int diffCount = 0;
+
+                    for (BakedModelEnumFacing bakedFacing : BakedModelEnumFacing.values()) {
+                        int size = vertexData.getSize(bakedFacing);
+                        EnumFacing facing = bakedFacing.getFacing();
+
+                        if (facing == null || blockStateCopy.shouldSideBeRendered(this.access, pos, facing)) {
+                            vertexCount += size;
+                            for (int i = 0; i < size; i++) {
+                                Pair<Pair<Integer, Integer>, VertexData> indexVec = vertexData.getVertex(bakedFacing, i);
+                                int vertexIndex = indexVec.getKey().getValue();
+                                if (updateIndexes.contains(vertexIndex)) {
+                                    vertexIndex = indexVec.getKey().getKey();
+                                }
+
+                                indexList.get(pass).add(new Index2VertexVec(indexOffset[pass.ordinal()] + (vertexIndex - diffCount), indexVec.getValue().getPosVec3().add(pos.getX(), pos.getY(), pos.getZ())));
+                            }
+                        } else {
+                            for (int i = 0; i < size; i++) {
+                                updateIndexes.add(vertexData.getVertex(bakedFacing, i).getKey().getValue());
+                            }
+                            diffCount += size;
+                        }
+                    }
+                    indexOffset[pass.ordinal()] += vertexCount;
 
                 /*if (model instanceof WeightedBakedModel) {
                     IBakedModel randomModel = ((WeightedBakedModel)model).getRandomModel(rand);
@@ -358,7 +362,7 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                         this.chunkRender.UpdateStateToVertexData(pass, hashCode, quadValue);
                     }
                     //For Optifine NaturalTexture
-                } else if(Modfix.natural_properties.stream().anyMatch(blockState.getBlock().getRegistryName()::equals) && Optifine.isNaturalTextures()) {
+                } else if(Modfix.natural_properties.stream().anyMatch(blockStateCopy.getBlock().getRegistryName()::equals) && Optifine.isNaturalTextures()) {
 
                 } else {
                     if (!this.chunkRender.IsStateVertexContains(pass, hashCode)) {
@@ -366,8 +370,9 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                     }
                 }*/
 
-                if(Optifine.isShaders() && Optifine.isShaders())
-                    Optifine.popEntity(bufferBuilder);
+                    if (Optifine.isShaders() && Optifine.isShaders())
+                        Optifine.popEntity(bufferBuilder);
+                }
             }
 
             //VanillaFix の修正

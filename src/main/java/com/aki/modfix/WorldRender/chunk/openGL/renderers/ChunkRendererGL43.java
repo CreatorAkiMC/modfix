@@ -7,6 +7,7 @@ import com.aki.mcutils.APICore.Utils.list.MapCreateHelper;
 import com.aki.mcutils.APICore.Utils.matrixutil.Matrix4f;
 import com.aki.mcutils.APICore.Utils.render.*;
 import com.aki.modfix.GLSytem.GLDynamicVBO;
+import com.aki.modfix.ModfixConfig;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
 import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderProvider;
 import com.aki.modfix.WorldRender.chunk.openGL.RenderEngineType;
@@ -56,7 +57,8 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
         this.CommandBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlCommandBuffer(dist3 * 16L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
         this.OffsetBuffers = new RTList<>(2, 0, i -> MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i2 -> new GlVertexOffsetBuffer(dist3 * 12L, GL30.GL_MAP_WRITE_BIT, GL15.GL_STREAM_DRAW, GL30.GL_MAP_WRITE_BIT)));
         this.DynamicBuffers.forEach((pass, vbo) -> vbo.AddListener(() -> this.InitVAOs(pass)));
-        this.IndicesBuffers.forEach((pass, vbo) -> vbo.AddListener(() -> this.InitVAOs(pass)));
+        if(ModfixConfig.UseElementBuffer)
+            this.IndicesBuffers.forEach((pass, vbo) -> vbo.AddListener(() -> this.InitVAOs(pass)));
         Arrays.stream(ChunkRenderPass.ALL).forEach(this::InitVAOs);
     }
 
@@ -96,13 +98,14 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
                 this.DynamicBuffers.get(pass).unbind(GL15.GL_ARRAY_BUFFER);
-                this.IndicesBuffers.get(pass).bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
-
+                if(ModfixConfig.UseElementBuffer)
+                    this.IndicesBuffers.get(pass).bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
 
                 VAO.unbind();
                 VAOMap.replace(pass, VAO);
 
-                this.IndicesBuffers.get(pass).unbind(GL15.GL_ELEMENT_ARRAY_BUFFER);
+                if(ModfixConfig.UseElementBuffer)
+                    this.IndicesBuffers.get(pass).unbind(GL15.GL_ELEMENT_ARRAY_BUFFER);
             });
 
         } catch (Exception e) {
@@ -140,8 +143,12 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                     //System.out.println("BufSize: " + GL15.glGetBufferParameteri(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_BUFFER_SIZE));
                     this.OffsetBuffers.getSelect().get(pass).addIndirectDrawOffsetCall((float) (chunkRender.getX() - cameraX), (float) (chunkRender.getY() - cameraY), (float) (chunkRender.getZ() - cameraZ));
                     GLDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
-                    //BaseVertex <- Byte単位????
-                    this.CommandBuffers.getSelect().get(pass).addElementsIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), chunkRender.getBaseVertex(pass), index, 1);
+                    if(ModfixConfig.UseElementBuffer) {
+                        //BaseVertex <- Byte単位????
+                        this.CommandBuffers.getSelect().get(pass).addElementsIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), chunkRender.getBaseVertex(pass), index, 1);
+                    } else {
+                        this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
+                    }
                 });
             });
 
@@ -168,18 +175,17 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
         this.VaoBuffers.getSelect().get(pass).bind();
         int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
         this.CommandBuffers.getSelect().get(pass).bind(RenderBufferMode);
-        //this.CommandBuffers.get(pass).getCount() == this.RenderChunks.get(pass).size()
-        //this.IndicesBuffers.get(pass).bind(GL15.GL_ELEMENT_ARRAY_BUFFER);
+        if(ModfixConfig.UseElementBuffer) {
+            GL43.glMultiDrawElementsIndirect(GL11.GL_QUADS, GL11.GL_UNSIGNED_INT, 0, this.CommandBuffers.getSelect().get(pass).getCount(), 0);
+        } else {
+            GL43.glMultiDrawArraysIndirect(GL11.GL_QUADS, 0, this.CommandBuffers.getSelect().get(pass).getCount(), 0);
+        }
 
-        GL43.glMultiDrawElementsIndirect(GL11.GL_QUADS, GL11.GL_UNSIGNED_INT, 0, this.CommandBuffers.getSelect().get(pass).getCount(), 0);
-        //GL11.glDrawElements(GL11.GL_POINTS, 24, GL11.GL_UNSIGNED_INT, 0);
-
-        //System.out.println("-4- IndexSize: " + GL15.glGetBufferParameteri(GL15.GL_ELEMENT_ARRAY_BUFFER, GL15.GL_BUFFER_SIZE) + ", Pass: " + pass);
-
+        /*
         int error;
         while ((error = GL11.glGetError()) != GL11.GL_NO_ERROR) {
             System.out.println("--4Error -> " + error + " ");
-        }
+        }*/
 
         if (pass == ChunkRenderPass.TRANSLUCENT) {//culling
             if (this.SyncList.getSelect() != -1)
