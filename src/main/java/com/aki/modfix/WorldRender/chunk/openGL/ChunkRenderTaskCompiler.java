@@ -303,6 +303,10 @@ public class ChunkRenderTaskCompiler<T extends ChunkRender> extends ChunkRenderT
                 mc.getBlockRendererDispatcher().renderBlock(blockState, pos, this.access, bufferBuilder);
             }
 
+            /**
+             * 流体の修正
+             * */
+
             if (ModfixConfig.UseElementBuffer) {
                 EnumBlockRenderType enumblockrendertype = blockStateCopy.getRenderType();
                 if (enumblockrendertype == EnumBlockRenderType.MODEL) {
