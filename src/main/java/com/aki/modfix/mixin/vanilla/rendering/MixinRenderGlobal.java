@@ -45,10 +45,10 @@ public abstract class MixinRenderGlobal {
     @Unique
     public List<String> modfix$OldstringList = new LinkedList<>();
 
-    /*@Inject(method = "getRenderedChunks", cancellable = true, at = @At("HEAD"))
+    @Inject(method = "getRenderedChunks", cancellable = true, at = @At("HEAD"))
     public void getRenderedChunks(CallbackInfoReturnable<Integer> info) {
-        info.setReturnValue(ChunkRenderManager.getChunkRenderer().getRenderedChunks());
-    }*/
+        info.setReturnValue(0/*ChunkRenderManager.getChunkRenderer().getRenderedChunks()*/);
+    }
 
     @Inject(method = "stopChunkUpdates", cancellable = true, at = @At("HEAD"))
     public void stopChunkUpdates(CallbackInfo info) {
@@ -89,17 +89,17 @@ public abstract class MixinRenderGlobal {
     /*
      * ブロックの設置、破壊時に呼ばれる
      * */
-    /*@Inject(method = "markBlocksForUpdate", cancellable = true, at = @At("HEAD"))
+    @Inject(method = "markBlocksForUpdate", cancellable = true, at = @At("HEAD"))
     public void markBlocksForUpdate(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean updateImmediately, CallbackInfo info) {
         for (int chunkX = minX >> 4; chunkX <= maxX >> 4; chunkX++) {
             for (int chunkY = minY >> 4; chunkY <= maxY >> 4; chunkY++) {
                 for (int chunkZ = minZ >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
-                    ChunkRenderManager.getRenderProvider().setDirty(chunkX, chunkY, chunkZ);
+                    //ChunkRenderManager.getRenderProvider().setDirty(chunkX, chunkY, chunkZ);
                 }
             }
         }
         info.cancel();
-    }*/
+    }
 
     /**
      * remap = false をつけると Optifine を抜いた時に動かない？

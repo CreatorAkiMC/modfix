@@ -118,9 +118,10 @@ public class GuiKeyBindingListAltSet extends GuiListExtended {
             SelectButton[pattern1].visible = true;// 念のため
 
             extended.setPatternID(pattern1);//Patternの設定
-            //そもそもKeyBindingが0以降のものに入っていない？ <- OK
+
+            //KeyBinding を追加するmodがないとModRegisteredBindingがnullになる。
             KeyBinding[] ModKeybinding = ArrayUtils.clone(extended.ModRegisteredBinding());
-            this.ModListEntries[pattern1] = new GuiListExtended.IGuiListEntry[ModKeybinding.length + 1];
+            this.ModListEntries[pattern1] = new GuiListExtended.IGuiListEntry[(ModKeybinding != null ? ModKeybinding.length : 0) + 1];
 
             //ボタン追加
             this.ModListEntries[pattern1][0] = new SelectedButtonEntry();

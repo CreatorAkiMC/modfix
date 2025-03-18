@@ -270,340 +270,6 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
         this.VanillaKeyBinding = this.keyBindings;
     }
 
-    /**
-     * @author Aki
-     * @reason Replace KeyBinding System
-     */
-    /*@Overwrite
-    public void loadOptions() {
-        FileInputStream fileInputStream = null; // Forge: fix MC-151173
-        try {
-            if (!this.optionsFile.exists()) {
-                return;
-            }
-
-            this.soundLevels.clear();
-            List<String> list = IOUtils.readLines(fileInputStream = new FileInputStream(this.optionsFile), StandardCharsets.UTF_8); // Forge: fix MC-117449, MC-151173
-            NBTTagCompound nbttagcompound = new NBTTagCompound();
-
-            for (String s : list) {
-                try {
-                    Iterator<String> iterator = COLON_SPLITTER.omitEmptyStrings().limit(2).split(s).iterator();
-                    nbttagcompound.setString(iterator.next(), iterator.next());
-                } catch (Exception var10) {
-                    LOGGER.warn("Skipping bad option: {}", s);
-                }
-            }
-
-            nbttagcompound = this.dataFix(nbttagcompound);
-
-            for (String s1 : nbttagcompound.getKeySet()) {
-                String s2 = nbttagcompound.getString(s1);
-
-                try {
-                    if ("mouseSensitivity".equals(s1)) {
-                        this.mouseSensitivity = this.parseFloat(s2);
-                    }
-
-                    if ("fov".equals(s1)) {
-                        this.fovSetting = this.parseFloat(s2) * 40.0F + 70.0F;
-                    }
-
-                    if ("gamma".equals(s1)) {
-                        this.gammaSetting = this.parseFloat(s2);
-                    }
-
-                    if ("saturation".equals(s1)) {
-                        this.saturation = this.parseFloat(s2);
-                    }
-
-                    if ("invertYMouse".equals(s1)) {
-                        this.invertMouse = "true".equals(s2);
-                    }
-
-                    if ("renderDistance".equals(s1)) {
-                        this.renderDistanceChunks = Integer.parseInt(s2);
-                    }
-
-                    if ("guiScale".equals(s1)) {
-                        this.guiScale = Integer.parseInt(s2);
-                    }
-
-                    if ("particles".equals(s1)) {
-                        this.particleSetting = Integer.parseInt(s2);
-                    }
-
-                    if ("bobView".equals(s1)) {
-                        this.viewBobbing = "true".equals(s2);
-                    }
-
-                    if ("anaglyph3d".equals(s1)) {
-                        this.anaglyph = "true".equals(s2);
-                    }
-
-                    if ("maxFps".equals(s1)) {
-                        this.limitFramerate = Integer.parseInt(s2);
-                    }
-
-                    if ("fboEnable".equals(s1)) {
-                        this.fboEnable = "true".equals(s2);
-                    }
-
-                    if ("difficulty".equals(s1)) {
-                        this.difficulty = EnumDifficulty.byId(Integer.parseInt(s2));
-                    }
-
-                    if ("fancyGraphics".equals(s1)) {
-                        this.fancyGraphics = "true".equals(s2);
-                    }
-
-                    if ("tutorialStep".equals(s1)) {
-                        this.tutorialStep = TutorialSteps.getTutorial(s2);
-                    }
-
-                    if ("ao".equals(s1)) {
-                        if ("true".equals(s2)) {
-                            this.ambientOcclusion = 2;
-                        } else if ("false".equals(s2)) {
-                            this.ambientOcclusion = 0;
-                        } else {
-                            this.ambientOcclusion = Integer.parseInt(s2);
-                        }
-                    }
-
-                    if ("renderClouds".equals(s1)) {
-                        switch (s2) {
-                            case "true":
-                                this.clouds = 2;
-                                break;
-                            case "false":
-                                this.clouds = 0;
-                                break;
-                            case "fast":
-                                this.clouds = 1;
-                                break;
-                        }
-                    }
-
-                    if ("attackIndicator".equals(s1)) {
-                        switch (s2) {
-                            case "0":
-                                this.attackIndicator = 0;
-                                break;
-                            case "1":
-                                this.attackIndicator = 1;
-                                break;
-                            case "2":
-                                this.attackIndicator = 2;
-                                break;
-                        }
-                    }
-
-                    if ("resourcePacks".equals(s1)) {
-                        this.resourcePacks = JsonUtils.gsonDeserialize(GSON, s2, TYPE_LIST_STRING);
-
-                        if (this.resourcePacks == null) {
-                            this.resourcePacks = Lists.newArrayList();
-                        }
-                    }
-
-                    if ("incompatibleResourcePacks".equals(s1)) {
-                        this.incompatibleResourcePacks = JsonUtils.gsonDeserialize(GSON, s2, TYPE_LIST_STRING);
-
-                        if (this.incompatibleResourcePacks == null) {
-                            this.incompatibleResourcePacks = Lists.newArrayList();
-                        }
-                    }
-
-                    if ("lastServer".equals(s1)) {
-                        this.lastServer = s2;
-                    }
-
-                    if ("lang".equals(s1)) {
-                        this.language = s2;
-                    }
-
-                    if ("chatVisibility".equals(s1)) {
-                        this.chatVisibility = EntityPlayer.EnumChatVisibility.getEnumChatVisibility(Integer.parseInt(s2));
-                    }
-
-                    if ("chatColors".equals(s1)) {
-                        this.chatColours = "true".equals(s2);
-                    }
-
-                    if ("chatLinks".equals(s1)) {
-                        this.chatLinks = "true".equals(s2);
-                    }
-
-                    if ("chatLinksPrompt".equals(s1)) {
-                        this.chatLinksPrompt = "true".equals(s2);
-                    }
-
-                    if ("chatOpacity".equals(s1)) {
-                        this.chatOpacity = this.parseFloat(s2);
-                    }
-
-                    if ("snooperEnabled".equals(s1)) {
-                        this.snooperEnabled = "true".equals(s2);
-                    }
-
-                    if ("fullscreen".equals(s1)) {
-                        this.fullScreen = "true".equals(s2);
-                    }
-
-                    if ("enableVsync".equals(s1)) {
-                        this.enableVsync = "true".equals(s2);
-                    }
-
-                    if ("useVbo".equals(s1)) {
-                        this.useVbo = "true".equals(s2);
-                    }
-
-                    if ("hideServerAddress".equals(s1)) {
-                        this.hideServerAddress = "true".equals(s2);
-                    }
-
-                    if ("advancedItemTooltips".equals(s1)) {
-                        this.advancedItemTooltips = "true".equals(s2);
-                    }
-
-                    if ("pauseOnLostFocus".equals(s1)) {
-                        this.pauseOnLostFocus = "true".equals(s2);
-                    }
-
-                    if ("touchscreen".equals(s1)) {
-                        this.touchscreen = "true".equals(s2);
-                    }
-
-                    if ("overrideHeight".equals(s1)) {
-                        this.overrideHeight = Integer.parseInt(s2);
-                    }
-
-                    if ("overrideWidth".equals(s1)) {
-                        this.overrideWidth = Integer.parseInt(s2);
-                    }
-
-                    if ("heldItemTooltips".equals(s1)) {
-                        this.heldItemTooltips = "true".equals(s2);
-                    }
-
-                    if ("chatHeightFocused".equals(s1)) {
-                        this.chatHeightFocused = this.parseFloat(s2);
-                    }
-
-                    if ("chatHeightUnfocused".equals(s1)) {
-                        this.chatHeightUnfocused = this.parseFloat(s2);
-                    }
-
-                    if ("chatScale".equals(s1)) {
-                        this.chatScale = this.parseFloat(s2);
-                    }
-
-                    if ("chatWidth".equals(s1)) {
-                        this.chatWidth = this.parseFloat(s2);
-                    }
-
-                    if ("mipmapLevels".equals(s1)) {
-                        this.mipmapLevels = Integer.parseInt(s2);
-                    }
-
-                    if ("forceUnicodeFont".equals(s1)) {
-                        this.forceUnicodeFont = "true".equals(s2);
-                    }
-
-                    if ("reducedDebugInfo".equals(s1)) {
-                        this.reducedDebugInfo = "true".equals(s2);
-                    }
-
-                    if ("useNativeTransport".equals(s1)) {
-                        this.useNativeTransport = "true".equals(s2);
-                    }
-
-                    if ("entityShadows".equals(s1)) {
-                        this.entityShadows = "true".equals(s2);
-                    }
-
-                    if ("mainHand".equals(s1)) {
-                        this.mainHand = "left".equals(s2) ? EnumHandSide.LEFT : EnumHandSide.RIGHT;
-                    }
-
-                    if ("showSubtitles".equals(s1)) {
-                        this.showSubtitles = "true".equals(s2);
-                    }
-
-                    if ("realmsNotifications".equals(s1)) {
-                        this.realmsNotifications = "true".equals(s2);
-                    }
-
-                    if ("enableWeakAttacks".equals(s1)) {
-                        this.enableWeakAttacks = "true".equals(s2);
-                    }
-
-                    if ("autoJump".equals(s1)) {
-                        this.autoJump = "true".equals(s2);
-                    }
-
-                    if ("narrator".equals(s1)) {
-                        this.narrator = Integer.parseInt(s2);
-                    }
-
-                    for (KeyBinding keybinding : this.VanillaKeyBinding) {
-                        if (s1.equals("key_" + keybinding.getKeyDescription())) {
-                            if (s2.indexOf(':') != -1) {
-                                String[] t = s2.split(":");
-                                keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]), Integer.parseInt(t[0]));
-                            } else
-                                keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.NONE, Integer.parseInt(s2));
-                        }
-                    }
-
-                    //なかった時にデフォルトのものを適用。
-                    Path path = Paths.get(this.ModsKeySettingFile.getPath());
-                    if (!Files.exists(path) || (Files.exists(path) && Files.size(path) < 1)) {
-                        for (int i = 0; i < this.ModKeyBinding[0].length; i++) {//念のためコピー
-                            KeyBinding ModKey = this.ModKeyBinding[0][i];
-                            if (s1.equals("key_" + ModKey.getKeyDescription())) {
-                                if (s2.indexOf(':') != -1) {
-                                    String[] t = s2.split(":");
-                                    ModKey.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]), Integer.parseInt(t[0]));
-                                    this.ModKeyBindingRegister[0][i] = new KeyBindingRegister(ModKey.getKeyDescription(), ModKey.getKeyCode(), ModKey.getKeyCategory(), net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]));
-                                } else {
-                                    ModKey.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.NONE, Integer.parseInt(s2));
-                                    this.ModKeyBindingRegister[0][i] = new KeyBindingRegister(ModKey.getKeyDescription(), ModKey.getKeyCode(), ModKey.getKeyCategory(), KeyModifier.NONE);
-                                }
-                            }
-                        }
-
-                        for (int i = 1; i < 9; i++) {
-                            this.ModKeyBinding[i] = this.ModKeyBinding[0];//別の配列に同じものをコピー
-                            this.ModKeyBindingRegister[i] = this.ModKeyBindingRegister[0];
-                        }
-                    }
-
-                    for (SoundCategory soundcategory : SoundCategory.values()) {
-                        if (s1.equals("soundCategory_" + soundcategory.getName())) {
-                            this.soundLevels.put(soundcategory, this.parseFloat(s2));
-                        }
-                    }
-
-                    for (EnumPlayerModelParts enumplayermodelparts : EnumPlayerModelParts.values()) {
-                        if (s1.equals("modelPart_" + enumplayermodelparts.getPartName())) {
-                            this.setModelPartEnabled(enumplayermodelparts, "true".equals(s2));
-                        }
-                    }
-                } catch (Exception var11) {
-                    LOGGER.warn("Skipping bad option: {}:{}", s1, s2);
-                }
-            }
-
-            KeyBinding.resetKeyBindingArrayAndHash();
-        } catch (Exception exception) {
-            LOGGER.error("Failed to load options", exception);
-        } finally {
-            IOUtils.closeQuietly(fileInputStream);
-        } // Forge: fix MC-151173
-    }*/
-
     @Inject(method = "loadOptions", at = @At("RETURN"))
     public void LoadOptionsFixReturn(CallbackInfo ci) {
         this.VanillaKeyBinding = this.keyBindings;
@@ -692,139 +358,6 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
         }
     }
 
-    /**
-     * @author Aki
-     * @reason Replace KeyBinding System
-     */
-    /*@Overwrite
-    public void saveOptions() {
-        if (net.minecraftforge.fml.client.FMLClientHandler.instance().isLoading()) return;
-        PrintWriter printwriter = null;
-
-        try {
-            printwriter = new PrintWriter(new OutputStreamWriter(Files.newOutputStream(this.optionsFile.toPath()), StandardCharsets.UTF_8));
-            printwriter.println("version:1343");
-            printwriter.println("invertYMouse:" + this.invertMouse);
-            printwriter.println("mouseSensitivity:" + this.mouseSensitivity);
-            printwriter.println("fov:" + (this.fovSetting - 70.0F) / 40.0F);
-            printwriter.println("gamma:" + this.gammaSetting);
-            printwriter.println("saturation:" + this.saturation);
-            printwriter.println("renderDistance:" + this.renderDistanceChunks);
-            printwriter.println("guiScale:" + this.guiScale);
-            printwriter.println("particles:" + this.particleSetting);
-            printwriter.println("bobView:" + this.viewBobbing);
-            printwriter.println("anaglyph3d:" + this.anaglyph);
-            printwriter.println("maxFps:" + this.limitFramerate);
-            printwriter.println("fboEnable:" + this.fboEnable);
-            printwriter.println("difficulty:" + this.difficulty.getId());
-            printwriter.println("fancyGraphics:" + this.fancyGraphics);
-            printwriter.println("ao:" + this.ambientOcclusion);
-
-            switch (this.clouds) {
-                case 0:
-                    printwriter.println("renderClouds:false");
-                    break;
-                case 1:
-                    printwriter.println("renderClouds:fast");
-                    break;
-                case 2:
-                    printwriter.println("renderClouds:true");
-            }
-
-            printwriter.println("resourcePacks:" + GSON.toJson(this.resourcePacks));
-            printwriter.println("incompatibleResourcePacks:" + GSON.toJson(this.incompatibleResourcePacks));
-            printwriter.println("lastServer:" + this.lastServer);
-            printwriter.println("lang:" + this.language);
-            printwriter.println("chatVisibility:" + this.chatVisibility.getChatVisibility());
-            printwriter.println("chatColors:" + this.chatColours);
-            printwriter.println("chatLinks:" + this.chatLinks);
-            printwriter.println("chatLinksPrompt:" + this.chatLinksPrompt);
-            printwriter.println("chatOpacity:" + this.chatOpacity);
-            printwriter.println("snooperEnabled:" + this.snooperEnabled);
-            printwriter.println("fullscreen:" + this.fullScreen);
-            printwriter.println("enableVsync:" + this.enableVsync);
-            printwriter.println("useVbo:" + this.useVbo);
-            printwriter.println("hideServerAddress:" + this.hideServerAddress);
-            printwriter.println("advancedItemTooltips:" + this.advancedItemTooltips);
-            printwriter.println("pauseOnLostFocus:" + this.pauseOnLostFocus);
-            printwriter.println("touchscreen:" + this.touchscreen);
-            printwriter.println("overrideWidth:" + this.overrideWidth);
-            printwriter.println("overrideHeight:" + this.overrideHeight);
-            printwriter.println("heldItemTooltips:" + this.heldItemTooltips);
-            printwriter.println("chatHeightFocused:" + this.chatHeightFocused);
-            printwriter.println("chatHeightUnfocused:" + this.chatHeightUnfocused);
-            printwriter.println("chatScale:" + this.chatScale);
-            printwriter.println("chatWidth:" + this.chatWidth);
-            printwriter.println("mipmapLevels:" + this.mipmapLevels);
-            printwriter.println("forceUnicodeFont:" + this.forceUnicodeFont);
-            printwriter.println("reducedDebugInfo:" + this.reducedDebugInfo);
-            printwriter.println("useNativeTransport:" + this.useNativeTransport);
-            printwriter.println("entityShadows:" + this.entityShadows);
-            printwriter.println("mainHand:" + (this.mainHand == EnumHandSide.LEFT ? "left" : "right"));
-            printwriter.println("attackIndicator:" + this.attackIndicator);
-            printwriter.println("showSubtitles:" + this.showSubtitles);
-            printwriter.println("realmsNotifications:" + this.realmsNotifications);
-            printwriter.println("enableWeakAttacks:" + this.enableWeakAttacks);
-            printwriter.println("autoJump:" + this.autoJump);
-            printwriter.println("narrator:" + this.narrator);
-            printwriter.println("tutorialStep:" + this.tutorialStep.getName());
-
-            for (KeyBinding keybinding : this.VanillaKeyBinding) {
-                String keyString = "key_" + keybinding.getKeyDescription() + ":" + keybinding.getKeyCode();
-                printwriter.println(keybinding.getKeyModifier() != net.minecraftforge.client.settings.KeyModifier.NONE ? keyString + ":" + keybinding.getKeyModifier() : keyString);
-            }
-
-            //Modが消えてもいいように元はそのまま
-            for (int i = 0; i < ModKeyBinding[0].length; i++) {
-                KeyBinding keybinding = ModKeyBinding[0][i];
-                String keyString = "key_" + keybinding.getKeyDescription() + ":" + keybinding.getKeyCode();
-                printwriter.println(keybinding.getKeyModifier() != net.minecraftforge.client.settings.KeyModifier.NONE ? keyString + ":" + keybinding.getKeyModifier() : keyString);
-            }
-
-            for (SoundCategory soundcategory : SoundCategory.values()) {
-                printwriter.println("soundCategory_" + soundcategory.getName() + ":" + this.getSoundLevel(soundcategory));
-            }
-
-            for (EnumPlayerModelParts enumplayermodelparts : EnumPlayerModelParts.values()) {
-                printwriter.println("modelPart_" + enumplayermodelparts.getPartName() + ":" + this.setModelParts.contains(enumplayermodelparts));
-            }
-        } catch (Exception exception) {
-            LOGGER.error("Failed to save options", exception);
-        } finally {
-            IOUtils.closeQuietly(printwriter);
-        }
-
-        try {
-            printwriter = new PrintWriter(new OutputStreamWriter(Files.newOutputStream(this.ModsKeySettingFile.toPath()), StandardCharsets.UTF_8));
-            printwriter.println("Create by ModFix mod (Creator Aki)");
-            printwriter.println("Select Pattern : " + this.Pattern);
-            for (int i = 0; i < 9; i++) {//[1] ~ [9] (0 ~ 8)
-                printwriter.println("[idx : " + (i + 1) + " ]");
-                for (int i2 = 0; i2 < this.ModKeyBinding[i].length; i2++) {
-                    KeyBinding keybinding = this.ModKeyBinding[i][i2];
-                    KeyBindingRegister register = this.ModKeyBindingRegister[i][i2];
-
-                    String keyString = "key_" + keybinding.getKeyDescription() + ":" + register.keycode;
-                    printwriter.println(register.modifier != net.minecraftforge.client.settings.KeyModifier.NONE ? keyString + ":" + register.modifier : keyString);
-                }
-            }
-        } catch (Exception exception) {
-            LOGGER.error("Failed to save mod key options", exception);
-        } finally {
-            IOUtils.closeQuietly(printwriter);
-        }
-
-        this.sendSettingsToServer();
-    }*/
-
-    /*@Inject(method = "saveOptions", at = @At("HEAD"))
-    public void SaveOptionsHead(CallbackInfo ci) {
-        KeyBinding[] copyDest = new KeyBinding[this.VanillaKeyBinding.length + this.ModKeyBinding[this.Pattern].length];
-        System.arraycopy(this.VanillaKeyBinding, 0, copyDest, 0, this.VanillaKeyBinding.length);
-        System.arraycopy(this.ModKeyBinding[this.Pattern], 0, copyDest, this.VanillaKeyBinding.length, this.ModKeyBinding[this.Pattern].length);
-        this.keyBindings = copyDest;
-    }*/
-
     @Inject(method = "saveOptions", at = @At("RETURN"))
     public void SaveOptionsReturn(CallbackInfo ci) {
         PrintWriter printwriter = null;
@@ -851,33 +384,33 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
 
     @Override
     public KeyBinding[] MCKeyBinding() {
-        return VanillaKeyBinding;
+        return this.VanillaKeyBinding;
     }
 
     @Override
     public KeyBinding[] ModRegisteredBinding() {
-        return ModKeyBinding[Pattern];
+        return this.ModKeyBinding[this.Pattern];
     }
 
     @Override
     public KeyBindingRegister[] KeyBindingRegister() {
-        return this.ModKeyBindingRegister[Pattern];
+        return this.ModKeyBindingRegister[this.Pattern];
     }
 
     @Override
     public void SetModRegisteredBinding(KeyBinding[] ModCustomKeyBinding) {
-        this.ModKeyBinding[Pattern] = ModCustomKeyBinding;
+        this.ModKeyBinding[this.Pattern] = ModCustomKeyBinding;
         //NullPointerError 回避
-        this.ModKeyBindingRegister[Pattern] = new KeyBindingRegister[ModCustomKeyBinding.length];
+        this.ModKeyBindingRegister[this.Pattern] = new KeyBindingRegister[ModCustomKeyBinding.length];
 
         for (int i = 0; i < ModCustomKeyBinding.length; i++) {
-            this.ModKeyBindingRegister[Pattern][i] = new KeyBindingRegister(ModCustomKeyBinding[i].getKeyDescription(), ModCustomKeyBinding[i].getKeyCode(), ModCustomKeyBinding[i].getKeyCategory(), ModCustomKeyBinding[i].getKeyModifier());
+            this.ModKeyBindingRegister[this.Pattern][i] = new KeyBindingRegister(ModCustomKeyBinding[i].getKeyDescription(), ModCustomKeyBinding[i].getKeyCode(), ModCustomKeyBinding[i].getKeyCategory(), ModCustomKeyBinding[i].getKeyModifier());
         }
 
         Path path = Paths.get(this.ModsKeySettingFile.getPath());
         try {
             //ファイルがない場合やファイルがあっても中身がない場合などの処理
-            if (Pattern == 0 || (Files.exists(path) && Files.size(path) < 1)) {
+            if (this.Pattern == 0 || (Files.exists(path) && Files.size(path) < 1)) {
                 //すべてのパターンにチェック
                 for (int i1 = 1; i1 < 9; i1++) {
                     this.ModKeyBinding[i1] = ModCustomKeyBinding;
@@ -894,18 +427,18 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
 
     @Override
     public int getPatternID() {
-        return Pattern;
+        return this.Pattern;
     }
 
     // Set range 0 ~ 8
     @Override
     public void setPatternID(int Id) {
-        Pattern = Id;
+        this.Pattern = Id;
     }
 
     @Override
     public void SetKeyBindingRegister(KeyBindingRegister register, int index) {
-        this.ModKeyBindingRegister[Pattern][index] = register;
+        this.ModKeyBindingRegister[this.Pattern][index] = register;
     }
 
     /**
