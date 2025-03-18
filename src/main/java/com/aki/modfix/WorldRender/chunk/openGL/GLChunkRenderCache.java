@@ -165,8 +165,8 @@ public class GLChunkRenderCache implements IBlockAccess {
     }
 
     @Override
-    public int getStrongPower(BlockPos pos, EnumFacing direction) {
-        return this.getBlockState(pos).getStrongPower(this, pos, direction);
+    public int getStrongPower(BlockPos pos, EnumFacing facing) {
+        return this.getBlockState(pos).getStrongPower(this, pos, facing);
     }
 
     @Override
