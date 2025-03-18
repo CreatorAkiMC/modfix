@@ -145,9 +145,10 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
                     GLDynamicVBO.VBOPart part = Objects.requireNonNull(chunkRender.getVBO(pass));
                     if(ModfixConfig.UseElementBuffer) {
                         //BaseVertex <- Byte単位????
-                        this.CommandBuffers.getSelect().get(pass).addElementsIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), chunkRender.getBaseVertex(pass), index, 1);
+                        this.CommandBuffers.getSelect().get(pass).addElementsIndirectDrawCall(part.getFirst(), part.getCount(), chunkRender.getBaseVertex(pass), index, 1);
                     } else {
-                        this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getVBOFirst(), part.getVertexCount(), index, 1);
+                        this.CommandBuffers.getSelect().get(pass).addIndirectDrawCall(part.getFirst(), part.getCount(), index, 1);
+                        //System.out.println("Pass: " + pass.name() + ", VBOPart: First: " + part.getVBOFirst() + ", VertexCount: " + part.getVertexCount());
                     }
                 });
             });
@@ -175,6 +176,7 @@ public class ChunkRendererGL43 extends ChunkRendererBase<ChunkRender> {
         this.VaoBuffers.getSelect().get(pass).bind();
         int RenderBufferMode = GL40.GL_DRAW_INDIRECT_BUFFER;
         this.CommandBuffers.getSelect().get(pass).bind(RenderBufferMode);
+
         if(ModfixConfig.UseElementBuffer) {
             GL43.glMultiDrawElementsIndirect(GL11.GL_QUADS, GL11.GL_UNSIGNED_INT, 0, this.CommandBuffers.getSelect().get(pass).getCount(), 0);
         } else {

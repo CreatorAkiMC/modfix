@@ -48,6 +48,8 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
     public RTList<LinkedHashMap<ChunkRenderPass, GlVertexOffsetBuffer>> OffsetBuffers;
     public LinkedHashMap<ChunkRenderPass, GLDynamicIBO> IndicesBuffers;
 
+    public int[] vertexCount = new int[] {0, 0, 0, 0};
+
     public String A_POS = "a_pos";
     public String A_COLOR = "a_color";
     public String A_TEXCOORD = "a_TexCoord";
@@ -163,6 +165,14 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
         }
     }
 
+    public int getVertexCount(ChunkRenderPass pass) {
+        return this.vertexCount[pass.ordinal()];
+    }
+
+    public int getAllVertexCount() {
+        return Arrays.stream(this.vertexCount).sum();
+    }
+
     public int getRenderedChunks(ChunkRenderPass pass) {
         return this.RenderChunks.get(pass).size();
     }
@@ -234,6 +244,7 @@ public abstract class ChunkRendererBase<T extends ChunkRender> {
             this.OffsetBuffers.forEach((index, map) -> map.values().forEach(GlVertexOffsetBuffer::delete));
 
         this.SyncList.getList().stream().filter(i -> i != -1).forEach(GL15::glDeleteQueries);
+        this.vertexCount = new int[] {0, 0, 0, 0};
     }
 
     public GLDynamicVBO.VBOPart bufferVBO(ChunkRenderPass pass, ByteBuffer buffer) {

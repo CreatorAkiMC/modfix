@@ -143,7 +143,7 @@ public class Modfix {
                 List<EntityXPOrb> xpOrbs = new ArrayList<>();
                 for (Entity entity : world.getLoadedEntityList()) {
                     if (entity instanceof EntityXPOrb && !entity.isDead) {
-                        if (xpOrbs.size() > 0) {
+                        if (!xpOrbs.isEmpty()) {
                             xpOrbs.forEach(xp -> {
                                 double dist = Math.sqrt(Math.pow((xp.posX - entity.posX) / 8.0d, 2.0) + Math.pow((xp.posY - entity.posY) / 8.0d, 2.0) + Math.pow((xp.posZ - entity.posZ) / 8.0d, 2.0));
                                 double d5 = 1.0 - dist;

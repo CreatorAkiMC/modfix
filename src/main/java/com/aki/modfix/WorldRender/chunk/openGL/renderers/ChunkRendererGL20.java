@@ -70,7 +70,7 @@ public class ChunkRendererGL20 extends ChunkRendererBase<ChunkRender> {
         if (ModfixConfig.UseElementBuffer) {
             GL11.glDrawElements(GL11.GL_QUADS, chunkRender.getIndexesBuffer(pass));
         } else {
-            GL11.glDrawArrays(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount());
+            GL11.glDrawArrays(GL11.GL_QUADS, vboPart.getFirst(), vboPart.getCount());
         }
     }
 

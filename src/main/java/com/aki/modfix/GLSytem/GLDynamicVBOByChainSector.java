@@ -1,48 +1,66 @@
 package com.aki.modfix.GLSytem;
 
+/*
+ * Thank you Meldexum
+ * */
+
 import com.aki.mcutils.APICore.Utils.render.GlObject;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL15;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-public class GLDynamicIBO extends GlObject {
-    private final GLChainSectors BaseSector;
+/**
+ * うまく動きません
+ * */
+public class GLDynamicVBOByChainSector extends GlObject {
+    private GLChainSectors BaseSector = null;
+
+    /*
+    * 4096 -> 1chunkのブロック
+    * 28 -> 1つの頂点のデータ数
+    *
+    * */
+
+    //1つの頂点の大きさ
+    //28
+    private final int vertexSize = DefaultVertexFormats.BLOCK.getSize();
+
+    //
+    //private final int vertexCountPerSector = 128;
+    //private final int sectorSize = vertexCountPerSector * vertexSize;
+    //private final SectorizedList sectors;
 
     private final Queue<Runnable> Listeners = new ArrayDeque<>();//IniVBOS を実行 -> レンダーを更新
 
-    public GLDynamicIBO() {
+    public GLDynamicVBOByChainSector() {
         this.setHandle(GL15.glGenBuffers());
-        //Chunkごと
         /*this.sectors = new SectorizedList(4096) {
             @Override
             protected void grow(int minContinousSector) {
                 int oldSectorCount = this.getSectorCount();
                 super.grow(minContinousSector);
 
-                int newVbo = GLHelper.growBuffer(handle(), (long) sectorSize * oldSectorCount,
-                        (long) sectorSize * getSectorCount());
+                int newVbo = GLHelper.growBuffer(GL15.GL_ARRAY_BUFFER, handle(), (long) sectorSize * oldSectorCount,
+                        (long) sectorSize * this.getSectorCount());
                 if (newVbo != handle()) {
                     setHandle(newVbo);
                     Listeners.forEach(Runnable::run);
                 }
             }
         };*/
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.handle());
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, 0, GL15.GL_STREAM_DRAW);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
-
-        BaseSector = new GLChainSectors(GL15.GL_ELEMENT_ARRAY_BUFFER, integer -> {
-            //iboの更新
+        BaseSector = new GLChainSectors(GL15.GL_ARRAY_BUFFER, integer -> {
             if(integer != this.handle()) {
                 this.setHandle(integer);
                 this.Listeners.forEach(Runnable::run);
             }
         });
-
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, this.handle());
-        //16**3 = 4096,  24 -> 6 * 4
-        GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, 0L/*4096 * 24L*/, GL15.GL_DYNAMIC_DRAW);
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 
     public void AddListener(Runnable runnable) {
@@ -57,11 +75,21 @@ public class GLDynamicIBO extends GlObject {
      * オリジナル(X)と補完用Index()Xなどで位置を特定
      */
 
-    public GLDynamicIBO.IBOPart Buf_Upload(ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
+    public VBOPart Buf_Upload(ByteBuffer buffer) {//ここを変えるべき？ ChunkRenderにIDでもふっておくべきかも
+        /*int size = buffer.limit();
+        int requiredSectors = MathUtil.ceilDiv(size, this.sectorSize);
+        if (requiredSectors <= 0) {
+            throw new IllegalArgumentException();
+        }
+        SectorizedList.Sector sector = this.sectors.claim(requiredSectors);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, handle());
+        GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, (long) sectorSize * sector.getFirstSector(), buffer);
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+        return new VBOPart(sector, size / this.vertexSize);*/
         GLChainSectors sector = this.BaseSector.getChainSector();
         sector.setUsed(true);
         sector.BufferUpload(this.handle(), buffer);
-        return new GLDynamicIBO.IBOPart(sector);
+        return new VBOPart(sector);
     }
 
     public void FreeSector(GLChainSectors sector) {
@@ -82,31 +110,31 @@ public class GLDynamicIBO extends GlObject {
         this.invalidateHandle();
     }
 
-    public class IBOPart {
+    public class VBOPart {
         private boolean valid = true;//free = false
         private final GLChainSectors sector;
 
-        public IBOPart(GLChainSectors sector) {
+        public VBOPart(GLChainSectors sector) {
             this.sector = sector;
         }
 
-        public int getIBO() {
-            return GLDynamicIBO.this.handle();
+        public int getVBO() {
+            return GLDynamicVBOByChainSector.this.handle();
         }
 
         //return =  dataLim / DefaultVertexFormats.BLOCK.getSize()
-        /*public int getVertexCount() {
-            return this.VertexCount;
-        }*/
+        public int getVertexCount() {
+            return this.sector.GetByteSize() / GLDynamicVBOByChainSector.this.vertexSize;
+        }
 
         //バグ？
-        public int getIBOFirst() {
+        public int getVBOFirst() {
             return sector.GetRenderFirst();
         }
 
         public void free() {
             if (valid) {
-                GLDynamicIBO.this.FreeSector(this.sector);
+                GLDynamicVBOByChainSector.this.FreeSector(this.sector);
                 valid = false;
             }
         }

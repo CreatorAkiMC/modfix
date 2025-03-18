@@ -10,11 +10,13 @@ import java.util.function.Consumer;
 //The ChainSectors0 in` ChainSectors1 in` ChainSectors2 in` ChainSectors3 in` ChainSectors4 in`.... ChainSectors[N].
 //無限に続けることができ、高速
 //Infinity and Very Fastest.
-public class ChainSectors {
-    private ChainSectors PrevChain = null;
-    private ChainSectors NextChain = null;
+public class GLChainSectors {
+    private GLChainSectors PrevChain;
+    private GLChainSectors NextChain;
 
-    private int ID_Index = 0;//これを基に生成やforeachを行うので大事
+    private final int target;
+
+    private final int ID_Index;//これを基に生成やforeachを行うので大事
 
     private boolean IsUsed = false;
 
@@ -32,16 +34,18 @@ public class ChainSectors {
     //もし、後ろに新しく要素が追加された場合 [this.BufferOffset + this.FromOffset] で [0 + x より後ろのOffset + 自分より後ろのOffset]にするため。
     private int FromOffset = 0;
 
-    private Consumer<Integer> VBOUpdate = null;
+    private final Consumer<Integer> VBOUpdate;
 
-    public ChainSectors(Consumer<Integer> VBOUpdateConsumer) {
+    public GLChainSectors(int target, Consumer<Integer> VBOUpdateConsumer) {
+        this.target = target;
         this.VBOUpdate = VBOUpdateConsumer;
         this.ID_Index = 0;
         this.PrevChain = null;
         this.NextChain = null;
     }
 
-    private ChainSectors(Consumer<Integer> VBOUpdateConsumer, ChainSectors prevChain, ChainSectors nextChain, int Offset, int id_index) {
+    private GLChainSectors(int target, Consumer<Integer> VBOUpdateConsumer, GLChainSectors prevChain, GLChainSectors nextChain, int Offset, int id_index) {
+        this.target = target;
         this.VBOUpdate = VBOUpdateConsumer;
         this.PrevChain = prevChain;
         this.NextChain = nextChain;
@@ -49,7 +53,7 @@ public class ChainSectors {
         this.BufferOffset = Offset;
     }
 
-    private synchronized ChainSectors CallAndCreate(int ID) {
+    private synchronized GLChainSectors CallAndCreate(int ID) {
         if (ID < 0)
             throw new IllegalArgumentException("ChainSectors Under 0 Error, ID: " + ID);
         if (this.ID_Index == ID)
@@ -57,12 +61,12 @@ public class ChainSectors {
 
         if (ID > this.ID_Index) {//next
             if (this.NextChain == null)
-                this.NextChain = new ChainSectors(this.VBOUpdate, this, null, this.BufferOffset + this.FromOffset, ID_Index + 1);
+                this.NextChain = new GLChainSectors(this.target, this.VBOUpdate, this, null, this.BufferOffset + this.FromOffset, ID_Index + 1);
             this.NextChainCounts = Math.max((ID - this.ID_Index), this.NextChainCounts);
             return this.NextChain.CallAndCreate(ID);
         } else {//Prev
             if (this.PrevChain == null)
-                this.PrevChain = new ChainSectors(this.VBOUpdate, null, this, 0, ID_Index - 1);
+                this.PrevChain = new GLChainSectors(this.target, this.VBOUpdate, null, this, 0, ID_Index - 1);
             this.PrevChainCounts = Math.max((this.ID_Index - ID), this.PrevChainCounts);
             return this.PrevChain.CallAndCreate(ID);
         }
@@ -89,10 +93,10 @@ public class ChainSectors {
         }
     }
 
-    public ChainSectors getChainSector(int RequireSectorIndex) {
+    public GLChainSectors getChainSector(int RequireSectorIndex) {
         if (RequireSectorIndex == this.ID_Index && !this.IsUsed)
             return this;
-        ChainSectors chainSectors = null;
+        GLChainSectors chainSectors = null;
         boolean MinusError = false;
         while (chainSectors == null || chainSectors.IsUsed) {
             int Index = (chainSectors == null) ? RequireSectorIndex : (this.getIndex() < RequireSectorIndex ? chainSectors.ID_Index + 1 : chainSectors.ID_Index - 1);
@@ -106,7 +110,7 @@ public class ChainSectors {
         return chainSectors;
     }
 
-    public void ExecuteToIndexChainSector(Consumer<ChainSectors> consumer, int TargetIndex) {
+    public void ExecuteToIndexChainSector(Consumer<GLChainSectors> consumer, int TargetIndex) {
         if (TargetIndex < 0)
             throw new IllegalArgumentException("ChainSectors Under 0 Error, ID: " + TargetIndex);
         if (this.ID_Index == TargetIndex) {
@@ -114,35 +118,37 @@ public class ChainSectors {
             return;
         }
         if (TargetIndex > this.ID_Index) {
-            ChainSectors NextSector = this.CallAndCreate(this.ID_Index + 1);
+            GLChainSectors NextSector = this.CallAndCreate(this.ID_Index + 1);
             consumer.accept(NextSector);
             if (TargetIndex != (this.ID_Index + 1))
                 NextSector.ExecuteToIndexChainSector(consumer, TargetIndex);
         } else {
-            ChainSectors PrevSector = this.CallAndCreate(this.ID_Index - 1);
+            GLChainSectors PrevSector = this.CallAndCreate(this.ID_Index - 1);
             consumer.accept(PrevSector);
             if (TargetIndex != (this.ID_Index - 1))
                 PrevSector.ExecuteToIndexChainSector(consumer, TargetIndex);
         }
     }
 
-    public ChainSectors getChainSector() {
+    //空いている ChainSector を探します。
+    public GLChainSectors getChainSector() {
         if (!this.IsUsed)
             return this;
-        ChainSectors chainSectors = null;
+        GLChainSectors chainSectors = null;
         while (chainSectors == null || chainSectors.IsUsed) {
             chainSectors = CallAndCreate(chainSectors == null ? 0 : chainSectors.ID_Index + 1);
         }
         return chainSectors;
     }
 
-    public ChainSectors getChainSectorFromIndex(int RequireSectorIndex) {
+    //getIndex() から取得した値から Sectors を取得することができます。
+    public GLChainSectors getChainSectorFromIndex(int RequireSectorIndex) {
         if (RequireSectorIndex == this.ID_Index)
             return this;
         return CallAndCreate(RequireSectorIndex);
     }
 
-    //増減したときはBufferOffsetが変動
+    //ByteBuffer のサイズが変化したときに、自動的に全体のサイズを調整します。
     public void BufferUpload(int VBOID, ByteBuffer UploadBuffer) {
         boolean OldAtBuffer = this.buffer != null;//Bufferが元から存在したか。
         int OldSize = OldAtBuffer ? this.buffer.limit() : 0;
@@ -158,7 +164,7 @@ public class ChainSectors {
 
         //PrevByteSize + (UpdateOffset * 4L) に変更
         if (UpdateOffset != 0)
-            this.VBOUpdate.accept((NewVBO = GLHelper.CopyMoveBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize + UpdateOffset)));
+            this.VBOUpdate.accept((NewVBO = GLHelper.CopyMoveBuffer(this.target, VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize + UpdateOffset)));
 
         if (this.NextChainCounts > 0) {
             int finalNewVBO = NewVBO;
@@ -189,7 +195,7 @@ public class ChainSectors {
                     chainSectors.BufferOffset -= this.FromOffset;
                     chainSectors.BufferFirst -= this.FromOffset;
                 }, this.ID_Index + this.NextChainCounts);
-            this.VBOUpdate.accept(GLHelper.CopyMoveBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize - this.buffer.limit()));
+            this.VBOUpdate.accept(GLHelper.CopyMoveBuffer(this.target, VBOID, NextByteSize + PrevByteSize, PrevByteSize, PrevByteSize - this.buffer.limit()));
             this.BufferFirst = -1;
             this.FromOffset = 0;
             this.buffer = null;
@@ -197,9 +203,9 @@ public class ChainSectors {
     }
 
     private void UpdateBuffers(int VBOID) {
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, VBOID);
-        GL15.glBufferSubData(GL15.GL_ELEMENT_ARRAY_BUFFER, this.BufferFirst, this.buffer);
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
+        GL15.glBindBuffer(this.target, VBOID);
+        GL15.glBufferSubData(this.target, this.BufferFirst, this.buffer);
+        GL15.glBindBuffer(this.target, 0);
     }
 
     public int getSize() {
@@ -216,6 +222,10 @@ public class ChainSectors {
 
     public int getIndex() {
         return this.ID_Index;
+    }
+
+    public ByteBuffer getBuffer() {
+        return this.buffer;
     }
 
     public int GetByteSize() {

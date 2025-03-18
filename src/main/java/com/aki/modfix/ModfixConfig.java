@@ -9,7 +9,7 @@ public class ModfixConfig {
     public static String category = "mod";
 
     public static int DefaultUseGLIndex = 0;
-    public static boolean UseElementBuffer = true;
+    public static boolean UseElementBuffer = false;
 
     public static void PreInit(FMLPreInitializationEvent event) {
         cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -28,7 +28,7 @@ public class ModfixConfig {
     public static void SyncConfig() {
         SettingConfig();
         DefaultUseGLIndex = cfg.getInt("DefaultUseRenderingEngine", category, 3, 0, 3, "0:[GL15], 1:[GL20], 2:[GL42], 3:[GL43]");
-        UseElementBuffer = cfg.getBoolean("UseElementBuffer", category, true, "ElementBuffer may speed things up a bit...");
+        //UseElementBuffer = cfg.getBoolean("UseElementBuffer", category, true, "ElementBuffer may speed things up a bit...");
         cfg.save();
     }
 }

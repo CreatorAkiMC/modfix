@@ -86,6 +86,9 @@ public abstract class MixinRenderGlobal {
         cir.setReturnValue(0);
     }
 
+    /*
+     * ブロックの設置、破壊時に呼ばれる
+     * */
     @Inject(method = "markBlocksForUpdate", cancellable = true, at = @At("HEAD"))
     public void markBlocksForUpdate(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean updateImmediately, CallbackInfo info) {
         for (int chunkX = minX >> 4; chunkX <= maxX >> 4; chunkX++) {

@@ -43,7 +43,7 @@ public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRe
 
         //プレイヤーとチャンクとの距離から、チャンクの透過ブロックを降順(距離が遠いものから)に並べ替えます。
         Vec3d camera = renderViewEntity.getPositionEyes(1.0f);
-        SortVertexUtil.sortVertexData(vertexData, vboPart.getVertexCount(), DefaultVertexFormats.BLOCK.getSize(), 4, (float) (chunkRender.getX() - camera.x), (float) (chunkRender.getY() - camera.y), (float) (chunkRender.getZ() - camera.z));
+        SortVertexUtil.sortVertexData(vertexData, vboPart.getFirst(), DefaultVertexFormats.BLOCK.getSize(), 4, (float) (chunkRender.getX() - camera.x), (float) (chunkRender.getY() - camera.y), (float) (chunkRender.getZ() - camera.z));
         if(ModfixConfig.UseElementBuffer)
             this.index2VertexVecList = ChunkModelMeshUtils.SortIndex2VertexVec(this.index2VertexVecList, 4, (camera.x - chunkRender.getX()), (camera.y - chunkRender.getY()), (camera.z - chunkRender.getZ()));
 
@@ -51,7 +51,7 @@ public class ChunkRenderTranslucentSorter<T extends ChunkRender> extends ChunkRe
             if (!this.getCancel()) {
                 if(vboPart.isValid()) {
                     GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboPart.getVBO());
-                    GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, (long) vboPart.getVBOFirst() * DefaultVertexFormats.BLOCK.getSize(),//Target, Offset, Data
+                    GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, (long) vboPart.getFirst() * DefaultVertexFormats.BLOCK.getSize(),//Target, Offset, Data
                             vertexData.getBuffer());
                     GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
                 }

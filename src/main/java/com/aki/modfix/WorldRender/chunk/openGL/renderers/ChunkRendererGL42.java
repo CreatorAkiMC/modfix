@@ -131,7 +131,7 @@ public class ChunkRendererGL42 extends ChunkRendererBase<ChunkRender> {
                 if (ModfixConfig.UseElementBuffer) {
                     GL42.glDrawElementsInstancedBaseVertexBaseInstance(GL11.GL_QUADS, renderChunk.getIndexesBuffer(pass), 1, renderChunk.getBaseVertex(pass), i);
                 } else {
-                    GL42.glDrawArraysInstancedBaseInstance(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount(), 1, i);
+                    GL42.glDrawArraysInstancedBaseInstance(GL11.GL_QUADS, vboPart.getFirst(), vboPart.getCount(), 1, i);
                 }
             }
         });

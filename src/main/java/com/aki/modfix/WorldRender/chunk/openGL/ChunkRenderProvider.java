@@ -32,8 +32,9 @@ public class ChunkRenderProvider<T extends ChunkRender> {
         for (int x = 0; x < this.GridSizeX; x++) {
             for (int z = 0; z < this.GridSizeZ; z++) {
                 for (int y = 0; y < this.GridSizeY; y++) {
-                    ChunkRender chunkRender = new ChunkRender(x, y, z);
-                    this.chunkRenders[getChunkIndex(x, y, z)] = chunkRender;
+                    int chunkIndex = getChunkIndex(x, y, z);
+                    ChunkRender chunkRender = new ChunkRender(x, y, z, chunkIndex);
+                    this.chunkRenders[chunkIndex] = chunkRender;
 
                     if (x > 0) {
                         T neighbor = this.getRenderChunkAtUnchecked(x - 1, y, z);

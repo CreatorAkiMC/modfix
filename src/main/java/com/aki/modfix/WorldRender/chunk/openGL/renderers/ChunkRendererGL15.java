@@ -69,7 +69,7 @@ public class ChunkRendererGL15 extends ChunkRendererBase<ChunkRender> {
         if(ModfixConfig.UseElementBuffer) {
             GL11.glDrawElements(GL11.GL_QUADS, renderChunk.getIndexesBuffer(pass));
         } else {
-            GL11.glDrawArrays(GL11.GL_QUADS, vboPart.getVBOFirst(), vboPart.getVertexCount());
+            GL11.glDrawArrays(GL11.GL_QUADS, vboPart.getFirst(), vboPart.getCount());
         }
         GL11.glPopMatrix();
     }

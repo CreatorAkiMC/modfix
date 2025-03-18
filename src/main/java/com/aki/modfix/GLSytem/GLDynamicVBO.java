@@ -15,7 +15,6 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class GLDynamicVBO extends GlObject {
-    //private ChainSectors BaseSector = null;
 
     /*
     * 4096 -> 1chunkのブロック
@@ -26,8 +25,6 @@ public class GLDynamicVBO extends GlObject {
     //1つの頂点の大きさ
     //28
     private final int vertexSize = DefaultVertexFormats.BLOCK.getSize();
-
-    //
     private final int vertexCountPerSector = 128;
     private final int sectorSize = vertexCountPerSector * vertexSize;
     private final SectorizedList sectors;
@@ -51,15 +48,8 @@ public class GLDynamicVBO extends GlObject {
             }
         };
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.handle());
-        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, (long) sectorSize * 4096, GL15.GL_STREAM_DRAW);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, sectorSize * 4096L, GL15.GL_STREAM_DRAW);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-
-        /*BaseSector = new ChainSectors(integer -> {
-            if(integer != this.handle()) {
-                this.setHandle(integer);
-                this.Listeners.forEach(Runnable::run);
-            }
-        });*/
     }
 
     public void AddListener(Runnable runnable) {
@@ -88,9 +78,8 @@ public class GLDynamicVBO extends GlObject {
     }
 
     public void FreeSector(SectorizedList.Sector sector) {
-        sectors.free(sector);
+        this.sectors.free(sector);
     }
-
 
     public void unbind(int target) {
         GL15.glBindBuffer(target, 0);
@@ -106,39 +95,43 @@ public class GLDynamicVBO extends GlObject {
     }
 
     public class VBOPart {
-        private boolean valid = true;//free = false
         private final SectorizedList.Sector sector;
+        private final int vertexFirst;
+        private final int vertexCount;
+        private boolean valid = true;
 
-        private final int VertexCount;
-
-        public VBOPart(SectorizedList.Sector sector, int vertexCount) {
+        private VBOPart(SectorizedList.Sector sector, int vertexCount) {
             this.sector = sector;
-            this.VertexCount = vertexCount;
+            this.vertexFirst = sector.getFirstSector() * vertexCountPerSector;
+            this.vertexCount = vertexCount;
         }
 
         public int getVBO() {
             return GLDynamicVBO.this.handle();
         }
 
-        //return =  dataLim / DefaultVertexFormats.BLOCK.getSize()
-        public int getVertexCount() {
-            return this.VertexCount;
+        public int getFirst() {
+            return this.vertexFirst;
         }
 
-        //バグ？
-        public int getVBOFirst() {
-            return sector.getFirstSector() * vertexCountPerSector;
+        public int getCount() {
+            return this.vertexCount;
+        }
+
+        public int getSize() {
+            return this.vertexCount * GLDynamicVBO.this.vertexSize;
         }
 
         public void free() {
-            if (valid) {
+            if (this.valid) {
                 GLDynamicVBO.this.FreeSector(this.sector);
-                valid = false;
+                this.valid = false;
             }
         }
 
         public boolean isValid() {
-            return valid;
+            return this.valid;
         }
+
     }
 }

@@ -32,8 +32,17 @@ public class ChunkRender {
     //private RegionRenderCacheBuilder VBOs = null;
     private final LinkedHashMap<ChunkRenderPass, GLDynamicVBO.VBOPart> VBOs = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> null);
     private final LinkedHashMap<ChunkRenderPass, GLDynamicIBO.IBOPart> IBOs = MapCreateHelper.CreateLinkedHashMap(ChunkRenderPass.ALL, i -> null);
-    private boolean dirty;
+    //チャンク全体の頂点
+    private final List<VertexData> vertexes = new GFastList<>();
+    private final HashMap<ChunkRenderPass, Integer> BaseVertexes = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> 0);
+    private final HashMap<ChunkRenderPass, ByteBuffer> IndexesBuffers = new HashMap<>();
+    // ChainSectors の ID はマルチスレッドでの処理速度によって大分前後します。
+    // なので一致しません。
+    // ほぼ、デバック用です。
+    private final int ChunkRenderIndex;
+    private int updateCount = 0;
 
+    private boolean dirty;
     private final ChunkRender[] neighbors = new ChunkRender[EnumFacing.values().length];
 
     public int lastEnqueuedTime = -1;
@@ -41,7 +50,6 @@ public class ChunkRender {
 
     private VisibilitySet Visibilityset = new VisibilitySet();
     public int VisibleDirections;
-
     private ChunkRenderTaskBase<ChunkRender> LastChunkRenderCompileTask;
     private CompletableFuture<ChunkRenderTaskResult> lastChunkRenderCompileTaskResult;
 
@@ -54,19 +62,9 @@ public class ChunkRender {
 
     private final Set<TextureAtlasSprite> visibleTextures = new HashSet<>();
 
-    //チャンク全体の頂点
-    private final List<VertexData> vertexes = new GFastList<>();
-
-    //blockState から頂点 -> 軽量化
-    // (ChunkRenderTaskCompiler に移します。)
-    //private final HashMap<ChunkRenderPass, HashMap<Integer, IBakedQuadValue>> StateToVertexData = new HashMap<>();
-    //private final HashMap<ChunkRenderPass, HashMap<Integer, IBakedQuadValue>> StateToVertexDataForCheck = new HashMap<>();
-    //例外です
-    private final HashMap<ChunkRenderPass, Integer> BaseVertexes = MapCreateHelper.CreateHashMap(ChunkRenderPass.values(), i -> 0);
-    private final HashMap<ChunkRenderPass, ByteBuffer> IndexesBuffers = new HashMap<>();
-
-    public ChunkRender(int X, int Y, int Z) {
+    public ChunkRender(int X, int Y, int Z, int chunkRenderIndex) {
         this.pos = SectionPos.of(X, Y, Z);
+        this.ChunkRenderIndex = chunkRenderIndex;
         this.markDirty();
     }
 
@@ -217,10 +215,21 @@ public class ChunkRender {
             return;
         }
         this.dirty = true;
+        this.updateCount++;
     }
 
     public boolean isDirty() {
         return this.dirty;
+    }
+
+    public int getChunkRenderIndex() {
+        return this.ChunkRenderIndex;
+    }
+
+    // 更新された回数
+    // 2^31回、更新することは無いと思います。
+    public int getUpdateCount() {
+        return this.updateCount;
     }
 
     /**
@@ -238,21 +247,12 @@ public class ChunkRender {
             }
             this.IBOs.replace(i, null);
         });
-        //this.VBOs.forEach((key, value) -> this.VBOs.replace(key, null));
         this.setTranslucentVertexData(null);
         this.vertexes.clear();
         this.IndexesBuffers.clear();
-        //this.StateToVertexData.clear();
     }
 
     private void deleteTask() {
-        /*for(ChunkRenderPass pass : ChunkRenderPass.values()) {
-            System.out.println("Pass: " + pass + ", DDDAAATTTAAA Delete: " + this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).size() + ", Delete2: " + this.StateToVertexDataForCheck.computeIfAbsent(pass, key -> new HashMap<>()).size());
-            if(!this.StateToVertexData.isEmpty())
-                this.StateToVertexData.get(pass).clear();
-            if(!this.StateToVertexDataForCheck.isEmpty())
-                this.StateToVertexDataForCheck.get(pass).clear();
-        }*/
         if (this.LastChunkRenderCompileTask != null) {
             this.LastChunkRenderCompileTask.SetCancelState(true);
             this.LastChunkRenderCompileTask = null;
@@ -260,6 +260,7 @@ public class ChunkRender {
         }
     }
 
+    // ブロックの更新があった時に、呼び出される。
     public void ChunkRenderCompileAsync(ChunkRendererBase<ChunkRender> chunkRenderer, ChunkGLDispatcher taskDispatcher) {
         if (!this.isDirty() || !this.canCompile()) {
             return;
@@ -325,56 +326,6 @@ public class ChunkRender {
     public void addBaseVertex(ChunkRenderPass pass, int add) {
         this.BaseVertexes.replace(pass, this.BaseVertexes.get(pass) + add);
     }
-
-    /**
-     * Hash値はかぶります(参照が少なすぎる)。
-     * 参照回数の関係でめちゃくちゃ重い、衝突起きる
-     * */
-    /*public void addStateVertexes(ChunkRenderPass pass, int hash_code, IBakedQuadValue quadValue) {
-        this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).put(hash_code, quadValue);
-        if (!this.StateToVertexDataForCheck.isEmpty()) {
-            this.StateToVertexDataForCheck.get(pass).put(hash_code, quadValue);
-        }
-    }
-    public void ContainsCheckStart() {
-        for (ChunkRenderPass pass : ChunkRenderPass.values()) {
-            this.StateToVertexDataForCheck.computeIfAbsent(pass, key -> new HashMap<>());
-        }
-    }
-
-    public void ContainsCheckFinishAndRemove() {
-        for(ChunkRenderPass pass : ChunkRenderPass.values()) {
-            if (this.StateToVertexData.containsKey(pass)) {
-                HashMap<Integer, IBakedQuadValue> map = this.StateToVertexData.get(pass);
-                map.clear();
-                if(!this.StateToVertexDataForCheck.isEmpty())
-                    map.putAll(this.StateToVertexDataForCheck.get(pass));
-            }
-        }
-        this.StateToVertexDataForCheck.clear();
-    }
-
-    public boolean IsStateVertexContains(ChunkRenderPass pass, int hash_code) {
-        boolean isContains = this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).containsKey(hash_code);
-        if(isContains)
-            this.StateToVertexDataForCheck.computeIfAbsent(pass, key -> new HashMap<>()).put(hash_code, this.StateToVertexData.get(pass).get(hash_code));
-        return isContains;
-    }
-
-    public IBakedQuadValue GetVertexDataFromState(ChunkRenderPass pass, int hash_code) {
-        return this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>()).get(hash_code);
-    }
-
-    public void UpdateStateToVertexData(ChunkRenderPass pass, int hash_code, IBakedQuadValue value) {
-        HashMap<Integer, IBakedQuadValue> stateToData = this.StateToVertexData.computeIfAbsent(pass, key -> new HashMap<>());
-        HashMap<Integer, IBakedQuadValue> stateToDataForCheck = this.StateToVertexDataForCheck.computeIfAbsent(pass, key -> new HashMap<>());
-        if(stateToData.replace(hash_code, value) == null) {
-           stateToData.put(hash_code, value);
-        }
-        if(stateToDataForCheck.replace(hash_code, value) == null) {
-            stateToDataForCheck.put(hash_code, value);
-        }
-    }*/
 
     public void CreateIndexesBuffer(ChunkRenderPass pass, Integer[] datas) {
         ByteBuffer buffer = BufferUtils.createByteBuffer(datas.length * 4);
