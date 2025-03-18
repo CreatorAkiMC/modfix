@@ -1,28 +1,12 @@
 package com.aki.modfix.mixin.vanillafix;
 
 import com.aki.modfix.Modfix;
-import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
-import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
-import com.aki.modfix.util.fix.extensions.IPatchedTextureAtlasSpriteModFix;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.BlockModelRenderer;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import net.optifine.render.RenderEnv;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.List;
-import java.util.Set;
 
 @Mixin(value = BlockModelRenderer.class, priority = Modfix.ModPriority)
 public class MixinBlockModelRendererOptifine {
-    @Inject(method = "renderQuadsSmooth", remap = false, at = @At("HEAD"))
+    /*@Inject(method = "renderQuadsSmooth", remap = false, at = @At("HEAD"))
     private void onRenderQuadsSmooth(IBlockAccess blockAccess, IBlockState state, BlockPos pos, BufferBuilder buffer, List<BakedQuad> quads, RenderEnv renderEnv, CallbackInfo ci) {
         markQuads(quads);
     }
@@ -51,5 +35,5 @@ public class MixinBlockModelRendererOptifine {
                 }
             }
         }
-    }
+    }*/
 }

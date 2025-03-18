@@ -3,28 +3,12 @@
  */
 package com.aki.modfix.mixin.vanilla.rendering;
 
-import com.aki.mcutils.APICore.Utils.math.MathHelper;
-import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
-import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
-import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderProvider;
-import com.aki.modfix.WorldRender.chunk.openGL.integreate.optifine.GLOptifine;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Pseudo
@@ -52,7 +36,7 @@ public class MixinDynamicLight {
     @Shadow
     private BlockPos.MutableBlockPos blockPosMutable;
 
-    @Inject(method = "update", remap = false, require = 1, cancellable = true, at = @At("HEAD"))
+    /*@Inject(method = "update", remap = false, require = 1, cancellable = true, at = @At("HEAD"))
     private void on_getWorldFromBlockAccess(RenderGlobal renderGlobal, CallbackInfo info) {
         if (GLOptifine.IS_DYNAMIC_LIGHTS_FAST.invoke(null)) {
             long timeNowMs = System.currentTimeMillis();
@@ -140,6 +124,5 @@ public class MixinDynamicLight {
     private void on_updateLitChunks(RenderGlobal renderGlobal, CallbackInfo info) {
         this.updateLitChunks(renderGlobal);
         info.cancel();
-    }
-
+    }*/
 }

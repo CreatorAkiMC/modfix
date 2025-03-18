@@ -45,10 +45,10 @@ public abstract class MixinRenderGlobal {
     @Unique
     public List<String> modfix$OldstringList = new LinkedList<>();
 
-    @Inject(method = "getRenderedChunks", cancellable = true, at = @At("HEAD"))
+    /*@Inject(method = "getRenderedChunks", cancellable = true, at = @At("HEAD"))
     public void getRenderedChunks(CallbackInfoReturnable<Integer> info) {
         info.setReturnValue(ChunkRenderManager.getChunkRenderer().getRenderedChunks());
-    }
+    }*/
 
     @Inject(method = "stopChunkUpdates", cancellable = true, at = @At("HEAD"))
     public void stopChunkUpdates(CallbackInfo info) {
@@ -68,7 +68,7 @@ public abstract class MixinRenderGlobal {
     @Inject(method = "getDebugInfoRenders", cancellable = true, at = @At("HEAD"))
     public void getDebugInfoRenders(CallbackInfoReturnable<String> info) {
         LinkedList<String> strings = new LinkedList<>();
-        strings.add("ModFix ChunkRenderer: " + ChunkRenderManager.getChunkRenderer().getRenderEngine().getGLName());
+        //strings.add("ModFix ChunkRenderer: " + ChunkRenderManager.getChunkRenderer().getRenderEngine().getGLName());
         strings.add("ModFix ChunkRenderSection Info: ");
         strings.add("  Solid: " + ChunkRenderManager.RenderSections(ChunkRenderPass.SOLID) + ", CutOut: " + ChunkRenderManager.RenderSections(ChunkRenderPass.CUTOUT));
         strings.add("  CutOut_Mipped: " + ChunkRenderManager.RenderSections(ChunkRenderPass.CUTOUT_MIPPED) + ", Translucent: " + ChunkRenderManager.RenderSections(ChunkRenderPass.TRANSLUCENT));
@@ -89,7 +89,7 @@ public abstract class MixinRenderGlobal {
     /*
      * ブロックの設置、破壊時に呼ばれる
      * */
-    @Inject(method = "markBlocksForUpdate", cancellable = true, at = @At("HEAD"))
+    /*@Inject(method = "markBlocksForUpdate", cancellable = true, at = @At("HEAD"))
     public void markBlocksForUpdate(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, boolean updateImmediately, CallbackInfo info) {
         for (int chunkX = minX >> 4; chunkX <= maxX >> 4; chunkX++) {
             for (int chunkY = minY >> 4; chunkY <= maxY >> 4; chunkY++) {
@@ -99,7 +99,7 @@ public abstract class MixinRenderGlobal {
             }
         }
         info.cancel();
-    }
+    }*/
 
     /**
      * remap = false をつけると Optifine を抜いた時に動かない？

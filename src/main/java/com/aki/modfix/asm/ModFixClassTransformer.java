@@ -65,7 +65,7 @@ public class ModFixClassTransformer extends HashMapClassNodeClassTransformer imp
             Field textureFixes = LoadingConfigClass.getDeclaredField("textureFixes");
             textureFixes.setAccessible(true);
             textureFixes.setBoolean(o, false);
-        } catch (IllegalAccessException | NoSuchFieldException ignored) {
+        } catch (NoClassDefFoundError | IllegalAccessException | NoSuchFieldException ignored) {
 
         }
     }

@@ -1,17 +1,11 @@
 package com.aki.modfix.mixin.vanillafix;
 
 import com.aki.modfix.Modfix;
-import com.aki.modfix.WorldRender.chunk.ChunkRenderManager;
-import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
-import com.aki.modfix.util.fix.extensions.IPatchedTextureAtlasSpriteModFix;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.List;
@@ -27,7 +21,7 @@ public abstract class MixinTextureMap extends AbstractTexture {
      * <p>
      * Also breaks down the "root.tick.textures" profiler by texture name.
      */
-    @Overwrite
+    /*@Overwrite
     public void updateAnimations() {
         Minecraft.getMinecraft().profiler.startSection("determineVisibleTextures");
         if(ChunkRenderManager.getRenderProvider() != null) {
@@ -50,5 +44,5 @@ public abstract class MixinTextureMap extends AbstractTexture {
                 Minecraft.getMinecraft().profiler.endSection();
             }
         }
-    }
+    }*/
 }

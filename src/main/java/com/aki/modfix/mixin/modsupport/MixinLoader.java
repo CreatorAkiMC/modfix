@@ -32,9 +32,9 @@ public class MixinLoader {
      */
     @Inject(method = "loadMods", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/fml/common/LoadController;transition(Lnet/minecraftforge/fml/common/LoaderState;Z)V", ordinal = 1), remap = false)
     private void beforeConstructingMods(List<String> injectedModContainers, CallbackInfo ci) {
-        for (ModContainer mod : mods) {
+        for (ModContainer mod : this.mods) {
             try {
-                modClassLoader.addFile(mod.getSource());
+                this.modClassLoader.addFile(mod.getSource());
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
@@ -72,7 +72,7 @@ public class MixinLoader {
                 prepareConfigs.setAccessible(true);
                 prepareConfigs.invoke(processor, MixinEnvironment.getCurrentEnvironment(), extensions);
                 return;
-            } catch (NoSuchMethodException ex) {
+            } catch (Exception ex) {
                 // no-op
             }
 
@@ -82,13 +82,13 @@ public class MixinLoader {
                 prepareConfigs.setAccessible(true);
                 prepareConfigs.invoke(processor, MixinEnvironment.getCurrentEnvironment());
                 return;
-            } catch (NoSuchMethodException ex) {
+            } catch (Exception ex) {
                 // no-op
             }
 
             throw new UnsupportedOperationException("Unsupported Mixin");
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            ex.printStackTrace();
         }
     }
 }

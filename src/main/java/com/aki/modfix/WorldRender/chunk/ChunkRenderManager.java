@@ -1,44 +1,35 @@
 package com.aki.modfix.WorldRender.chunk;
 
 import com.aki.mcutils.APICore.Utils.render.ChunkRenderPass;
-import com.aki.mcutils.APICore.Utils.render.GLUtils;
-import com.aki.modfix.ModfixConfig;
-import com.aki.modfix.WorldRender.chunk.openGL.ChunkGLDispatcher;
-import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
-import com.aki.modfix.WorldRender.chunk.openGL.ChunkRenderProvider;
-import com.aki.modfix.WorldRender.chunk.openGL.RenderEngineType;
-import com.aki.modfix.WorldRender.chunk.openGL.integreate.optifine.GLOptifine;
-import com.aki.modfix.WorldRender.chunk.openGL.renderers.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockRenderLayer;
-import org.lwjgl.opengl.ContextCapabilities;
 
 public class ChunkRenderManager {
-    private static ChunkRendererBase<ChunkRender> ChunkRender = null;
-    private static ChunkGLDispatcher RenderDispatcher = null;
-    private static ChunkRenderProvider<ChunkRender> renderProvider = null;
+    //private static ChunkRendererBase<ChunkRender> ChunkRender = null;
+    private static ChunkRendererDispatcher RendererDispatcher = null;
+    /*private static ChunkRenderProvider<ChunkRender> renderProvider = null;
 
     //VanillaFixの修正用
     public static ChunkRender CurrentChunkRender = null;
 
     public static ChunkRendererBase<ChunkRender> getChunkRenderer() {
         return ChunkRender;
+    }*/
+
+    public static ChunkRendererDispatcher getRenderDispatcher() {
+        return RendererDispatcher;
     }
 
-    public static ChunkGLDispatcher getRenderDispatcher() {
-        return RenderDispatcher;
-    }
-
-    public static ChunkRenderProvider<ChunkRender> getRenderProvider() {
+    /*public static ChunkRenderProvider<ChunkRender> getRenderProvider() {
         return renderProvider;
-    }
+    }*/
 
     public static void SetUPTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator) {
-        RenderDispatcher.update();
-        renderProvider.repositionCamera(GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ());
-        ChunkRender.SetUP(renderProvider, GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ(), GLUtils.getFrustum(), GLUtils.getFrame());
+        RendererDispatcher.update();
+        //renderProvider.repositionCamera(GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ());
+        //ChunkRender.SetUP(renderProvider, GLUtils.getCameraX(), GLUtils.getCameraY(), GLUtils.getCameraZ(), GLUtils.getFrustum(), GLUtils.getFrame());
     }
 
     public static void loadRender() {
@@ -46,19 +37,19 @@ public class ChunkRenderManager {
 
         int renderDist = Minecraft.getMinecraft().gameSettings.renderDistanceChunks;
 
-        RenderDispatcher = new ChunkGLDispatcher();
+        RendererDispatcher = new ChunkRendererDispatcher();
 
-        renderProvider = new ChunkRenderProvider<>();
+        /*renderProvider = new ChunkRenderProvider<>();
         renderProvider.init(renderDist, renderDist, renderDist);
 
         ChunkRender = getGLChunkRenderer();
-        ChunkRender.Init(renderDist);
+        ChunkRender.Init(renderDist);*/
     }
 
     /**
      * Config で変えれるようにしてもいいかも
      */
-    private static ChunkRendererBase<ChunkRender> getGLChunkRenderer() {
+    /*private static ChunkRendererBase<ChunkRender> getGLChunkRenderer() {
         if (GLOptifine.OPTIFINE_INSIDE)
             return GLOptifine.createChunkRenderer(ChunkRender);
         int i = Math.min(ModfixConfig.DefaultUseGLIndex, 3);
@@ -74,9 +65,9 @@ public class ChunkRenderManager {
             return new ChunkRendererGL15();
         }
         throw new UnsupportedOperationException("Your PC Don`t Supported OpenGL");
-    }
+    }*/
 
-    public static RenderEngineType getBestRenderEngineType() {
+    /*public static RenderEngineType getBestRenderEngineType() {
         ContextCapabilities context = GLUtils.CAPS;
         int i = Math.min(ModfixConfig.DefaultUseGLIndex, 3);
 
@@ -91,36 +82,36 @@ public class ChunkRenderManager {
         }
 
         throw new UnsupportedOperationException("????? Your PC Don`t Supported OpenGL ?????");
-    }
+    }*/
 
     public static void Render(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn) {
-        if (ChunkRender != null)
-            ChunkRender.Render(ChunkRenderPass.ConvVanillaRenderPass(blockLayerIn));
+        /*if (ChunkRender != null)
+            ChunkRender.Render(ChunkRenderPass.ConvVanillaRenderPass(blockLayerIn));*/
     }
 
     public static void dispose() {
-        if (renderProvider != null)
+        /*if (renderProvider != null)
             renderProvider.Delete();
         if (ChunkRender != null)
-            ChunkRender.deleteDatas();
-        if (RenderDispatcher != null)
-            RenderDispatcher.Remove_ShutDown();
+            ChunkRender.deleteDatas();*/
+        if (RendererDispatcher != null)
+            RendererDispatcher.Remove_ShutDown();
 
-        ChunkRender = null;
-        renderProvider = null;
-        RenderDispatcher = null;
+        /*ChunkRender = null;
+        renderProvider = null;*/
+        RendererDispatcher = null;
     }
 
     public static int RenderSections(ChunkRenderPass pass) {
-        return ChunkRender.getRenderedChunks(pass);
+        return 0;//ChunkRender.getRenderedChunks(pass);
     }
 
     public static int totalRenderedSections() {
-        return ChunkRender.getRenderedChunks();
+        return 0;//ChunkRender.getRenderedChunks();
     }
 
     public static int AllPassRenderSize() {
-        return ChunkRender.getAllPassRenderChunks();
+        return 0;//ChunkRender.getAllPassRenderChunks();
     }
 
     public static void LoadChunk(int chunkX, int chunkZ) {

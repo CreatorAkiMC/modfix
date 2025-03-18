@@ -1,11 +1,8 @@
 package com.aki.modfix.util.gl;
 
-import com.aki.modfix.Modfix;
-import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public class WorldUtil {
     public static World getWorld() {
@@ -20,7 +17,7 @@ public class WorldUtil {
         return world.getChunk(chunkX, chunkZ);
     }
 
-    public static boolean isSectionLoaded(int sectionX, int sectionY, int sectionZ) {
+    /*public static boolean isSectionLoaded(int sectionX, int sectionY, int sectionZ) {
         if (Modfix.isCubicChunksInstalled && CubicChunks.isCubicWorld(getWorld())) {
             return CubicChunks.isSectionLoaded(getWorld(), sectionX, sectionY, sectionZ);
         }
@@ -39,7 +36,7 @@ public class WorldUtil {
             return null;
         }
         return chunk.getBlockStorageArray()[sectionY];
-    }
+    }*/
 
 
     public static boolean isChunkLoaded(int chunkX, int chunkZ) {

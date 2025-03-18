@@ -1,12 +1,7 @@
 package com.aki.modfix.util.gl;
 
-import com.aki.modfix.Modfix;
-import com.aki.modfix.WorldRender.chunk.openGL.ChunkRender;
-import com.aki.modfix.WorldRender.chunk.openGL.integreate.CubicChunks;
-import net.minecraft.util.EnumFacing;
-
 public class EnumFacingCulledHelper {
-    public static boolean isFaceCulled(EnumFacing facing, ChunkRender chunkRender, double cameraX, double cameraY, double cameraZ) {
+    /*public static boolean isFaceCulled(EnumFacing facing, ChunkRender chunkRender, double cameraX, double cameraY, double cameraZ) {
         switch (facing) {
             case DOWN:
                 if ((!Modfix.isCubicChunksInstalled || !CubicChunks.isCubicWorld()) && chunkRender.getSectionY() >= 16)
@@ -26,5 +21,5 @@ public class EnumFacingCulledHelper {
                 return cameraX < chunkRender.getX() + 16;
         }
         return false;
-    }
+    }*/
 }

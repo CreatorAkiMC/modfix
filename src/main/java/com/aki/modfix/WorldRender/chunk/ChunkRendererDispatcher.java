@@ -1,4 +1,4 @@
-package com.aki.modfix.WorldRender.chunk.openGL;
+package com.aki.modfix.WorldRender.chunk;
 
 import com.aki.modfix.Modfix;
 import net.minecraft.client.Minecraft;
@@ -7,7 +7,7 @@ import net.minecraft.crash.CrashReport;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-public class ChunkGLDispatcher {
+public class ChunkRendererDispatcher {
     private final ExecutorService executor = new ForkJoinPool(Math.max(Runtime.getRuntime().availableProcessors() - 2, 1),
             pool -> new ForkJoinWorkerThread(pool) {
             }, (thread, exception) -> Minecraft.getMinecraft().crashed(new CrashReport("Chunk Compile Thread crashed.", exception)), true);
@@ -16,25 +16,28 @@ public class ChunkGLDispatcher {
 
     public void update() {
         Runnable task;
-        while ((task = taskQueue.poll()) != null) {
+        while ((task = this.taskQueue.poll()) != null) {
             task.run();
         }
     }
 
     public <T> CompletableFuture<T> runAsync(Supplier<T> supplier) {
-        return crashMinecraftOnError(CompletableFuture.supplyAsync(supplier, executor));
+        return crashMinecraftOnError(CompletableFuture.supplyAsync(supplier, this.executor));
     }
 
+    public CompletableFuture<Void> runAsync(Runnable runnable) {
+        return crashMinecraftOnError(CompletableFuture.runAsync(runnable, this.executor));
+    }
+
+    /**
+     *
+     * */
     public <T> CompletableFuture<T> runOnRenderThread(Supplier<T> supplier) {
         if (Thread.currentThread() == this.thread) {
             return CompletableFuture.completedFuture(supplier.get());
         } else {
             return CompletableFuture.supplyAsync(supplier, this.taskQueue::add);
         }
-    }
-
-    public CompletableFuture<Void> runAsync(Runnable runnable) {
-        return crashMinecraftOnError(CompletableFuture.runAsync(runnable, executor));
     }
 
     public CompletableFuture<Void> runOnRenderThread(Runnable runnable) {
@@ -55,16 +58,16 @@ public class ChunkGLDispatcher {
     }
 
     public void Remove_ShutDown() {
-        executor.shutdown();
+        this.executor.shutdown();
         this.update();
         try {
-            if (!executor.awaitTermination(10_000, TimeUnit.MILLISECONDS)) {
-                executor.shutdownNow();
-                if (!executor.awaitTermination(10_000, TimeUnit.MILLISECONDS))
+            if (!this.executor.awaitTermination(10_000, TimeUnit.MILLISECONDS)) {
+                this.executor.shutdownNow();
+                if (!this.executor.awaitTermination(10_000, TimeUnit.MILLISECONDS))
                     Modfix.logger.error("ChunkRenderDispatcher did not terminate!");
             }
         } catch (InterruptedException e) {
-            executor.shutdownNow();
+            this.executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
         this.update();

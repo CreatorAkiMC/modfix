@@ -35,7 +35,7 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
 
     /**
      * Vanillaの変更
-     * [modeloader] など、初期に実行するものは、jsonの[ "target" ]を [ "@env(INIT)" ]にしないといけない
+     * [Loader] など、初期に実行するものは、jsonの[ "target" ]を [ "@env(INIT)" ]にしないといけない
      * GameSetting や RayTracing など、
      */
     public List<String> MixinFiles = Arrays.asList(
@@ -44,7 +44,7 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
     );
 
     public MixinModLoadConfig() {
-        fixMixinClasspathOrder();
+        //fixMixinClasspathOrder();
         MixinBootstrap.init();
         for (String fileName : MixinFiles) {
             Mixins.addConfiguration(fileName);
@@ -52,6 +52,9 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
         //.addConfiguration("mixins." +  + ".json");
     }
 
+    /**
+     * 「Loader が無い」と言われたらまず、こいつを消せ！
+     * */
     private static void fixMixinClasspathOrder() {
         // Move VanillaFix jar up in the classloader's URLs to make sure that the
         // latest version of Mixin is used (to avoid having to rename 'VanillaFix.jar'
