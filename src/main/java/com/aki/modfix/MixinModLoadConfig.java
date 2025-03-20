@@ -44,7 +44,7 @@ public class MixinModLoadConfig implements IFMLLoadingPlugin {
     );
 
     public MixinModLoadConfig() {
-        fixMixinClasspathOrder();
+        //fixMixinClasspathOrder();
         MixinBootstrap.init();
         for (String fileName : MixinFiles) {
             Mixins.addConfiguration(fileName);
