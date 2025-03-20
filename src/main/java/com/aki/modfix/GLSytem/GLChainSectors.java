@@ -238,7 +238,8 @@ public class GLChainSectors {
      * 0 ~ Index * 4096
      */
     public int GetVertexCount() {
-        return this.buffer != null ? (this.buffer.limit() / DefaultVertexFormats.BLOCK.getSize()) : 0;//this.getIndex() * 4096;
+        return this.buffer != null ? (this.buffer.limit() / DefaultVertexFormats.BLOCK.getSize()) : 0;
+        //this.getIndex() * 4096;
     }
 
     public long GetIndexBufferOffset() {
