@@ -73,13 +73,13 @@ public class MixinKeyBinding {
     private static void FixSetKeyBindState(int keyCode, boolean pressed, CallbackInfo ci) {
         Minecraft instance = Minecraft.getMinecraft();
         int id = ((GameSettingsExtended) instance.gameSettings).getPatternID();
-        List<KeyBinding> keyBindings = Arrays.asList(((GameSettingsExtended) instance.gameSettings).getPatternKeyBindings(id));
-        if (keyCode != 0)
-        {
+        KeyBinding[] keyBindings = ((GameSettingsExtended) instance.gameSettings).getPatternKeyBindings(id);
+        List<KeyBinding> keyBindingsList = Arrays.asList(keyBindings != null ? keyBindings : new KeyBinding[0]);
+        if (keyCode != 0) {
             for (KeyBinding keybinding : HASH.lookupAll(keyCode)) {
-                if(keybinding != null) {
-                    List<KeyBinding> MatchKeyBindings = keyBindings.stream().filter(keyBinding -> keyBinding.getKeyDescription().equals(keybinding.getKeyDescription())).collect(Collectors.toList());
-                    if ((MatchKeyBindings.size() == 0 || MatchKeyBindings.size() == 1 && MatchKeyBindings.get(0).getKeyCode() == keyCode)) {
+                if (keybinding != null) {
+                    List<KeyBinding> MatchKeyBindings = keyBindingsList.stream().filter(keyBinding -> keyBinding.getKeyDescription().equals(keybinding.getKeyDescription())).collect(Collectors.toList());
+                    if ((MatchKeyBindings.isEmpty() || MatchKeyBindings.size() == 1 && MatchKeyBindings.get(0).getKeyCode() == keyCode)) {
                         keybinding.pressed = pressed;
                     }
                 }

@@ -1,0 +1,24 @@
+{
+  "required": false,
+  "package": "com.aki.modfix.mixin",
+  "refmap": "modfix.refmap.json",
+  "minVersion": "0.6",
+  "compatibilityLevel": "JAVA_8",
+  "target": "@env(DEFAULT)",
+  "plugin": "com.aki.modfix.MixinLoaderConfig",
+  "mixins": [
+
+  ],
+  "server": [
+
+  ],
+  "client": [
+    "vanillafix.MixinBlockFluidRenderer",
+    "vanillafix.MixinBlockModelRenderer",
+    "vanillafix.MixinBlockModelRendererOptifine",
+    "vanillafix.MixinForgeBlockModelRenderer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -128,9 +128,11 @@ public class GuiKeyBindingListAltSet extends GuiListExtended {
 
             TreeMap<KeyBinding, Integer> map = new TreeMap<>(Comparator.naturalOrder());
 
-            Arrays.stream(ModKeybinding).forEach((o) -> {
-                map.put(o, map.size());//Index 0 ~ X
-            });
+            if(ModKeybinding != null) {
+                Arrays.stream(ModKeybinding).forEach((o) -> {
+                    map.put(o, map.size());//Index 0 ~ X
+                });
+            }
 
             //Iterator<KeyBinding> bindingSet = map.keySet().iterator();
 
@@ -394,10 +396,12 @@ public class GuiKeyBindingListAltSet extends GuiListExtended {
         /**
          * KeyBinding の修正
          * */
-        KeyBindingRegister[] registers = ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).KeyBindingRegister();
         KeyBinding[] keyBinding = ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).ModRegisteredBinding();
-        for (int i = 0; i < registers.length; i++) {
-            keyBinding[i].setKeyModifierAndCode(registers[i].modifier, registers[i].keycode);
+        KeyBindingRegister[] registers = ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).KeyBindingRegister();
+        if(keyBinding != null && registers != null) {
+            for (int i = 0; i < registers.length; i++) {
+                keyBinding[i].setKeyModifierAndCode(registers[i].modifier, registers[i].keycode);
+            }
         }
     }
 
@@ -536,10 +540,13 @@ public class GuiKeyBindingListAltSet extends GuiListExtended {
 
             if (this.keybinding.getKeyCode() != 0) {
                 if (IsModKeyBind) {
-                    for (KeyBinding keybinding : ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).ModRegisteredBinding()) {
-                        if (keybinding != this.keybinding && keybinding.conflicts(this.keybinding)) {
-                            flag1 = true;
-                            keyCodeModifierConflict &= keybinding.hasKeyCodeModifierConflict(this.keybinding);
+                    KeyBinding[] keyBindings = ((GameSettingsExtended) GuiKeyBindingListAltSet.this.mc.gameSettings).ModRegisteredBinding();
+                    if(keyBindings != null) {
+                        for (KeyBinding keybinding : keyBindings) {
+                            if (keybinding != this.keybinding && keybinding.conflicts(this.keybinding)) {
+                                flag1 = true;
+                                keyCodeModifierConflict &= keybinding.hasKeyCodeModifierConflict(this.keybinding);
+                            }
                         }
                     }
                 } else {

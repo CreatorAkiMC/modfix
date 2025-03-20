@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "package": "com.aki.modfix.mixin",
+  "refmap": "modfix.refmap.json",
+  "minVersion": "0.6",
+  "compatibilityLevel": "JAVA_8",
+  "plugin": "com.aki.modfix.MixinLoaderConfig",
+  "target": "@env(INIT)",
+  "mixins": [
+    "vanilla.keybind.MixinClientRegistryKeyBind",
+    "vanilla.keybind.MixinGuiControls",
+    "vanilla.keybind.MixinGuiNewChat",
+    "vanilla.keybind.MixinGuiOptions",
+    "vanilla.keybind.MixinKeyBinding",
+    "vanilla.keybind.MixinKeyBindingGameSettings"
+  ],
+  "server": [
+
+  ],
+  "client": [
+    "modsupport.MixinLoader"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

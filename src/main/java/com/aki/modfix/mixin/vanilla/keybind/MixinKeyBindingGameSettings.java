@@ -26,6 +26,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -325,26 +326,27 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
                                 } else {
                                     KeyBinding[] keyBindings = this.ModKeyBinding[idx];
                                     KeyBindingRegister[] registers = this.ModKeyBindingRegister[idx];
-
-                                    for (int i = 0; i < keyBindings.length; i++) {
-                                        KeyBinding keybinding = keyBindings[i];
-                                        KeyBindingRegister register = registers[i];
-                                        if (s1.equals("key_" + keybinding.getKeyDescription())) {
-                                            if (s2.indexOf(':') != -1) {
-                                                String[] t = s2.split(":");
-                                                keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]), Integer.parseInt(t[0]));
-                                                register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]));
-                                            } else {
-                                                keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.NONE, Integer.parseInt(s2));
-                                                register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), KeyModifier.NONE);
+                                    if (keyBindings != null) {
+                                        for (int i = 0; i < keyBindings.length; i++) {
+                                            KeyBinding keybinding = keyBindings[i];
+                                            KeyBindingRegister register = registers[i];
+                                            if (s1.equals("key_" + keybinding.getKeyDescription())) {
+                                                if (s2.indexOf(':') != -1) {
+                                                    String[] t = s2.split(":");
+                                                    keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]), Integer.parseInt(t[0]));
+                                                    register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), net.minecraftforge.client.settings.KeyModifier.valueFromString(t[1]));
+                                                } else {
+                                                    keybinding.setKeyModifierAndCode(net.minecraftforge.client.settings.KeyModifier.NONE, Integer.parseInt(s2));
+                                                    register.SetData(keybinding.getKeyDescription(), keybinding.getKeyCode(), keybinding.getKeyCategory(), KeyModifier.NONE);
+                                                }
                                             }
-                                        }
 
-                                        keyBindings[i] = keybinding;
-                                        registers[i] = register;
+                                            keyBindings[i] = keybinding;
+                                            registers[i] = register;
+                                        }
+                                        this.ModKeyBinding[idx] = keyBindings;
+                                        this.ModKeyBindingRegister[idx] = registers;
                                     }
-                                    this.ModKeyBinding[idx] = keyBindings;
-                                    this.ModKeyBindingRegister[idx] = registers;
                                 }
                             }
                         } catch (Exception ignored) {
@@ -367,12 +369,14 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
             printwriter.println("Select Pattern : " + this.Pattern);
             for (int i = 0; i < 9; i++) {//[1] ~ [9] (0 ~ 8)
                 printwriter.println("[idx : " + (i + 1) + " ]");
-                for (int i2 = 0; i2 < this.ModKeyBinding[i].length; i2++) {
-                    KeyBinding keybinding = this.ModKeyBinding[i][i2];
-                    KeyBindingRegister register = this.ModKeyBindingRegister[i][i2];
+                if(this.ModKeyBinding[i] != null) {
+                    for (int i2 = 0; i2 < this.ModKeyBinding[i].length; i2++) {
+                        KeyBinding keybinding = this.ModKeyBinding[i][i2];
+                        KeyBindingRegister register = this.ModKeyBindingRegister[i][i2];
 
-                    String keyString = "key_" + keybinding.getKeyDescription() + ":" + register.keycode;
-                    printwriter.println(register.modifier != net.minecraftforge.client.settings.KeyModifier.NONE ? keyString + ":" + register.modifier : keyString);
+                        String keyString = "key_" + keybinding.getKeyDescription() + ":" + register.keycode;
+                        printwriter.println(register.modifier != net.minecraftforge.client.settings.KeyModifier.NONE ? keyString + ":" + register.modifier : keyString);
+                    }
                 }
             }
         } catch (Exception exception) {
@@ -388,11 +392,13 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
     }
 
     @Override
+    @Nullable
     public KeyBinding[] ModRegisteredBinding() {
         return this.ModKeyBinding[this.Pattern];
     }
 
     @Override
+    @Nullable
     public KeyBindingRegister[] KeyBindingRegister() {
         return this.ModKeyBindingRegister[this.Pattern];
     }
@@ -438,7 +444,9 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
 
     @Override
     public void SetKeyBindingRegister(KeyBindingRegister register, int index) {
-        this.ModKeyBindingRegister[this.Pattern][index] = register;
+        if (this.ModKeyBindingRegister[this.Pattern] != null) {
+            this.ModKeyBindingRegister[this.Pattern][index] = register;
+        }
     }
 
     /**
@@ -447,13 +455,17 @@ public abstract class MixinKeyBindingGameSettings implements GameSettingsExtende
      */
     @Override
     public void ChangeKeyPatternEvent() {
-        for (int i = 0; i < this.ModKeyBindingRegister[this.Pattern].length; i++) {
-            KeyBindingRegister register = this.ModKeyBindingRegister[this.Pattern].clone()[i];
-            this.ModKeyBinding[this.Pattern][i].setKeyModifierAndCode(register.modifier, register.keycode);
+        KeyBindingRegister[] registers = this.ModKeyBindingRegister[this.Pattern];
+        if(registers != null) {
+            for (int i = 0; i < registers.length; i++) {
+                KeyBindingRegister register = registers.clone()[i];
+                this.ModKeyBinding[this.Pattern][i].setKeyModifierAndCode(register.modifier, register.keycode);
+            }
         }
     }
 
     @Override
+    @Nullable
     public KeyBinding[] getPatternKeyBindings(int id) {
         return this.ModKeyBinding[id];
     }

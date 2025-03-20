@@ -1,0 +1,60 @@
+{
+  "required": true,
+  "package": "com.aki.modfix.mixin",
+  "refmap": "modfix.refmap.json",
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_8",
+  "plugin": "com.aki.modfix.MixinLoaderConfig",
+  "target": "@env(DEFAULT)",
+  "mixins": [
+    "vanilla.misc.network.process_size.MixinNBTTagCompound",
+    "vanilla.misc.network.process_size.MixinNettyCompressionDecoder"
+  ],
+  "server": [
+    "vanilla.misc.network.process_size.MixinSPacketCustomPayload"
+  ],
+  "client": [
+    "vanilla.misc.MixinBlockPos",
+    "vanilla.misc.MixinBlockRedstoneWire",
+    "vanilla.misc.MixinClearChatShadow",
+    "vanilla.misc.MixinEnumFacing",
+    "vanilla.misc.MixinExplosion",
+    "vanilla.misc.entity.MixinEntity",
+    "vanilla.misc.entity.MixinEntityTrackerEntry",
+    "vanilla.misc.entity.MixinSPacketEntityTeleport",
+    "vanilla.misc.entity.MixinSPacketEntityVelocity",
+    "vanilla.misc.math.MixinFixMathHelper",
+    "vanilla.misc.nbt.MixinNBTTagCompound",
+    "vanilla.misc.network.packet.MixinNetworkManager",
+    "vanilla.misc.network.packet.MixinPacketBuf",
+    "vanilla.misc.network.packet.MixinPacketBuffer",
+    "vanilla.misc.network.pipeline.MixinNettyVarint21FrameDecoderFix",
+    "vanilla.misc.network.process_size.MixinCPacketCustomPayload",
+    "vanilla.misc.network.security.MixinClientConnection",
+    "vanilla.misc.network.security.MixinServerLoginHandler",
+    "vanilla.misc.rand.MixinMinecraftServer",
+    "vanilla.misc.rand.MixinRandomFix",
+    "vanilla.misc.rand.MixinWorld",
+    "vanilla.misc.rand.MixinWorldServer",
+    "vanilla.misc.stack.MixinItemStack",
+    "vanilla.rendering.MixinBakedQuad",
+    "vanilla.rendering.MixinBlock",
+    "vanilla.rendering.MixinDynamicLight",
+    "vanilla.rendering.MixinEntityRenderer",
+    "vanilla.rendering.MixinMinecraft",
+    "vanilla.rendering.MixinRenderGlobal",
+    "vanilla.rendering.MixinWorld",
+    "vanilla.rendering.fast.MixinVertexBuffer",
+    "vanilla.rendering.vertex.MixinBufferBuilder_FA",
+    "vanilla.rendering.vertex.MixinVertexFormat",
+    "vanilla.rendering.vertex.MixinVertexFormatElement",
+    "vanillafix.MixinItemRenderer",
+    "vanillafix.MixinRender",
+    "vanillafix.MixinRenderItem",
+    "vanillafix.MixinTextureAtlasSprite",
+    "vanillafix.MixinTextureMap"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
